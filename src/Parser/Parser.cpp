@@ -15,7 +15,7 @@ ExpectToken::ExpectToken(TokenType type, const Token &token)
     : ParsingError("Expected token of value " + type.getTypeString()
                        + " but got " + token.toString() + "instead.") {}
 
-Parser::Parser(Lexer *lexer) : lexer(lexer) {
+Parser::Parser(Lexer *lexer, AstContextManager *ctx) : lexer(lexer), ctx(ctx) {
     tok = lexer->nextToken();
 }
 

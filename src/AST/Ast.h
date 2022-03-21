@@ -13,8 +13,9 @@ class AstExpr {
     Loc loc;
   public:
     explicit AstExpr(const Loc &loc) : loc(loc) {}
-
     virtual ~AstExpr() = default;
+
+    [[nodiscard]] const Loc &getLoc() const { return loc; }
 };
 
 }

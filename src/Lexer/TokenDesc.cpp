@@ -38,12 +38,12 @@ TokenDesc getTokenDescription() {
     desc.emplace_back(TokenType::Assign, "\\=");
     desc.emplace_back(TokenType::Annotation, "@");
 
-    desc.emplace_back(TokenType::LBracket, "\\[");
-    desc.emplace_back(TokenType::RBracket, "\\[");
-    desc.emplace_back(TokenType::LParen, "\\(");
-    desc.emplace_back(TokenType::RParen, "\\)");
-    desc.emplace_back(TokenType::LBrace, "\\{");
-    desc.emplace_back(TokenType::RBrace, "\\}");
+    desc.emplace_back(TokenType::LBracket, R"(\[)");
+    desc.emplace_back(TokenType::RBracket, R"(\])");
+    desc.emplace_back(TokenType::LParen, R"(\()");
+    desc.emplace_back(TokenType::RParen, R"(\))");
+    desc.emplace_back(TokenType::LBrace, R"(\{)");
+    desc.emplace_back(TokenType::RBrace, R"(\})");
 
     desc.emplace_back(TokenType::SingleComment, "//.*");
     desc.emplace_back(TokenType::MultiComment, R"(/\*[\s\S]*?\*/)");

@@ -38,6 +38,7 @@ class Token {
     Token() = default;
     Token(TokenType::Value tokenType, std::string lexeme, Loc loc);
 
+    [[nodiscard]] const std::string &getLexeme() const { return lexeme; }
     [[nodiscard]] Loc getLocInfo() const { return loc; }
     [[nodiscard]] TokenType getTokenType() const { return tokenType; }
 

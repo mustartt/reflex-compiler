@@ -16,25 +16,42 @@
 
 namespace reflex {
 
-class IdentExpr : public AstExpr {};
+class IdentExpr : public AstExpr {
+  public:
+    explicit IdentExpr(const Loc &loc) : AstExpr(loc) {}
+    [[nodiscard]] virtual std::string getIdent() const = 0;
+};
 
 class Identifier : public IdentExpr {
     std::string name;
   public:
-    explicit Identifier(std::string name) : name(std::move(name)) {}
+    Identifier(const Loc &loc, std::string name) : IdentExpr(loc), name(std::move(name)) {}
+    [[nodiscard]] std::string getIdent() const override { return name; }
 };
 
 class ModuleSelector : public IdentExpr {
     IdentExpr *basename;
     std::string selector;
   public:
-    ModuleSelector(IdentExpr *basename, std::string aSelector) : basename(basename), selector(std::move(aSelector)) {}
+    ModuleSelector(const Loc &loc, IdentExpr *basename, std::string aSelector)
+        : IdentExpr(loc), basename(basename), selector(std::move(aSelector)) {}
+    [[nodiscard]] std::string getIdent() const override {
+        if (auto ident = dynamic_cast<Identifier *>(basename); ident) {
+            return ident->getIdent();
+        }
+        return basename->getIdent() + "::" + selector;
+    }
 };
 
-class BasicLiteral : AstExpr {
+class Literal : public AstExpr {
+  public:
+    explicit Literal(const Loc &loc) : AstExpr(loc) {}
+};
+
+class BasicLiteral : public Literal {
     std::string value;
   public:
-    BasicLiteral(const Loc &loc, std::string value) : AstExpr(loc), value(std::move(value)) {}
+    BasicLiteral(const Loc &loc, std::string value) : Literal(loc), value(std::move(value)) {}
 };
 
 class NumberLit : public BasicLiteral {
@@ -57,22 +74,33 @@ class NullLit : public BasicLiteral {
     NullLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
 };
 
+class TypeExpr : public AstExpr {
+  public:
+    explicit TypeExpr(const Loc &loc) : AstExpr(loc) {}
+};
+
+class IdentifierType : public TypeExpr {
+    IdentExpr *name;
+  public:
+    IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
+};
+
 class Expression;
 
-class ArrayType : public AstExpr {
+class ArrayType : public TypeExpr {
     AstExpr *elementTyp;
     Expression *lengthExpr;
   public:
     ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr)
-        : AstExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
+        : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
 };
 
-class FunctionType : public AstExpr {
-    AstExpr *returnTyp;
-    std::vector<AstExpr *> paramList;
+class FunctionType : public TypeExpr {
+    TypeExpr *returnTyp;
+    std::vector<TypeExpr *> paramList;
   public:
-    FunctionType(const Loc &loc, AstExpr *returnTyp, std::vector<AstExpr *> paramList)
-        : AstExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
+    FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
+        : TypeExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
 };
 
 class ArrayLit : public AstExpr {
@@ -101,13 +129,16 @@ class FunctionLit : public AstExpr {
         : AstExpr(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
 };
 
-class Expression : AstExpr {};
+class Expression : public AstExpr {
+  public:
+    explicit Expression(const Loc &loc) : AstExpr(loc) {}
+};
 
 class UnaryExpr : public Expression {
     UnaryOperator op;
     Expression *expr;
   public:
-    UnaryExpr(UnaryOperator op, Expression *expr) : op(op), expr(expr) {}
+    UnaryExpr(const Loc &loc, UnaryOperator op, Expression *expr) : Expression(loc), op(op), expr(expr) {}
 };
 
 class BinaryExpr : public Expression {
@@ -115,54 +146,63 @@ class BinaryExpr : public Expression {
     Expression *lhs;
     Expression *rhs;
   public:
-    BinaryExpr(BinaryOperator op, Expression *lhs, Expression *rhs) : op(op), lhs(lhs), rhs(rhs) {}
+    BinaryExpr(const Loc &loc, BinaryOperator op, Expression *lhs, Expression *rhs)
+        : Expression(loc), op(op), lhs(lhs), rhs(rhs) {}
 };
 
 class NewExpr : public Expression {
     AstExpr *instanceTyp;
   public:
-    explicit NewExpr(AstExpr *instanceTyp) : instanceTyp(instanceTyp) {}
+    NewExpr(const Loc &loc, AstExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
 };
 
 class CastExpr : public Expression {
     AstExpr *targetTyp;
     Expression *from;
   public:
-    CastExpr(AstExpr *targetTyp, Expression *from) : targetTyp(targetTyp), from(from) {}
+    CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from)
+        : Expression(loc), targetTyp(targetTyp), from(from) {}
 };
 
 class SelectorExpr : public Expression {
     Expression *baseExpr;
     IdentExpr *selector;
   public:
-    SelectorExpr(Expression *baseExpr, IdentExpr *aSelector) : baseExpr(baseExpr), selector(aSelector) {}
+    SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
+        : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
 };
 
 class ArgumentExpr : public Expression {
     Expression *baseExpr;
     std::vector<Expression *> arguments;
   public:
-    ArgumentExpr(Expression *baseExpr, std::vector<Expression *> arguments)
-        : baseExpr(baseExpr), arguments(std::move(arguments)) {}
+    ArgumentExpr(const Loc &loc, Expression *baseExpr, const std::vector<Expression *> &arguments)
+        : Expression(loc), baseExpr(baseExpr), arguments(arguments) {}
 };
 
-class Statement : public AstExpr;
+class Statement : public AstExpr {
+  public:
+    Statement(const Loc &loc) : AstExpr(loc) {}
+};
 
-class SimpleStmt : public Statement;
+class SimpleStmt : public Statement {
+  public:
+    SimpleStmt(const Loc &loc) : Statement(loc) {}
+};
 
 class VariableDecl : public Statement {
     Identifier *name;
     AstExpr *typ;
     Expression *initializer;
   public:
-    VariableDecl(Identifier *name, AstExpr *typ, Expression *initializer)
-        : name(name), typ(typ), initializer(initializer) {}
+    VariableDecl(const Loc &loc, Identifier *name, AstExpr *typ, Expression *initializer)
+        : Statement(loc), name(name), typ(typ), initializer(initializer) {}
 };
 
 class ReturnStmt : public Statement {
     Expression *returnValue;
   public:
-    explicit ReturnStmt(Expression *returnValue) : returnValue(returnValue) {}
+    ReturnStmt(const Loc &loc, Expression *returnValue) : Statement(loc), returnValue(returnValue) {}
 };
 
 class BreakStmt : public Statement {};
@@ -176,17 +216,21 @@ class IfStmt : public Statement {
     Block *primaryBlock;
     Block *elseBlock;
   public:
-    IfStmt(SimpleStmt *cond, Block *primaryBlock, Block *elseBlock)
-        : cond(cond), primaryBlock(primaryBlock), elseBlock(elseBlock) {}
+    IfStmt(const Loc &loc, SimpleStmt *cond, Block *primaryBlock, Block *elseBlock)
+        : Statement(loc), cond(cond), primaryBlock(primaryBlock), elseBlock(elseBlock) {}
 };
 
-class ForClause : public AstExpr {};
+class ForClause : public AstExpr {
+  public:
+    explicit ForClause(const Loc &loc) : AstExpr(loc) {}
+};
 
 class ForRangeClause : public ForClause {
     VariableDecl *variable;
     Expression *iterExpr;
   public:
-    ForRangeClause(VariableDecl *variable, Expression *iterExpr) : variable(variable), iterExpr(iterExpr) {}
+    ForRangeClause(const Loc &loc, VariableDecl *variable, Expression *iterExpr)
+        : ForClause(loc), variable(variable), iterExpr(iterExpr) {}
 };
 
 class ForNormalClause : public ForClause {
@@ -194,21 +238,22 @@ class ForNormalClause : public ForClause {
     Expression *cond;
     SimpleStmt *post;
   public:
-    ForNormalClause(AstExpr *init, Expression *cond, SimpleStmt *post) : init(init), cond(cond), post(post) {}
+    ForNormalClause(const Loc &loc, AstExpr *init, Expression *cond, SimpleStmt *post)
+        : ForClause(loc), init(init), cond(cond), post(post) {}
 };
 
 class ForStmt : public Statement {
     ForClause *clause;
     Block *body;
   public:
-    ForStmt(ForClause *clause, Block *body) : clause(clause), body(body) {}
+    ForStmt(const Loc &loc, ForClause *clause, Block *body) : Statement(loc), clause(clause), body(body) {}
 };
 
 class WhileStmt : public Statement {
     SimpleStmt *cond;
     Block *body;
   public:
-    WhileStmt(SimpleStmt *cond, Block *body) : cond(cond), body(body) {}
+    WhileStmt(const Loc &loc, SimpleStmt *cond, Block *body) : Statement(loc), cond(cond), body(body) {}
 };
 
 class EmptyStmt : public SimpleStmt {};
@@ -218,21 +263,22 @@ class AssignmentStmt : public SimpleStmt {
     Expression *lhs;
     Expression *rhs;
   public:
-    AssignmentStmt(AssignOperator assignOp, Expression *lhs, Expression *rhs)
-        : assignOp(assignOp), lhs(lhs), rhs(rhs) {}
+    AssignmentStmt(const Loc &loc, AssignOperator assignOp, Expression *lhs, Expression *rhs)
+        : SimpleStmt(loc), assignOp(assignOp), lhs(lhs), rhs(rhs) {}
 };
 
 class IncDecStmt : public SimpleStmt {
     PostfixOperator postfixOp;
     Expression *expr;
   public:
-    IncDecStmt(PostfixOperator postfixOp, Expression *expr) : postfixOp(postfixOp), expr(expr) {}
+    IncDecStmt(const Loc &loc, PostfixOperator postfixOp, Expression *expr)
+        : SimpleStmt(loc), postfixOp(postfixOp), expr(expr) {}
 };
 
 class ExpressionStmt : public SimpleStmt {
     Expression *expr;
   public:
-    explicit ExpressionStmt(Expression *expr) : expr(expr) {}
+    ExpressionStmt(const Loc &loc, Expression *expr) : SimpleStmt(loc), expr(expr) {}
 };
 
 class Block : public AstExpr {
