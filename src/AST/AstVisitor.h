@@ -5,8 +5,6 @@
 #ifndef REFLEX_SRC_AST_ASTVISITOR_H_
 #define REFLEX_SRC_AST_ASTVISITOR_H_
 
-#include "AstNodes.h"
-
 namespace reflex {
 
 class Identifier;
