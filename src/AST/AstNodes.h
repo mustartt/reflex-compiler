@@ -13,6 +13,7 @@
 
 #include "../Lexer/Token.h"
 #include "Operator.h"
+#include "AstVisitor.h"
 
 namespace reflex {
 
@@ -27,6 +28,7 @@ class Identifier : public IdentExpr {
   public:
     Identifier(const Loc &loc, std::string name) : IdentExpr(loc), name(std::move(name)) {}
     [[nodiscard]] std::string getIdent() const override { return name; }
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ModuleSelector : public IdentExpr {
@@ -41,6 +43,7 @@ class ModuleSelector : public IdentExpr {
         }
         return basename->getIdent() + "::" + selector;
     }
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Literal : public AstExpr {
@@ -57,21 +60,25 @@ class BasicLiteral : public Literal {
 class NumberLit : public BasicLiteral {
   public:
     NumberLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class StringLit : public BasicLiteral {
   public:
     StringLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class BoolLit : public BasicLiteral {
   public:
     BoolLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class NullLit : public BasicLiteral {
   public:
     NullLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class TypeExpr : public AstExpr {
@@ -83,6 +90,7 @@ class IdentifierType : public TypeExpr {
     IdentExpr *name;
   public:
     IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Expression;
@@ -93,6 +101,7 @@ class ArrayType : public TypeExpr {
   public:
     ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr)
         : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class FunctionType : public TypeExpr {
@@ -101,6 +110,7 @@ class FunctionType : public TypeExpr {
   public:
     FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
         : TypeExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ArrayLit : public AstExpr {
@@ -108,6 +118,7 @@ class ArrayLit : public AstExpr {
   public:
     ArrayLit(const Loc &loc, std::vector<Expression *> initializerList)
         : AstExpr(loc), initializerList(std::move(initializerList)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Block;
@@ -118,6 +129,7 @@ class Parameter : public AstExpr {
   public:
     Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ)
         : AstExpr(loc), name(name), typ(typ) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class FunctionLit : public AstExpr {
@@ -127,6 +139,7 @@ class FunctionLit : public AstExpr {
   public:
     FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, AstExpr *returnTyp, Block *body)
         : AstExpr(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Expression : public AstExpr {
@@ -139,6 +152,7 @@ class UnaryExpr : public Expression {
     Expression *expr;
   public:
     UnaryExpr(const Loc &loc, UnaryOperator op, Expression *expr) : Expression(loc), op(op), expr(expr) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class BinaryExpr : public Expression {
@@ -148,12 +162,14 @@ class BinaryExpr : public Expression {
   public:
     BinaryExpr(const Loc &loc, BinaryOperator op, Expression *lhs, Expression *rhs)
         : Expression(loc), op(op), lhs(lhs), rhs(rhs) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class NewExpr : public Expression {
     AstExpr *instanceTyp;
   public:
     NewExpr(const Loc &loc, AstExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class CastExpr : public Expression {
@@ -162,6 +178,7 @@ class CastExpr : public Expression {
   public:
     CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from)
         : Expression(loc), targetTyp(targetTyp), from(from) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class SelectorExpr : public Expression {
@@ -170,6 +187,7 @@ class SelectorExpr : public Expression {
   public:
     SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
         : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ArgumentExpr : public Expression {
@@ -178,6 +196,7 @@ class ArgumentExpr : public Expression {
   public:
     ArgumentExpr(const Loc &loc, Expression *baseExpr, std::vector<Expression *> arguments)
         : Expression(loc), baseExpr(baseExpr), arguments(std::move(arguments)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Statement : public AstExpr {
@@ -197,17 +216,25 @@ class VariableDecl : public Statement {
   public:
     VariableDecl(const Loc &loc, Identifier *name, AstExpr *typ, Expression *initializer)
         : Statement(loc), name(name), typ(typ), initializer(initializer) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ReturnStmt : public Statement {
     Expression *returnValue;
   public:
     ReturnStmt(const Loc &loc, Expression *returnValue) : Statement(loc), returnValue(returnValue) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
-class BreakStmt : public Statement {};
+class BreakStmt : public Statement {
+  public:
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+};
 
-class ContinueStmt : public Statement {};
+class ContinueStmt : public Statement {
+  public:
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+};
 
 class Block;
 
@@ -218,6 +245,7 @@ class IfStmt : public Statement {
   public:
     IfStmt(const Loc &loc, SimpleStmt *cond, Block *primaryBlock, Block *elseBlock)
         : Statement(loc), cond(cond), primaryBlock(primaryBlock), elseBlock(elseBlock) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ForClause : public AstExpr {
@@ -231,6 +259,7 @@ class ForRangeClause : public ForClause {
   public:
     ForRangeClause(const Loc &loc, VariableDecl *variable, Expression *iterExpr)
         : ForClause(loc), variable(variable), iterExpr(iterExpr) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ForNormalClause : public ForClause {
@@ -240,6 +269,7 @@ class ForNormalClause : public ForClause {
   public:
     ForNormalClause(const Loc &loc, AstExpr *init, Expression *cond, SimpleStmt *post)
         : ForClause(loc), init(init), cond(cond), post(post) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ForStmt : public Statement {
@@ -247,6 +277,7 @@ class ForStmt : public Statement {
     Block *body;
   public:
     ForStmt(const Loc &loc, ForClause *clause, Block *body) : Statement(loc), clause(clause), body(body) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class WhileStmt : public Statement {
@@ -254,9 +285,13 @@ class WhileStmt : public Statement {
     Block *body;
   public:
     WhileStmt(const Loc &loc, SimpleStmt *cond, Block *body) : Statement(loc), cond(cond), body(body) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
-class EmptyStmt : public SimpleStmt {};
+class EmptyStmt : public SimpleStmt {
+  public:
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+};
 
 class AssignmentStmt : public SimpleStmt {
     AssignOperator assignOp;
@@ -265,6 +300,7 @@ class AssignmentStmt : public SimpleStmt {
   public:
     AssignmentStmt(const Loc &loc, AssignOperator assignOp, Expression *lhs, Expression *rhs)
         : SimpleStmt(loc), assignOp(assignOp), lhs(lhs), rhs(rhs) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class IncDecStmt : public SimpleStmt {
@@ -273,12 +309,14 @@ class IncDecStmt : public SimpleStmt {
   public:
     IncDecStmt(const Loc &loc, PostfixOperator postfixOp, Expression *expr)
         : SimpleStmt(loc), postfixOp(postfixOp), expr(expr) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ExpressionStmt : public SimpleStmt {
     Expression *expr;
   public:
     ExpressionStmt(const Loc &loc, Expression *expr) : SimpleStmt(loc), expr(expr) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class Block : public AstExpr {
@@ -286,10 +324,8 @@ class Block : public AstExpr {
   public:
     Block(const Loc &loc, std::vector<Statement *> stmts)
         : AstExpr(loc), stmts(std::move(stmts)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
-
-class ClassDecl : public AstExpr {};
-class MemberDecl : public AstExpr {};
 
 }
 

@@ -9,7 +9,13 @@
 
 namespace reflex {
 
-class AstExpr {
+class AstVisitor;
+class AstVisitable {
+  public:
+    virtual void accept(AstVisitor *visitor) = 0;
+};
+
+class AstExpr : public AstVisitable {
     Loc loc;
   public:
     explicit AstExpr(const Loc &loc) : loc(loc) {}
