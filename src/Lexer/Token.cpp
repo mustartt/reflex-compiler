@@ -48,4 +48,12 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
     return os;
 }
 
+bool Token::isBasicLiteral() const {
+    auto val = tokenType.getValue();
+    return val == TokenType::BoolLiteral
+        || val == TokenType::NumberLiteral
+        || val == TokenType::StringLiteral
+        || val == TokenType::NullLiteral;
+}
+
 }

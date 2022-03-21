@@ -140,6 +140,129 @@ std::vector<TypeExpr *> Parser::parseParamTypeList() {
     return params;
 }
 
+Literal *Parser::parseLiteral() {
+    if (tok.isBasicLiteral())
+        return parseBasicLit();
+    if (check(TokenType::LBrace))
+        return parseArrayLit();
+    return parseFunctionLit();
+}
+
+Literal *Parser::parseBasicLit() {
+    switch (tok.getTokenType().getValue()) {
+        case TokenType::BoolLiteral: return parseBoolLit();
+        case TokenType::NumberLiteral: return parseNumberLit();
+        case TokenType::StringLiteral: return parseStringLit();
+        default: return parseNullLit();
+    }
+}
+
+NumberLit *Parser::parseNumberLit() {
+    auto token = expect(TokenType::NumberLiteral);
+    return ctx->create<NumberLit>(token.getLocInfo(), token.getLexeme());
+}
+
+StringLit *Parser::parseStringLit() {
+    auto token = expect(TokenType::StringLiteral);
+    auto &lit = token.getLexeme();
+    return ctx->create<StringLit>(
+        token.getLocInfo(),
+        lit.substr(1, lit.size() - 2)
+    );
+}
+
+BoolLit *Parser::parseBoolLit() {
+    auto token = expect(TokenType::BoolLiteral);
+    return ctx->create<BoolLit>(token.getLocInfo(), token.getLexeme());
+}
+
+NullLit *Parser::parseNullLit() {
+    auto token = expect(TokenType::NullLiteral);
+    return ctx->create<NullLit>(token.getLocInfo(), token.getLexeme());
+}
+
+Literal *Parser::parseArrayLit() {
+    auto startToken = tok;
+    return ctx->create<ArrayLit>(
+        startToken.getLocInfo(),
+        parseLiteralValue()
+    );
+}
+
+std::vector<AstExpr *> Parser::parseLiteralValue() {
+    expect(TokenType::LBrace);
+    auto elements = parseElementList();
+    expect(TokenType::RBrace);
+    return elements;
+}
+
+std::vector<AstExpr *> Parser::parseElementList() {
+    if (check(TokenType::RBrace))
+        return {};
+    std::vector<AstExpr *> elements;
+    elements.push_back(parseElement());
+    while (!check(TokenType::RBrace)) {
+        expect(TokenType::Comma);
+        elements.push_back(parseElement());
+    }
+    return elements;
+}
+
+AstExpr *Parser::parseElement() {
+    if (check(TokenType::LBrace)) {
+        return parseArrayLit();
+    }
+    return parseExpr();
+}
+
+Literal *Parser::parseFunctionLit() {
+    auto start = expect(TokenType::Func);
+    auto[params, ret] = parseSignature();
+    auto body = parseBlock();
+    return ctx->create<FunctionLit>(
+        start.getLocInfo(),
+        params, ret, body
+    );
+}
+
+std::pair<std::vector<Parameter *>, TypeExpr *> Parser::parseSignature() {
+    expect(TokenType::LParen);
+    auto params = parseParamList();
+    auto end = expect(TokenType::RParen);
+    TypeExpr *retTyp = ctx->create<IdentifierType>(
+        end.getLocInfo(),
+        ctx->create<Identifier>(end.getLocInfo(), "void")
+    );
+    if (check(TokenType::ReturnArrow)) {
+        next();
+        retTyp = parseType();
+    }
+    return {params, retTyp};
+}
+
+std::vector<Parameter *> Parser::parseParamList() {
+    if (check(TokenType::RParen)) {
+        return {};
+    }
+    std::vector<Parameter *> params;
+    params.push_back(parseFuncParam());
+    while (!check(TokenType::RParen)) {
+        expect(TokenType::Comma);
+        params.push_back(parseFuncParam());
+    }
+    return params;
+}
+
+Parameter *Parser::parseFuncParam() {
+    auto ident = parseIdent();
+    expect(TokenType::Colon);
+    return ctx->create<Parameter>(
+        ident->getLoc(),
+        ident,
+        parseType()
+    );
+}
+
 Expression *Parser::parseExpr() {
     return nullptr;
 }

@@ -116,11 +116,11 @@ class FunctionType : public TypeExpr {
     [[nodiscard]] const std::vector<TypeExpr *> &getParamList() const { return paramList; }
 };
 
-class ArrayLit : public AstExpr {
-    std::vector<Expression *> initializerList;
+class ArrayLit : public Literal {
+    std::vector<AstExpr *> initializerList;
   public:
-    ArrayLit(const Loc &loc, std::vector<Expression *> initializerList)
-        : AstExpr(loc), initializerList(std::move(initializerList)) {}
+    ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList)
+        : Literal(loc), initializerList(std::move(initializerList)) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
@@ -135,13 +135,13 @@ class Parameter : public AstExpr {
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
-class FunctionLit : public AstExpr {
+class FunctionLit : public Literal {
     std::vector<Parameter *> parameters;
-    AstExpr *returnTyp;
+    TypeExpr *returnTyp;
     Block *body;
   public:
-    FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, AstExpr *returnTyp, Block *body)
-        : AstExpr(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
+    FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body)
+        : Literal(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 

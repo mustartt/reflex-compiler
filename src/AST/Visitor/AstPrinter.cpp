@@ -55,12 +55,11 @@ void AstPrinter::visit(IdentifierType *visitable) {
 void AstPrinter::visit(ArrayType *visitable) {
     generateIndent();
     output << "ArrayType: " << std::endl;
-    ++indent;
+    ScopeIndent elem(indent);
     visitable->getElementTyp()->accept(this);
     output << std::endl;
     if (visitable->getLengthExpr())
         visitable->getLengthExpr()->accept(this);
-    --indent;
 }
 
 void AstPrinter::visit(FunctionType *visitable) {

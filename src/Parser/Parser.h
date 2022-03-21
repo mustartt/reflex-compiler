@@ -46,20 +46,20 @@ class Parser {
     std::vector<TypeExpr *> parseParamTypeList();
 
     Literal *parseLiteral();
-    BasicLiteral *parseBasicLit();
+    Literal *parseBasicLit();
     NumberLit *parseNumberLit();
     StringLit *parseStringLit();
     BoolLit *parseBoolLit();
     NullLit *parseNullLit();
 
-    ArrayLit *parseArrayLit();
-    AstExpr *parseLiteralValue();
-    AstExpr *parseElementList();
+    Literal *parseArrayLit();
+    std::vector<AstExpr *> parseLiteralValue();
+    std::vector<AstExpr *> parseElementList();
     AstExpr *parseElement();
-    AstExpr *parseFunctionLit();
-    AstExpr *parseSignature();
-    AstExpr *parseParamList();
-    AstExpr *parseFuncParam();
+    Literal *parseFunctionLit();
+    std::pair<std::vector<Parameter *>, TypeExpr *> parseSignature();
+    std::vector<Parameter *> parseParamList();
+    Parameter *parseFuncParam();
 
     Expression *parseExpr();
     AstExpr *parseExpr1(int tokePrec, AstExpr *lhs);
@@ -75,7 +75,7 @@ class Parser {
     AstExpr *parseArgumentList();
     AstExpr *parseArgument(AstExpr *base);
 
-    AstExpr *parseBlock();
+    Block *parseBlock();
     AstExpr *parseStmtList();
     AstExpr *parseStatement();
 

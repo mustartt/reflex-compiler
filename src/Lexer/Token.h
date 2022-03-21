@@ -45,6 +45,8 @@ class Token {
     [[nodiscard]] std::string getTokenTypeString() const;
     [[nodiscard]] std::string toString() const;
 
+    [[nodiscard]] bool isBasicLiteral() const;
+
     friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
 
