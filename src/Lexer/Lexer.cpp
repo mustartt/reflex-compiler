@@ -11,7 +11,7 @@ LexerError::LexerError(const std::string &arg) : runtime_error(arg) {}
 Lexer::Lexer(Source *source, std::string content, const TokenDesc &tokDesc, KeywordDesc keyDesc)
     : index(0), source(source), content(std::move(content)), keywordDesc(std::move(keyDesc)) {
     for (const auto&[type, regexExpr]: tokDesc) {
-        std::regex parsedRegex{"^" + regexExpr};
+        std::regex parsedRegex{"^(" + regexExpr + ")"};
         tokenDesc.emplace_back(type, std::move(parsedRegex));
     }
 }
@@ -32,24 +32,28 @@ Token Lexer::nextToken() {
 
     for (const auto &[type, regex]: tokenDesc) {
         std::smatch matches;
-        if (std::regex_search(content, matches, regex)) {
-            index += matches[0].length();
+        if (std::regex_search(current, matches, regex)) {
             auto lexeme = matches[0].str();
+            index += lexeme.length();
+            Loc loc(source, line, col, lexeme.length());
             if (lexeme.starts_with('\n')) {
                 line += (int)std::count(lexeme.begin(), lexeme.end(), '\n');
                 col = 1;
             } else {
                 col += (int)lexeme.length();
             }
-            Loc loc(source, line, col, lexeme.length());
-            if (type == TokenType::Identifier) {
-                return {keywordDesc.at(lexeme), lexeme, loc};
+            if (type.getValue() == TokenType::Identifier && keywordDesc.count(lexeme)) {
+                return {keywordDesc[lexeme].getValue(), lexeme, loc};
             }
-            return {type, lexeme, loc};
+            return {type.getValue(), lexeme, loc};
         }
     }
 
-    throw LexerError("Unknown Token: " + getErrorTokenLookahead(content) + ".");
+    throw LexerError("Unknown Token: " + getErrorTokenLookahead(current) + ".");
+}
+
+Loc Lexer::getCurrentPosition() const {
+    return {source, line, col, 1};
 }
 
 }

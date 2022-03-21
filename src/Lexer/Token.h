@@ -6,6 +6,7 @@
 #define REFLEX_SRC_LEXER_TOKEN_H_
 
 #include <string>
+#include <ostream>
 #include "TokenType.h"
 
 namespace reflex {
@@ -18,7 +19,7 @@ class Loc {
     size_t col;
     size_t size;
   public:
-    Loc() = delete;
+    Loc() = default;
     Loc(Source *source, size_t line, size_t col, size_t size);
 
     [[nodiscard]] std::string getFormattedRepr() const;
@@ -30,12 +31,20 @@ class Loc {
 };
 
 class Token {
-    TokenType tokenType;
+    TokenType tokenType{TokenType::EndOfFile};
     std::string lexeme;
-    Loc loc;
+    Loc loc{};
   public:
-    Token(TokenType tokenType, std::string lexeme, Loc loc);
+    Token() = default;
+    Token(TokenType::Value tokenType, std::string lexeme, Loc loc);
 
+    [[nodiscard]] Loc getLocInfo() const { return loc; }
+    [[nodiscard]] TokenType getTokenType() const { return tokenType; }
+
+    [[nodiscard]] std::string getTokenTypeString() const;
+    [[nodiscard]] std::string toString() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
 
 }

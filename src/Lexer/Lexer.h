@@ -35,6 +35,7 @@ class Lexer {
 
     [[nodiscard]] bool hasNext() const;
     Token nextToken();
+    Loc getCurrentPosition() const;
 };
 
 }

@@ -31,7 +31,21 @@ void Loc::highlightToken(std::ostream &ostream) const {
     ostream << std::endl;
 }
 
-Token::Token(TokenType tokenType, std::string lexeme, Loc loc)
+Token::Token(TokenType::Value tokenType, std::string lexeme, Loc loc)
     : tokenType(tokenType), lexeme(std::move(lexeme)), loc(loc) {}
+
+std::string Token::getTokenTypeString() const {
+    return tokenType.getTypeString();
+}
+
+std::string Token::toString() const {
+    return "<\'" + tokenType.getTypeString() + "\' : \'" + lexeme +
+        "\' " + loc.getFormattedRepr() + ">";
+}
+
+std::ostream &operator<<(std::ostream &os, const Token &token) {
+    os << token.toString();
+    return os;
+}
 
 }
