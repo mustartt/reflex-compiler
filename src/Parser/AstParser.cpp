@@ -96,7 +96,7 @@ ArrayType *Parser::parseArrayType() {
 
 ArrayType *Parser::parseElementType1(ArrayType *baseTyp) {
     if (check(TokenType::LBracket)) {
-        expect(TokenType::RBracket);
+        expect(TokenType::LBracket);
         auto lenExpr = parseExpr();
         expect(TokenType::RBracket);
         return parseElementType1(

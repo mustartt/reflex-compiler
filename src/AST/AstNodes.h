@@ -38,9 +38,6 @@ class ModuleSelector : public IdentExpr {
     ModuleSelector(const Loc &loc, IdentExpr *basename, std::string aSelector)
         : IdentExpr(loc), basename(basename), selector(std::move(aSelector)) {}
     [[nodiscard]] std::string getIdent() const override {
-        if (auto ident = dynamic_cast<Identifier *>(basename); ident) {
-            return ident->getIdent();
-        }
         return basename->getIdent() + "::" + selector;
     }
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
@@ -55,6 +52,7 @@ class BasicLiteral : public Literal {
     std::string value;
   public:
     BasicLiteral(const Loc &loc, std::string value) : Literal(loc), value(std::move(value)) {}
+    [[nodiscard]] const std::string &getValue() const { return value; }
 };
 
 class NumberLit : public BasicLiteral {
@@ -91,6 +89,7 @@ class IdentifierType : public TypeExpr {
   public:
     IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getTypename() const { return name; }
 };
 
 class Expression;
@@ -102,6 +101,8 @@ class ArrayType : public TypeExpr {
     ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr)
         : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] AstExpr *getElementTyp() const { return elementTyp; }
+    [[nodiscard]] Expression *getLengthExpr() const { return lengthExpr; }
 };
 
 class FunctionType : public TypeExpr {
@@ -111,6 +112,8 @@ class FunctionType : public TypeExpr {
     FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
         : TypeExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] TypeExpr *getReturnTyp() const { return returnTyp; }
+    [[nodiscard]] const std::vector<TypeExpr *> &getParamList() const { return paramList; }
 };
 
 class ArrayLit : public AstExpr {

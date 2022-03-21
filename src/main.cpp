@@ -6,6 +6,7 @@
 #include "Lexer/Lexer.h"
 #include "AST/AstContextManager.h"
 #include "Parser/Parser.h"
+#include "AST/Visitor/AstPrinter.h"
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -18,8 +19,10 @@ int main(int argc, char *argv[]) {
     Parser parser(&lexer, &ctx);
 
     auto root = parser.parseType();
+    AstPrinter printer(std::cout);
+    printer.visit(dynamic_cast<FunctionType *>(root));
 
-    std::cout << "Remaining Tokens: " << std::endl;
+    std::cout << std::endl << "Remaining Tokens: " << std::endl;
     while (lexer.hasNext()) {
         auto tok = lexer.nextToken();
         if (tok.getTokenType().getValue() != TokenType::WhiteSpace) {
