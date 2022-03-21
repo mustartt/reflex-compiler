@@ -176,18 +176,18 @@ class ArgumentExpr : public Expression {
     Expression *baseExpr;
     std::vector<Expression *> arguments;
   public:
-    ArgumentExpr(const Loc &loc, Expression *baseExpr, const std::vector<Expression *> &arguments)
-        : Expression(loc), baseExpr(baseExpr), arguments(arguments) {}
+    ArgumentExpr(const Loc &loc, Expression *baseExpr, std::vector<Expression *> arguments)
+        : Expression(loc), baseExpr(baseExpr), arguments(std::move(arguments)) {}
 };
 
 class Statement : public AstExpr {
   public:
-    Statement(const Loc &loc) : AstExpr(loc) {}
+    explicit Statement(const Loc &loc) : AstExpr(loc) {}
 };
 
 class SimpleStmt : public Statement {
   public:
-    SimpleStmt(const Loc &loc) : Statement(loc) {}
+    explicit SimpleStmt(const Loc &loc) : Statement(loc) {}
 };
 
 class VariableDecl : public Statement {
