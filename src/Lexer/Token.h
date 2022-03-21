@@ -18,6 +18,7 @@ class Loc {
     size_t col;
     size_t size;
   public:
+    Loc() = delete;
     Loc(Source *source, size_t line, size_t col, size_t size);
 
     [[nodiscard]] std::string getFormattedRepr() const;
