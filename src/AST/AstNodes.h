@@ -241,14 +241,31 @@ class SimpleStmt : public Statement {
     explicit SimpleStmt(const Loc &loc) : Statement(loc) {}
 };
 
-class VariableDecl : public Statement {
-    Identifier *name;
+class Declaration : public Statement {
+  public:
+    explicit Declaration(const Loc &loc) : Statement(loc) {}
+};
+
+class VariableDecl : public Declaration {
+    IdentExpr *name;
     AstExpr *typ;
     Expression *initializer;
   public:
-    VariableDecl(const Loc &loc, Identifier *name, AstExpr *typ, Expression *initializer)
-        : Statement(loc), name(name), typ(typ), initializer(initializer) {}
+    VariableDecl(const Loc &loc, IdentExpr *name, AstExpr *typ, Expression *initializer)
+        : Declaration(loc), name(name), typ(typ), initializer(initializer) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getName() const { return name; }
+    [[nodiscard]] AstExpr *getTyp() const { return typ; }
+    [[nodiscard]] Expression *getInitializer() const { return initializer; }
+};
+
+class ClassDecl : public Declaration {
+    IdentExpr *name;
+    IdentExpr *baseClass;
+    std::vector<IndexExpr *> interface;
+  public:
+    ClassDecl(const Loc &loc, IdentExpr *name, IdentExpr *baseClass, std::vector<IndexExpr *> anInterface)
+        : Declaration(loc), name(name), baseClass(baseClass), interface(std::move(anInterface)) {}
 };
 
 class ReturnStmt : public Statement {
@@ -256,15 +273,18 @@ class ReturnStmt : public Statement {
   public:
     ReturnStmt(const Loc &loc, Expression *returnValue) : Statement(loc), returnValue(returnValue) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Expression *getReturnValue() const { return returnValue; }
 };
 
 class BreakStmt : public Statement {
   public:
+    explicit BreakStmt(const Loc &loc) : Statement(loc) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
 class ContinueStmt : public Statement {
   public:
+    explicit ContinueStmt(const Loc &loc) : Statement(loc) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
@@ -322,6 +342,7 @@ class WhileStmt : public Statement {
 
 class EmptyStmt : public SimpleStmt {
   public:
+    explicit EmptyStmt(const Loc &loc) : SimpleStmt(loc) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
@@ -333,6 +354,9 @@ class AssignmentStmt : public SimpleStmt {
     AssignmentStmt(const Loc &loc, AssignOperator assignOp, Expression *lhs, Expression *rhs)
         : SimpleStmt(loc), assignOp(assignOp), lhs(lhs), rhs(rhs) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] AssignOperator getAssignOp() const { return assignOp; }
+    [[nodiscard]] Expression *getLhs() const { return lhs; }
+    [[nodiscard]] Expression *getRhs() const { return rhs; }
 };
 
 class IncDecStmt : public SimpleStmt {
@@ -342,6 +366,8 @@ class IncDecStmt : public SimpleStmt {
     IncDecStmt(const Loc &loc, PostfixOperator postfixOp, Expression *expr)
         : SimpleStmt(loc), postfixOp(postfixOp), expr(expr) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] PostfixOperator getPostfixOp() const { return postfixOp; }
+    [[nodiscard]] Expression *getExpr() const { return expr; }
 };
 
 class ExpressionStmt : public SimpleStmt {
@@ -349,14 +375,16 @@ class ExpressionStmt : public SimpleStmt {
   public:
     ExpressionStmt(const Loc &loc, Expression *expr) : SimpleStmt(loc), expr(expr) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Expression *getExpr() const { return expr; }
 };
 
-class Block : public AstExpr {
+class Block : public Statement {
     std::vector<Statement *> stmts;
   public:
     Block(const Loc &loc, std::vector<Statement *> stmts)
-        : AstExpr(loc), stmts(std::move(stmts)) {}
+        : Statement(loc), stmts(std::move(stmts)) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] const std::vector<Statement *> &getStmts() const { return stmts; }
 };
 
 }

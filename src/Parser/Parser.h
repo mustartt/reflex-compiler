@@ -80,28 +80,28 @@ class Parser {
     std::vector<Statement *> parseStmtList();
     Statement *parseStatement();
 
-    AstExpr *parseDeclaration();
-    AstExpr *parseTypeDecl();
-    AstExpr *parseVarDecl();
-    AstExpr *parseReturnStmt();
-    AstExpr *parseBreakStmt();
-    AstExpr *parseContinueStmt();
-    AstExpr *parseBlockStmt();
-    AstExpr *parseIfStmt();
-    AstExpr *parseForStmt();
+    Declaration *parseDeclaration();
+    Declaration *parseTypeDecl();
+    Declaration *parseVarDecl();
+    Statement *parseReturnStmt();
+    Statement *parseBreakStmt();
+    Statement *parseContinueStmt();
+    Statement *parseBlockStmt();
+    Statement *parseIfStmt();
+    Statement *parseForStmt();
     AstExpr *parseForClause();
-    AstExpr *parseWhileStmt();
-    AstExpr *parseSimpleStmt();
+    Statement *parseWhileStmt();
+    SimpleStmt *parseSimpleStmt();
 
-    AstExpr *parseFunctionDecl();
+    Declaration *parseFunctionDecl();
 
     AstExpr *parseInheritanceList();
     AstExpr *parseInheritance();
-    AstExpr *parseClassDecl();
+    Declaration *parseClassDecl();
     AstExpr *parseClassBody();
     AstExpr *parseClassBodyDecl();
-    AstExpr *parseInterfaceDecl();
-    AstExpr *parseAnnotationDecl();
+    Declaration *parseInterfaceDecl();
+    Declaration *parseAnnotationDecl();
 
 };
 

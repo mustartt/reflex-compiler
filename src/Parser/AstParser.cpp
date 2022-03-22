@@ -452,7 +452,154 @@ std::vector<Statement *> Parser::parseStmtList() {
     return stmts;
 }
 
+SimpleStmt *Parser::parseSimpleStmt() {
+    if (check(TokenType::SemiColon)) {
+        auto end = tok;
+        next();
+        return ctx->create<EmptyStmt>(end.getLocInfo());
+    }
+    auto expr = parseExpr();
+    if (tok.isAssignment()) {
+        auto op = tok;
+        next();
+        auto value = parseExpr();
+        return ctx->create<AssignmentStmt>(
+            op.getLocInfo(),
+            createAssignOperatorFromToken(op),
+            expr, value
+        );
+    }
+    if (tok.isPostfixOp()) {
+        auto postfix = tok;
+        next();
+        return ctx->create<IncDecStmt>(
+            postfix.getLocInfo(),
+            createPostfixOperatorFromToken(postfix),
+            expr
+        );
+    }
+    return ctx->create<ExpressionStmt>(expr->getLoc(), expr);
+}
+
 Statement *Parser::parseStatement() {
+    if (tok.isDeclaration()) {
+        auto ret = parseDeclaration();
+        expect(TokenType::SemiColon);
+        return ret;
+    }
+    if (check(TokenType::Return)) {
+        auto ret = parseReturnStmt();
+        expect(TokenType::SemiColon);
+        return ret;
+    }
+    if (check(TokenType::Break)) {
+        auto ret = parseBreakStmt();
+        expect(TokenType::SemiColon);
+        return ret;
+    }
+    if (check(TokenType::Continue)) {
+        auto ret = parseContinueStmt();
+        expect(TokenType::SemiColon);
+        return ret;
+    }
+    if (check(TokenType::LBrace)) {
+        return parseBlockStmt();
+    }
+    if (check(TokenType::If)) {
+        return parseIfStmt();
+    }
+    if (check(TokenType::While)) {
+        return parseWhileStmt();
+    }
+    if (check(TokenType::For)) {
+        return parseForStmt();
+    }
+    auto ret = parseSimpleStmt();
+    expect(TokenType::SemiColon);
+    return ret;
+}
+
+Declaration *Parser::parseDeclaration() {
+    if (check(TokenType::Var)) {
+        return parseVarDecl();
+    }
+    return parseTypeDecl();
+}
+
+Declaration *Parser::parseTypeDecl() {
+    if (check(TokenType::Interface)) {
+        return parseInterfaceDecl();
+    }
+    if (check(TokenType::Annotation)) {
+        return parseAnnotationDecl();
+    }
+    return parseClassDecl();
+}
+
+Declaration *Parser::parseVarDecl() {
+    expect(TokenType::Var);
+    auto name = parseIdent();
+    TypeExpr *varType = nullptr;
+    Expression *initializer = nullptr;
+    if (check(TokenType::Colon)) {
+        next();
+        varType = parseType();
+    }
+    if (check(TokenType::Assign)) {
+        next();
+        initializer = parseExpr();
+    }
+    return ctx->create<VariableDecl>(
+        name->getLoc(),
+        name, varType, initializer
+    );
+}
+
+Statement *Parser::parseReturnStmt() {
+    auto token = tok;
+    expect(TokenType::Return);
+    return ctx->create<ReturnStmt>(
+        token.getLocInfo(),
+        parseExpr()
+    );
+}
+
+Statement *Parser::parseBreakStmt() {
+    auto token = tok;
+    expect(TokenType::Break);
+    return ctx->create<BreakStmt>(
+        token.getLocInfo()
+    );
+}
+
+Statement *Parser::parseContinueStmt() {
+    auto token = tok;
+    expect(TokenType::Continue);
+    return ctx->create<ContinueStmt>(
+        token.getLocInfo()
+    );
+}
+
+Statement *Parser::parseBlockStmt() {
+    return parseBlock();
+}
+
+Declaration *Parser::parseClassDecl() {
+    return nullptr;
+}
+Declaration *Parser::parseInterfaceDecl() {
+    return nullptr;
+}
+Declaration *Parser::parseAnnotationDecl() {
+    return nullptr;
+}
+Statement *Parser::parseIfStmt() {
+    return nullptr;
+}
+Statement *Parser::parseForStmt() {
+    return nullptr;
+}
+Statement *Parser::parseWhileStmt() {
     return nullptr;
 }
 

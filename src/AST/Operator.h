@@ -37,9 +37,15 @@ enum class AssignOperator {
   Equal, AddEqual, SubEqual
 };
 
+AssignOperator createAssignOperatorFromToken(const Token &tok);
+std::string getAssignOperator(AssignOperator op);
+
 enum class PostfixOperator {
   PostfixInc, PostfixDec
 };
+
+PostfixOperator createPostfixOperatorFromToken(const Token &tok);
+std::string getPostfixOperator(PostfixOperator op);
 
 }
 

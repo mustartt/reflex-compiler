@@ -170,16 +170,28 @@ void AstPrinter::visit(ArgumentExpr *visitable) {
 }
 
 void AstPrinter::visit(VariableDecl *visitable) {
-
+    generateIndent();
+    output << "VariableDecl: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getName()->accept(this);
+    if (visitable->getTyp()) visitable->getTyp()->accept(this);
+    if (visitable->getInitializer()) visitable->getInitializer()->accept(this);
 }
+
 void AstPrinter::visit(ReturnStmt *visitable) {
-
+    generateIndent();
+    output << "ReturnStmt: " << std::endl;
+    visitable->getReturnValue()->accept(this);
 }
+
 void AstPrinter::visit(BreakStmt *visitable) {
-
+    generateIndent();
+    output << "BreakStmt" << std::endl;
 }
-void AstPrinter::visit(ContinueStmt *visitable) {
 
+void AstPrinter::visit(ContinueStmt *visitable) {
+    generateIndent();
+    output << "ContinueStmt" << std::endl;
 }
 void AstPrinter::visit(IfStmt *visitable) {
 
@@ -197,20 +209,43 @@ void AstPrinter::visit(WhileStmt *visitable) {
 
 }
 void AstPrinter::visit(EmptyStmt *visitable) {
-
+    generateIndent();
+    output << "EmptyStmt" << std::endl;
 }
+
 void AstPrinter::visit(AssignmentStmt *visitable) {
-
+    generateIndent();
+    output << "AssignmentStmt: "
+           << getAssignOperator(visitable->getAssignOp())
+           << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getLhs()->accept(this);
+    visitable->getRhs()->accept(this);
 }
+
 void AstPrinter::visit(IncDecStmt *visitable) {
-
+    generateIndent();
+    output << "IncDecStmt: "
+           << getPostfixOperator(visitable->getPostfixOp())
+           << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getExpr()->accept(this);
 }
-void AstPrinter::visit(ExpressionStmt *visitable) {
 
+void AstPrinter::visit(ExpressionStmt *visitable) {
+    generateIndent();
+    output << "ExpressionStmt: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getExpr()->accept(this);
 }
 
 void AstPrinter::visit(Block *visitable) {
-
+    generateIndent();
+    output << "Block: " << std::endl;
+    ScopeIndent scope(indent);
+    for (auto stmt: visitable->getStmts()) {
+        stmt->accept(this);
+    }
 }
 
 }

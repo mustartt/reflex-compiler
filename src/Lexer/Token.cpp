@@ -89,4 +89,24 @@ bool Token::isBinaryOp() const {
     return getTokenPrec() > 0;
 }
 
+bool Token::isAssignment() const {
+    auto val = tokenType.getValue();
+    return val == TokenType::Assign
+        || val == TokenType::AssignAdd
+        || val == TokenType::AssignSub;
+}
+
+bool Token::isPostfixOp() const {
+    auto val = tokenType.getValue();
+    return val == TokenType::PostInc || val == TokenType::PostDec;
+}
+
+bool Token::isDeclaration() const {
+    auto val = tokenType.getValue();
+    return val == TokenType::Var
+        || val == TokenType::Class
+        || val == TokenType::Interface
+        || val == TokenType::Annotation;
+}
+
 }

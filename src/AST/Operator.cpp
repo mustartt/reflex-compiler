@@ -62,5 +62,39 @@ std::string getUnaryOperator(UnaryOperator op) {
     }
 }
 
+AssignOperator createAssignOperatorFromToken(const Token &tok) {
+    switch (tok.getTokenType().getValue()) {
+        case TokenType::Assign: return AssignOperator::Equal;
+        case TokenType::AssignAdd: return AssignOperator::AddEqual;
+        case TokenType::AssignSub: return AssignOperator::SubEqual;
+        default: throw InvalidOperator("Invalid assignment operator.");
+    }
+}
+
+std::string getAssignOperator(AssignOperator op) {
+    switch (op) {
+        case AssignOperator::Equal: return "=";
+        case AssignOperator::AddEqual: return "+=";
+        case AssignOperator::SubEqual: return "-=";
+        default: throw InvalidOperator("Invalid assignment operator.");
+    }
+}
+
+PostfixOperator createPostfixOperatorFromToken(const Token &tok) {
+    switch (tok.getTokenType().getValue()) {
+        case TokenType::PostInc: return PostfixOperator::PostfixInc;
+        case TokenType::PostDec: return PostfixOperator::PostfixDec;
+        default: throw InvalidOperator("Invalid postfix operator.");
+    }
+}
+
+std::string getPostfixOperator(PostfixOperator op) {
+    switch (op) {
+        case PostfixOperator::PostfixInc: return "++";
+        case PostfixOperator::PostfixDec: return "--";
+        default: throw InvalidOperator("Invalid postfix operator.");
+    }
+}
+
 }
 

@@ -51,6 +51,11 @@ class Token {
     [[nodiscard]] int getTokenPrec() const;
     [[nodiscard]] bool isBinaryOp() const;
 
+    [[nodiscard]] bool isAssignment() const;
+    [[nodiscard]] bool isPostfixOp() const;
+
+    [[nodiscard]] bool isDeclaration() const;
+
     friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };
 
