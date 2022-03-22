@@ -594,13 +594,71 @@ Declaration *Parser::parseAnnotationDecl() {
     return nullptr;
 }
 Statement *Parser::parseIfStmt() {
-    return nullptr;
+    auto startToken = tok;
+    expect(TokenType::If);
+    expect(TokenType::LParen);
+    auto cond = parseSimpleStmt();
+    expect(TokenType::RParen);
+    Block *bodyBlock = parseBlock();
+    Block *elseBlock = nullptr;
+    if (check(TokenType::Else)) {
+        elseBlock = parseBlock();
+    }
+    return ctx->create<IfStmt>(
+        startToken.getLocInfo(),
+        cond, bodyBlock, elseBlock
+    );
 }
+
 Statement *Parser::parseForStmt() {
-    return nullptr;
+    auto startToken = tok;
+    expect(TokenType::For);
+    expect(TokenType::LParen);
+    auto clause = parseForClause();
+    expect(TokenType::RParen);
+    return ctx->create<ForStmt>(
+        startToken.getLocInfo(),
+        clause, parseBlock()
+    );
 }
+
+ForClause *Parser::parseForClause() {
+    Statement *init = nullptr;
+    if (check(TokenType::Var)) {
+        init = parseVarDecl();
+        auto varDecl = dynamic_cast<VariableDecl *>(init);
+        if (!varDecl) throw ParsingError("For range stmt must be a var decl.");
+        if (check(TokenType::In)) {
+            next();
+            auto rangeExpr = parseExpr();
+            return ctx->create<ForRangeClause>(
+                varDecl->getLoc(),
+                varDecl, rangeExpr
+            );
+        }
+    } else {
+        init = parseSimpleStmt();
+    }
+    expect(TokenType::SemiColon);
+    auto cond = parseExpr();
+    expect(TokenType::SemiColon);
+    auto post = parseSimpleStmt();
+    return ctx->create<ForNormalClause>(
+        init->getLoc(),
+        init, cond, post
+    );
+}
+
 Statement *Parser::parseWhileStmt() {
-    return nullptr;
+    auto startToken = tok;
+    expect(TokenType::While);
+    expect(TokenType::LParen);
+    auto cond = parseSimpleStmt();
+    expect(TokenType::RParen);
+    return ctx->create<WhileStmt>(
+        startToken.getLocInfo(),
+        cond, parseBlock()
+    );
 }
 
 Declaration *Parser::parseFunctionDecl() {

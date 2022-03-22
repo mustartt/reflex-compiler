@@ -89,7 +89,7 @@ class Parser {
     Statement *parseBlockStmt();
     Statement *parseIfStmt();
     Statement *parseForStmt();
-    AstExpr *parseForClause();
+    ForClause *parseForClause();
     Statement *parseWhileStmt();
     SimpleStmt *parseSimpleStmt();
 

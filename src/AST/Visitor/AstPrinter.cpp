@@ -187,21 +187,49 @@ void AstPrinter::visit(ContinueStmt *visitable) {
     generateIndent();
     output << "ContinueStmt" << std::endl;
 }
+
 void AstPrinter::visit(IfStmt *visitable) {
-
+    generateIndent();
+    output << "IfStmt: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getCond()->accept(this);
+    visitable->getPrimaryBlock()->accept(this);
+    if (visitable->getElseBlock()) visitable->getElseBlock()->accept(this);
 }
+
 void AstPrinter::visit(ForRangeClause *visitable) {
-
+    generateIndent();
+    output << "ForRangeClause: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getVariable()->accept(this);
+    visitable->getIterExpr()->accept(this);
 }
+
 void AstPrinter::visit(ForNormalClause *visitable) {
-
+    generateIndent();
+    output << "ForNormalClause: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getInit()->accept(this);
+    visitable->getCond()->accept(this);
+    visitable->getPost()->accept(this);
 }
+
 void AstPrinter::visit(ForStmt *visitable) {
-
+    generateIndent();
+    output << "ForStmt: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getClause()->accept(this);
+    visitable->getBody()->accept(this);
 }
+
 void AstPrinter::visit(WhileStmt *visitable) {
-
+    generateIndent();
+    output << "WhileStmt: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getCond()->accept(this);
+    visitable->getBody()->accept(this);
 }
+
 void AstPrinter::visit(EmptyStmt *visitable) {
     generateIndent();
     output << "EmptyStmt" << std::endl;

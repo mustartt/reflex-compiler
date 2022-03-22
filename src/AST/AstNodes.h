@@ -298,6 +298,9 @@ class IfStmt : public Statement {
     IfStmt(const Loc &loc, SimpleStmt *cond, Block *primaryBlock, Block *elseBlock)
         : Statement(loc), cond(cond), primaryBlock(primaryBlock), elseBlock(elseBlock) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] SimpleStmt *getCond() const { return cond; }
+    [[nodiscard]] Block *getPrimaryBlock() const { return primaryBlock; }
+    [[nodiscard]] Block *getElseBlock() const { return elseBlock; }
 };
 
 class ForClause : public AstExpr {
@@ -312,16 +315,21 @@ class ForRangeClause : public ForClause {
     ForRangeClause(const Loc &loc, VariableDecl *variable, Expression *iterExpr)
         : ForClause(loc), variable(variable), iterExpr(iterExpr) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] VariableDecl *getVariable() const { return variable; }
+    [[nodiscard]] Expression *getIterExpr() const { return iterExpr; }
 };
 
 class ForNormalClause : public ForClause {
-    AstExpr *init;
+    Statement *init;
     Expression *cond;
     SimpleStmt *post;
   public:
-    ForNormalClause(const Loc &loc, AstExpr *init, Expression *cond, SimpleStmt *post)
+    ForNormalClause(const Loc &loc, Statement *init, Expression *cond, SimpleStmt *post)
         : ForClause(loc), init(init), cond(cond), post(post) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Statement *getInit() const { return init; }
+    [[nodiscard]] Expression *getCond() const { return cond; }
+    [[nodiscard]] SimpleStmt *getPost() const { return post; }
 };
 
 class ForStmt : public Statement {
@@ -330,6 +338,8 @@ class ForStmt : public Statement {
   public:
     ForStmt(const Loc &loc, ForClause *clause, Block *body) : Statement(loc), clause(clause), body(body) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] ForClause *getClause() const { return clause; }
+    [[nodiscard]] Block *getBody() const { return body; }
 };
 
 class WhileStmt : public Statement {
@@ -338,6 +348,8 @@ class WhileStmt : public Statement {
   public:
     WhileStmt(const Loc &loc, SimpleStmt *cond, Block *body) : Statement(loc), cond(cond), body(body) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] SimpleStmt *getCond() const { return cond; }
+    [[nodiscard]] Block *getBody() const { return body; }
 };
 
 class EmptyStmt : public SimpleStmt {
