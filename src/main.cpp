@@ -18,9 +18,7 @@ int main(int argc, char *argv[]) {
     AstContextManager ctx;
     Parser parser(&lexer, &ctx);
 
-    auto root = parser.parseFunctionLit();
-    AstPrinter printer(std::cout);
-    printer.visit(dynamic_cast<FunctionLit *>(root));
+    auto root = parser.parseExpr();
 
     std::cout << std::endl << "Remaining Tokens: " << std::endl;
     while (lexer.hasNext()) {

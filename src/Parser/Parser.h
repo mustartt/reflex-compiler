@@ -62,18 +62,19 @@ class Parser {
     Parameter *parseFuncParam();
 
     Expression *parseExpr();
-    AstExpr *parseExpr1(int tokePrec, AstExpr *lhs);
-    AstExpr *parseUnaryExpr();
-    AstExpr *parsePrimaryExpr1(AstExpr *base);
-    AstExpr *parsePrimaryExpr2(AstExpr *base);
-    AstExpr *parseNamedOperand();
-    AstExpr *parseNewExpr();
-    AstExpr *parseConversion();
-    AstExpr *parsePrimaryExpr();
-    AstExpr *parseSelectorExpr(AstExpr *base);
-    AstExpr *parseIndexExpr(AstExpr *base);
-    AstExpr *parseArgumentList();
-    AstExpr *parseArgument(AstExpr *base);
+    Expression *parseNamedOperand();
+    Expression *parseExpr1(int minPrec, Expression *lhs);
+    Expression *parseUnaryExpr();
+    Expression *parseOperand();
+    Expression *parsePrimaryExpr1(Expression *base);
+    Expression *parsePrimaryExpr2(Expression *base);
+    Expression *parseNewExpr();
+    Expression *parseConversion();
+    Expression *parsePrimaryExpr();
+    Expression *parseSelectorExpr(Expression *base);
+    Expression *parseIndexExpr(Expression *base);
+    std::vector<Expression *> parseArgumentList();
+    Expression *parseArgument(Expression *base);
 
     Block *parseBlock();
     AstExpr *parseStmtList();

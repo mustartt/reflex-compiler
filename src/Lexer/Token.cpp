@@ -56,4 +56,37 @@ bool Token::isBasicLiteral() const {
         || val == TokenType::NullLiteral;
 }
 
+bool Token::isUnaryOp() const {
+    auto val = tokenType.getValue();
+    return val == TokenType::LogicalNot
+        || val == TokenType::Sub;
+}
+
+int Token::getTokenPrec() const {
+    auto val = tokenType.getValue();
+    if (val == TokenType::Or) return 1;
+    if (val == TokenType::And) return 2;
+    if (val == TokenType::Compare ||
+        val == TokenType::CompareNot ||
+        val == TokenType::LAngleBracket ||
+        val == TokenType::RAngleBracket ||
+        val == TokenType::CompareLessEqual ||
+        val == TokenType::CompareGreaterEqual)
+        return 3;
+    if (val == TokenType::Add ||
+        val == TokenType::Sub ||
+        val == TokenType::LogicalOr)
+        return 4;
+    if (val == TokenType::Star ||
+        val == TokenType::Div ||
+        val == TokenType::Mod ||
+        val == TokenType::LogicalAnd)
+        return 5;
+    return 0;
+}
+
+bool Token::isBinaryOp() const {
+    return getTokenPrec() > 0;
+}
+
 }

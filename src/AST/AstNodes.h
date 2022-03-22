@@ -17,9 +17,14 @@
 
 namespace reflex {
 
-class IdentExpr : public AstExpr {
+class Expression : public AstExpr {
   public:
-    explicit IdentExpr(const Loc &loc) : AstExpr(loc) {}
+    explicit Expression(const Loc &loc) : AstExpr(loc) {}
+};
+
+class IdentExpr : public Expression {
+  public:
+    explicit IdentExpr(const Loc &loc) : Expression(loc) {}
     [[nodiscard]] virtual std::string getIdent() const = 0;
 };
 
@@ -43,9 +48,9 @@ class ModuleSelector : public IdentExpr {
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
-class Literal : public AstExpr {
+class Literal : public Expression {
   public:
-    explicit Literal(const Loc &loc) : AstExpr(loc) {}
+    explicit Literal(const Loc &loc) : Expression(loc) {}
 };
 
 class BasicLiteral : public Literal {
@@ -145,11 +150,6 @@ class FunctionLit : public Literal {
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 
-class Expression : public AstExpr {
-  public:
-    explicit Expression(const Loc &loc) : AstExpr(loc) {}
-};
-
 class UnaryExpr : public Expression {
     UnaryOperator op;
     Expression *expr;
@@ -190,6 +190,15 @@ class SelectorExpr : public Expression {
   public:
     SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
         : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+};
+
+class IndexExpr : public Expression {
+    Expression *baseExpr;
+    Expression *index;
+  public:
+    IndexExpr(const Loc &loc, Expression *baseExpr, Expression *index)
+        : Expression(loc), baseExpr(baseExpr), index(index) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
 };
 

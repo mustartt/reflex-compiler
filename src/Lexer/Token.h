@@ -46,6 +46,10 @@ class Token {
     [[nodiscard]] std::string toString() const;
 
     [[nodiscard]] bool isBasicLiteral() const;
+    [[nodiscard]] bool isUnaryOp() const;
+
+    [[nodiscard]] int getTokenPrec() const;
+    [[nodiscard]] bool isBinaryOp() const;
 
     friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };

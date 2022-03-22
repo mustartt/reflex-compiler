@@ -24,6 +24,7 @@ class BinaryExpr;
 class NewExpr;
 class CastExpr;
 class SelectorExpr;
+class IndexExpr;
 class ArgumentExpr;
 class Statement;
 class SimpleStmt;
@@ -62,6 +63,7 @@ class AstVisitor {
     virtual void visit(NewExpr *visitable) = 0;
     virtual void visit(CastExpr *visitable) = 0;
     virtual void visit(SelectorExpr *visitable) = 0;
+    virtual void visit(IndexExpr *visitable) = 0;
     virtual void visit(ArgumentExpr *visitable) = 0;
     virtual void visit(VariableDecl *visitable) = 0;
     virtual void visit(ReturnStmt *visitable) = 0;

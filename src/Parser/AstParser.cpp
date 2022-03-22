@@ -5,6 +5,7 @@
 #include "Parser.h"
 
 #include "../AST/AstContextManager.h"
+#include "../AST/Operator.h"
 
 namespace reflex {
 
@@ -263,8 +264,174 @@ Parameter *Parser::parseFuncParam() {
     );
 }
 
+Expression *Parser::parseNamedOperand() {
+    if (check(TokenType::Identifier)) {
+        auto ident = parseIdent();
+        if (check(TokenType::NameSeparator)) {
+            ident = parseModuleIdent(ident);
+        }
+        return ident;
+    }
+    if (check(TokenType::LParen)) {
+        next();
+        auto subexpr = parseExpr();
+        expect(TokenType::RParen);
+        return subexpr;
+    }
+    return parseLiteral();
+}
+
+Expression *Parser::parseUnaryExpr() {
+    if (tok.isUnaryOp()) {
+        auto unaryOp = tok;
+        next();
+        return ctx->create<UnaryExpr>(
+            unaryOp.getLocInfo(),
+            createUnaryOperatorFromToken(unaryOp),
+            parseExpr()
+        );
+    }
+    return parsePrimaryExpr();
+}
+
+Expression *Parser::parseOperand() {
+    if (check(TokenType::Identifier)) {
+        auto ident = parseIdent();
+        if (check(TokenType::NameSeparator)) {
+            ident = parseModuleIdent(ident);
+        }
+        return ident;
+    }
+    if (check(TokenType::LParen)) {
+        next();
+        auto subexpr = parseExpr();
+        expect(TokenType::RParen);
+        return subexpr;
+    }
+    return parseLiteral();
+}
+
+Expression *Parser::parsePrimaryExpr() {
+    Expression *base;
+    if (check(TokenType::New)) {
+        base = parseNewExpr();
+    } else if (check(TokenType::Cast)) {
+        base = parseConversion();
+    } else {
+        base = parseOperand();
+    }
+    return parsePrimaryExpr2(base);
+}
+
+Expression *Parser::parsePrimaryExpr1(Expression *base) {
+    if (check(TokenType::Period)) {
+        return parseSelectorExpr(base);
+    }
+    if (check(TokenType::LBracket)) {
+        return parseIndexExpr(base);
+    }
+    return parseArgument(base);
+}
+
+Expression *Parser::parsePrimaryExpr2(Expression *base) {
+    auto type = tok.getTokenType().getValue();
+    if (type == TokenType::Period ||
+        type == TokenType::LBracket ||
+        type == TokenType::LParen) {
+        auto newbase = parsePrimaryExpr1(base);
+        return parsePrimaryExpr2(newbase);
+    }
+    return base;
+}
+
+Expression *Parser::parseNewExpr() {
+    expect(TokenType::New);
+    auto ident = parseIdent();
+    if (check(TokenType::NameSeparator)) {
+        ident = parseModuleIdent(ident);
+    }
+    return ctx->create<NewExpr>(
+        ident->getLoc(),
+        ident
+    );
+}
+
+Expression *Parser::parseConversion() {
+    auto startToken = expect(TokenType::Cast);
+    expect(TokenType::LAngleBracket);
+    auto typ = parseType();
+    expect(TokenType::RAngleBracket);
+    expect(TokenType::LParen);
+    auto expr = parseExpr();
+    expect(TokenType::RParen);
+    return ctx->create<CastExpr>(
+        startToken.getLocInfo(),
+        typ, expr
+    );
+}
+
+Expression *Parser::parseSelectorExpr(Expression *base) {
+    expect(TokenType::Period);
+    auto ident = parseIdent();
+    return ctx->create<SelectorExpr>(
+        ident->getLoc(),
+        base, ident
+    );
+}
+
+Expression *Parser::parseIndexExpr(Expression *base) {
+    auto startToken = expect(TokenType::LBracket);
+    auto index = parseExpr();
+    expect(TokenType::RBracket);
+    return ctx->create<IndexExpr>(
+        startToken.getLocInfo(),
+        base, index
+    );
+}
+
+Expression *Parser::parseArgument(Expression *base) {
+    auto startToken = expect(TokenType::LParen);
+    auto args = parseArgumentList();
+    expect(TokenType::RParen);
+    return ctx->create<ArgumentExpr>(
+        startToken.getLocInfo(),
+        base, args
+    );
+}
+
+std::vector<Expression *> Parser::parseArgumentList() {
+    if (check(TokenType::RParen)) {
+        return {};
+    }
+    std::vector<Expression *> args;
+    args.push_back(parseExpr());
+    while (!check(TokenType::RParen)) {
+        expect(TokenType::Comma);
+        args.push_back(parseExpr());
+    }
+    return args;
+}
+
 Expression *Parser::parseExpr() {
-    return nullptr;
+    return parseExpr1(0, parseUnaryExpr());
+}
+
+Expression *Parser::parseExpr1(int minPrec, Expression *lhs) {
+    while (tok.isBinaryOp() && tok.getTokenPrec() >= minPrec) {
+        auto binOp = tok;
+        next();
+        auto rhs = parseUnaryExpr();
+        while (tok.getTokenPrec() > binOp.getTokenPrec()) {
+            auto prec = binOp.getTokenPrec() + 1;
+            rhs = parseExpr1(prec, rhs);
+        }
+        rhs = ctx->create<BinaryExpr>(
+            binOp.getLocInfo(),
+            createBinaryOperatorFromToken(binOp),
+            lhs, rhs
+        );
+    }
+    return lhs;
 }
 
 }
