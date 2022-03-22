@@ -127,6 +127,7 @@ class ArrayLit : public Literal {
     ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList)
         : Literal(loc), initializerList(std::move(initializerList)) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] const std::vector<AstExpr *> &getInitializerList() const { return initializerList; }
 };
 
 class Block;
@@ -138,6 +139,8 @@ class Parameter : public AstExpr {
     Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ)
         : AstExpr(loc), name(name), typ(typ) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getName() const { return name; }
+    [[nodiscard]] AstExpr *getTyp() const { return typ; }
 };
 
 class FunctionLit : public Literal {
@@ -148,6 +151,9 @@ class FunctionLit : public Literal {
     FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body)
         : Literal(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] const std::vector<Parameter *> &getParameters() const { return parameters; }
+    [[nodiscard]] TypeExpr *getReturnTyp() const { return returnTyp; }
+    [[nodiscard]] Block *getBody() const { return body; }
 };
 
 class UnaryExpr : public Expression {
@@ -156,6 +162,8 @@ class UnaryExpr : public Expression {
   public:
     UnaryExpr(const Loc &loc, UnaryOperator op, Expression *expr) : Expression(loc), op(op), expr(expr) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] UnaryOperator getOp() const { return op; }
+    [[nodiscard]] Expression *getExpr() const { return expr; }
 };
 
 class BinaryExpr : public Expression {
@@ -166,6 +174,9 @@ class BinaryExpr : public Expression {
     BinaryExpr(const Loc &loc, BinaryOperator op, Expression *lhs, Expression *rhs)
         : Expression(loc), op(op), lhs(lhs), rhs(rhs) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] BinaryOperator getOp() const { return op; }
+    [[nodiscard]] Expression *getLhs() const { return lhs; }
+    [[nodiscard]] Expression *getRhs() const { return rhs; }
 };
 
 class NewExpr : public Expression {
@@ -173,6 +184,7 @@ class NewExpr : public Expression {
   public:
     NewExpr(const Loc &loc, AstExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] AstExpr *getInstanceTyp() const { return instanceTyp; }
 };
 
 class CastExpr : public Expression {
@@ -182,15 +194,8 @@ class CastExpr : public Expression {
     CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from)
         : Expression(loc), targetTyp(targetTyp), from(from) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
-};
-
-class SelectorExpr : public Expression {
-    Expression *baseExpr;
-    IdentExpr *selector;
-  public:
-    SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
-        : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] AstExpr *getTargetTyp() const { return targetTyp; }
+    [[nodiscard]] Expression *getFrom() const { return from; }
 };
 
 class IndexExpr : public Expression {
@@ -200,6 +205,19 @@ class IndexExpr : public Expression {
     IndexExpr(const Loc &loc, Expression *baseExpr, Expression *index)
         : Expression(loc), baseExpr(baseExpr), index(index) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
+    [[nodiscard]] Expression *getIndex() const { return index; }
+};
+
+class SelectorExpr : public Expression {
+    Expression *baseExpr;
+    IdentExpr *selector;
+  public:
+    SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
+        : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
+    [[nodiscard]] IdentExpr *getSelector() const { return selector; }
 };
 
 class ArgumentExpr : public Expression {
@@ -209,6 +227,8 @@ class ArgumentExpr : public Expression {
     ArgumentExpr(const Loc &loc, Expression *baseExpr, std::vector<Expression *> arguments)
         : Expression(loc), baseExpr(baseExpr), arguments(std::move(arguments)) {}
     void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
+    [[nodiscard]] const std::vector<Expression *> &getArguments() const { return arguments; }
 };
 
 class Statement : public AstExpr {

@@ -425,13 +425,35 @@ Expression *Parser::parseExpr1(int minPrec, Expression *lhs) {
             auto prec = binOp.getTokenPrec() + 1;
             rhs = parseExpr1(prec, rhs);
         }
-        rhs = ctx->create<BinaryExpr>(
+        lhs = ctx->create<BinaryExpr>(
             binOp.getLocInfo(),
             createBinaryOperatorFromToken(binOp),
             lhs, rhs
         );
     }
     return lhs;
+}
+
+Block *Parser::parseBlock() {
+    auto start = expect(TokenType::LBrace);
+    auto stmts = parseStmtList();
+    expect(TokenType::RBrace);
+    return ctx->create<Block>(
+        start.getLocInfo(),
+        stmts
+    );
+}
+
+std::vector<Statement *> Parser::parseStmtList() {
+    std::vector<Statement *> stmts;
+    while (!check(TokenType::RBrace)) {
+        stmts.push_back(parseStatement());
+    }
+    return stmts;
+}
+
+Statement *Parser::parseStatement() {
+    return nullptr;
 }
 
 }

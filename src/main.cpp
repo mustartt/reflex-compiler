@@ -19,6 +19,8 @@ int main(int argc, char *argv[]) {
     Parser parser(&lexer, &ctx);
 
     auto root = parser.parseExpr();
+    AstPrinter printer(std::cout);
+    printer.visit(dynamic_cast<BinaryExpr *>(root));
 
     std::cout << std::endl << "Remaining Tokens: " << std::endl;
     while (lexer.hasNext()) {

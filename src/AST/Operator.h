@@ -6,6 +6,7 @@
 #define REFLEX_SRC_AST_OPERATOR_H_
 
 #include <stdexcept>
+#include <string>
 #include "../Lexer/Token.h"
 
 namespace reflex {
@@ -23,12 +24,14 @@ enum class BinaryOperator {
 };
 
 BinaryOperator createBinaryOperatorFromToken(const Token &token);
+std::string getBinaryOperator(BinaryOperator op);
 
 enum class UnaryOperator {
   Negative, LogicalNot
 };
 
 UnaryOperator createUnaryOperatorFromToken(const Token &tok);
+std::string getUnaryOperator(UnaryOperator op);
 
 enum class AssignOperator {
   Equal, AddEqual, SubEqual

@@ -15,7 +15,7 @@ class AstPrinter : public AstVisitor {
     size_t indent;
   public:
     explicit AstPrinter(std::ostream &output);
-
+    void visit(IndexExpr *visitable) override;
     void visit(Identifier *visitable) override;
     void visit(ModuleSelector *visitable) override;
     void visit(NumberLit *visitable) override;

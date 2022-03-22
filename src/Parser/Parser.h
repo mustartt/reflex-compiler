@@ -77,8 +77,8 @@ class Parser {
     Expression *parseArgument(Expression *base);
 
     Block *parseBlock();
-    AstExpr *parseStmtList();
-    AstExpr *parseStatement();
+    std::vector<Statement *> parseStmtList();
+    Statement *parseStatement();
 
     AstExpr *parseDeclaration();
     AstExpr *parseTypeDecl();

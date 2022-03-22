@@ -4,6 +4,7 @@
 
 #include "AstPrinter.h"
 #include "../AstNodes.h"
+#include "../Operator.h"
 
 namespace reflex {
 
@@ -76,32 +77,98 @@ void AstPrinter::visit(FunctionType *visitable) {
 }
 
 void AstPrinter::visit(ArrayLit *visitable) {
-
+    generateIndent();
+    output << "ArrayLit: " << std::endl;
+    ScopeIndent arr(indent);
+    for (auto element: visitable->getInitializerList()) {
+        element->accept(this);
+    }
 }
+
 void AstPrinter::visit(Parameter *visitable) {
-
+    generateIndent();
+    output << "ParamDecl: " << std::endl;
+    ScopeIndent param(indent);
+    visitable->getName()->accept(this);
+    visitable->getTyp()->accept(this);
 }
+
 void AstPrinter::visit(FunctionLit *visitable) {
+    generateIndent();
+    output << "FunctionLit: " << std::endl;
 
+    ScopeIndent param(indent);
+    generateIndent();
+    output << "Parameters: " << std::endl;
+    for (auto decl: visitable->getParameters()) {
+        ScopeIndent paramDecl(indent);
+        decl->accept(this);
+    }
+
+    visitable->getReturnTyp()->accept(this);
+    ScopeIndent body(indent);
+    visitable->getBody()->accept(this);
 }
+
 void AstPrinter::visit(UnaryExpr *visitable) {
-
+    generateIndent();
+    output << "UnaryExpr: " << getUnaryOperator(visitable->getOp()) << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getExpr()->accept(this);
 }
+
 void AstPrinter::visit(BinaryExpr *visitable) {
-
+    generateIndent();
+    output << "BinaryExpr: " << getBinaryOperator(visitable->getOp()) << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getLhs()->accept(this);
+    visitable->getRhs()->accept(this);
 }
+
+void AstPrinter::visit(IndexExpr *visitable) {
+    generateIndent();
+    output << "IndexExpr: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getBaseExpr()->accept(this);
+    visitable->getIndex()->accept(this);
+}
+
 void AstPrinter::visit(NewExpr *visitable) {
-
+    generateIndent();
+    output << "NewExpr: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getInstanceTyp()->accept(this);
 }
+
 void AstPrinter::visit(CastExpr *visitable) {
-
+    generateIndent();
+    output << "CastExpr: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getTargetTyp()->accept(this);
+    visitable->getFrom()->accept(this);
 }
-void AstPrinter::visit(SelectorExpr *visitable) {
 
+void AstPrinter::visit(SelectorExpr *visitable) {
+    generateIndent();
+    output << "SelectorExpr: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getBaseExpr()->accept(this);
+    visitable->getSelector()->accept(this);
 }
 void AstPrinter::visit(ArgumentExpr *visitable) {
-
+    generateIndent();
+    output << "ArgumentExpr: " << std::endl;
+    ScopeIndent expr(indent);
+    visitable->getBaseExpr()->accept(this);
+    ScopeIndent params(indent);
+    generateIndent();
+    output << "Arguments: " << std::endl;
+    for (auto arg: visitable->getArguments()) {
+        ScopeIndent argScope(indent);
+        arg->accept(this);
+    }
 }
+
 void AstPrinter::visit(VariableDecl *visitable) {
 
 }
@@ -141,6 +208,7 @@ void AstPrinter::visit(IncDecStmt *visitable) {
 void AstPrinter::visit(ExpressionStmt *visitable) {
 
 }
+
 void AstPrinter::visit(Block *visitable) {
 
 }

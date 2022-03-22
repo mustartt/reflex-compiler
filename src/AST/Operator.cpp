@@ -27,11 +27,38 @@ BinaryOperator createBinaryOperatorFromToken(const Token &token) {
     }
 }
 
+std::string getBinaryOperator(BinaryOperator op) {
+    switch (op) {
+        case BinaryOperator::Or: return "or";
+        case BinaryOperator::And: return "and";
+        case BinaryOperator::Compare: return "==";
+        case BinaryOperator::CompareNot: return "!=";
+        case BinaryOperator::Less: return "<";
+        case BinaryOperator::Greater: return ">";
+        case BinaryOperator::CompareLessThanEqual: return "<=";
+        case BinaryOperator::CompareGreaterThanEqual: return ">=";
+        case BinaryOperator::Add: return "+";
+        case BinaryOperator::Sub: return "-";
+        case BinaryOperator::LogicalOr: return "|";
+        case BinaryOperator::Mult: return "*";
+        case BinaryOperator::Div: return "/";
+        case BinaryOperator::Mod: return "%";
+        case BinaryOperator::LogicalAnd: return "&";
+    }
+}
+
 UnaryOperator createUnaryOperatorFromToken(const Token &tok) {
     switch (tok.getTokenType().getValue()) {
         case TokenType::LogicalNot: return UnaryOperator::LogicalNot;
         case TokenType::Sub: return UnaryOperator::Negative;
         default: throw InvalidOperator("Invalid unary operator.");
+    }
+}
+
+std::string getUnaryOperator(UnaryOperator op) {
+    switch (op) {
+        case UnaryOperator::Negative: return "-";
+        case UnaryOperator::LogicalNot: return "!";
     }
 }
 
