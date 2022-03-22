@@ -43,6 +43,7 @@ class AssignmentStmt;
 class IncDecStmt;
 class ExpressionStmt;
 class Block;
+class FunctionDecl;
 
 class AstVisitor {
   public:
@@ -79,7 +80,7 @@ class AstVisitor {
     virtual void visit(IncDecStmt *visitable) = 0;
     virtual void visit(ExpressionStmt *visitable) = 0;
     virtual void visit(Block *visitable) = 0;
-
+    virtual void visit(FunctionDecl *visitable) = 0;
 };
 
 }

@@ -66,11 +66,8 @@ void AstPrinter::visit(ArrayType *visitable) {
 void AstPrinter::visit(FunctionType *visitable) {
     generateIndent();
     output << "FunctionType: " << std::endl;
-    ScopeIndent scope(indent);
-    generateIndent();
-    output << "Parameters: " << std::endl;
+    ScopeIndent paramScope(indent);
     for (auto param: visitable->getParamList()) {
-        ScopeIndent paramScope(indent);
         param->accept(this);
     }
     visitable->getReturnTyp()->accept(this);
@@ -96,12 +93,8 @@ void AstPrinter::visit(Parameter *visitable) {
 void AstPrinter::visit(FunctionLit *visitable) {
     generateIndent();
     output << "FunctionLit: " << std::endl;
-
     ScopeIndent param(indent);
-    generateIndent();
-    output << "Parameters: " << std::endl;
     for (auto decl: visitable->getParameters()) {
-        ScopeIndent paramDecl(indent);
         decl->accept(this);
     }
 
@@ -181,6 +174,7 @@ void AstPrinter::visit(VariableDecl *visitable) {
 void AstPrinter::visit(ReturnStmt *visitable) {
     generateIndent();
     output << "ReturnStmt: " << std::endl;
+    ScopeIndent expr(indent);
     visitable->getReturnValue()->accept(this);
 }
 
@@ -246,6 +240,18 @@ void AstPrinter::visit(Block *visitable) {
     for (auto stmt: visitable->getStmts()) {
         stmt->accept(this);
     }
+}
+
+void AstPrinter::visit(FunctionDecl *visitable) {
+    generateIndent();
+    output << "FunctionDecl: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getName()->accept(this);
+    for (auto param: visitable->getParams()) {
+        param->accept(this);
+    }
+    visitable->getRetTyp()->accept(this);
+    if (visitable->getBody()) visitable->getBody()->accept(this);
 }
 
 }

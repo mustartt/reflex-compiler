@@ -18,9 +18,9 @@ int main(int argc, char *argv[]) {
     AstContextManager ctx;
     Parser parser(&lexer, &ctx);
 
-    auto root = parser.parseBlock();
+    auto root = parser.parseFunctionDecl();
     AstPrinter printer(std::cout);
-    printer.visit(dynamic_cast<Block *>(root));
+    printer.visit(dynamic_cast<FunctionDecl *>(root));
 
     std::cout << std::endl << "Remaining Tokens: " << std::endl;
     while (lexer.hasNext()) {

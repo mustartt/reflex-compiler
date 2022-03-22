@@ -387,6 +387,21 @@ class Block : public Statement {
     [[nodiscard]] const std::vector<Statement *> &getStmts() const { return stmts; }
 };
 
+class FunctionDecl : public Declaration {
+    IdentExpr *name;
+    std::vector<Parameter *> params;
+    TypeExpr *retTyp;
+    Block *body;
+  public:
+    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<Parameter *> params, TypeExpr *retTyp, Block *body)
+        : Declaration(loc), name(name), params(std::move(params)), retTyp(retTyp), body(body) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getName() const { return name; }
+    [[nodiscard]] const std::vector<Parameter *> &getParams() const { return params; }
+    [[nodiscard]] TypeExpr *getRetTyp() const { return retTyp; }
+    [[nodiscard]] Block *getBody() const { return body; }
+};
+
 }
 
 #endif //REFLEX_SRC_AST_ASTNODES_H_

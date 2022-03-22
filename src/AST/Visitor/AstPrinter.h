@@ -48,6 +48,8 @@ class AstPrinter : public AstVisitor {
     void visit(IncDecStmt *visitable) override;
     void visit(ExpressionStmt *visitable) override;
     void visit(Block *visitable) override;
+    void visit(FunctionDecl *visitable) override;
+
   private:
     void generateIndent();
 };

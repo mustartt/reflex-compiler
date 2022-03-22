@@ -603,5 +603,19 @@ Statement *Parser::parseWhileStmt() {
     return nullptr;
 }
 
+Declaration *Parser::parseFunctionDecl() {
+    auto startToken = expect(TokenType::Func);
+    auto name = parseIdent();
+    auto[params, ret] = parseSignature();
+    Block *body = nullptr;
+    if (!check(TokenType::SemiColon)) {
+        body = parseBlock();
+    }
+    return ctx->create<FunctionDecl>(
+        name->getLoc(),
+        name, params, ret, body
+    );
+}
+
 }
 
