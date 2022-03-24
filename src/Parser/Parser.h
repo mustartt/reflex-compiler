@@ -80,7 +80,7 @@ class Parser {
     std::vector<Statement *> parseStmtList();
     Statement *parseStatement();
 
-    Declaration *parseDeclaration();
+    Declaration *parseVarOrTypeDecl();
     Declaration *parseTypeDecl();
     Declaration *parseVarDecl();
     Statement *parseReturnStmt();
@@ -95,11 +95,11 @@ class Parser {
 
     Declaration *parseFunctionDecl();
 
-    AstExpr *parseInheritanceList();
-    AstExpr *parseInheritance();
+    std::vector<IdentExpr *> parseInterfaceList();
+    IdentExpr *parseBaseClass();
     Declaration *parseClassDecl();
-    AstExpr *parseClassBody();
-    AstExpr *parseClassBodyDecl();
+    std::vector<MemberDecl *> parseClassBody();
+    MemberDecl *parseClassMemberDecl();
     Declaration *parseInterfaceDecl();
     Declaration *parseAnnotationDecl();
 

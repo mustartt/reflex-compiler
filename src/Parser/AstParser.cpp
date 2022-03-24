@@ -483,8 +483,9 @@ SimpleStmt *Parser::parseSimpleStmt() {
 
 Statement *Parser::parseStatement() {
     if (tok.isDeclaration()) {
-        auto ret = parseDeclaration();
-        expect(TokenType::SemiColon);
+        auto isVarDecl = check(TokenType::Var);
+        auto ret = parseVarOrTypeDecl();
+        if (isVarDecl) expect(TokenType::SemiColon);
         return ret;
     }
     if (check(TokenType::Return)) {
@@ -519,7 +520,7 @@ Statement *Parser::parseStatement() {
     return ret;
 }
 
-Declaration *Parser::parseDeclaration() {
+Declaration *Parser::parseVarOrTypeDecl() {
     if (check(TokenType::Var)) {
         return parseVarDecl();
     }
@@ -584,9 +585,6 @@ Statement *Parser::parseBlockStmt() {
     return parseBlock();
 }
 
-Declaration *Parser::parseClassDecl() {
-    return nullptr;
-}
 Declaration *Parser::parseInterfaceDecl() {
     return nullptr;
 }
@@ -609,7 +607,6 @@ Statement *Parser::parseIfStmt() {
         cond, bodyBlock, elseBlock
     );
 }
-
 Statement *Parser::parseForStmt() {
     auto startToken = tok;
     expect(TokenType::For);
@@ -672,6 +669,64 @@ Declaration *Parser::parseFunctionDecl() {
     return ctx->create<FunctionDecl>(
         name->getLoc(),
         name, params, ret, body
+    );
+}
+
+Declaration *Parser::parseClassDecl() {
+    auto startToken = expect(TokenType::Class);
+    auto classname = parseIdent();
+    auto baseclass = parseBaseClass();
+    auto interfaces = parseInterfaceList();
+    auto members = parseClassBody();
+    return ctx->create<ClassDecl>(
+        startToken.getLocInfo(),
+        classname, baseclass, interfaces, members
+    );
+}
+
+IdentExpr *Parser::parseBaseClass() {
+    if (!check(TokenType::LParen)) return nullptr;
+    next();
+    auto baseclass = parseIdent();
+    expect(TokenType::RParen);
+    return baseclass;
+}
+
+std::vector<IdentExpr *> Parser::parseInterfaceList() {
+    if (!check(TokenType::Colon)) return {};
+    next();
+    std::vector<IdentExpr *> interfaces;
+    interfaces.push_back(parseIdent());
+    while (check(TokenType::Comma)) {
+        next();
+        interfaces.push_back(parseIdent());
+    }
+    return interfaces;
+}
+
+std::vector<MemberDecl *> Parser::parseClassBody() {
+    auto startToken = expect(TokenType::LBrace);
+    std::vector<MemberDecl *> members;
+    while (!check(TokenType::RBrace)) {
+        members.push_back(parseClassMemberDecl());
+    }
+    expect(TokenType::RBrace);
+    return members;
+}
+
+MemberDecl *Parser::parseClassMemberDecl() {
+    auto modifier = parseIdent();
+    Declaration *decl;
+    if (check(TokenType::Func)) {
+        decl = parseFunctionDecl();
+    } else {
+        bool isVarDecl = check(TokenType::Var);
+        decl = parseVarOrTypeDecl();
+        if (isVarDecl) expect(TokenType::SemiColon);
+    }
+    return ctx->create<MemberDecl>(
+        modifier->getLoc(),
+        modifier, decl
     );
 }
 

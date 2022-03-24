@@ -44,6 +44,8 @@ class IncDecStmt;
 class ExpressionStmt;
 class Block;
 class FunctionDecl;
+class ClassDecl;
+class MemberDecl;
 
 class AstVisitor {
   public:
@@ -81,6 +83,8 @@ class AstVisitor {
     virtual void visit(ExpressionStmt *visitable) = 0;
     virtual void visit(Block *visitable) = 0;
     virtual void visit(FunctionDecl *visitable) = 0;
+    virtual void visit(ClassDecl *visitable) = 0;
+    virtual void visit(MemberDecl *visitable) = 0;
 };
 
 }

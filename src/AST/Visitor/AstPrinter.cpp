@@ -282,4 +282,25 @@ void AstPrinter::visit(FunctionDecl *visitable) {
     if (visitable->getBody()) visitable->getBody()->accept(this);
 }
 
+void AstPrinter::visit(ClassDecl *visitable) {
+    generateIndent();
+    output << "ClassDecl: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getName()->accept(this);
+    if (visitable->getBaseclass()) visitable->getBaseclass()->accept(this);
+    for (auto interface: visitable->getInterfaces()) {
+        interface->accept(this);
+    }
+    for (auto member: visitable->getMembers()) {
+        member->accept(this);
+    }
+}
+
+void AstPrinter::visit(MemberDecl *visitable) {
+    generateIndent();
+    output << "MemberDecl: " << visitable->getModifier()->getIdent() << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getDeclaration()->accept(this);
+}
+
 }

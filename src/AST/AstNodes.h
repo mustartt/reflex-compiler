@@ -259,15 +259,6 @@ class VariableDecl : public Declaration {
     [[nodiscard]] Expression *getInitializer() const { return initializer; }
 };
 
-class ClassDecl : public Declaration {
-    IdentExpr *name;
-    IdentExpr *baseClass;
-    std::vector<IndexExpr *> interface;
-  public:
-    ClassDecl(const Loc &loc, IdentExpr *name, IdentExpr *baseClass, std::vector<IndexExpr *> anInterface)
-        : Declaration(loc), name(name), baseClass(baseClass), interface(std::move(anInterface)) {}
-};
-
 class ReturnStmt : public Statement {
     Expression *returnValue;
   public:
@@ -412,6 +403,40 @@ class FunctionDecl : public Declaration {
     [[nodiscard]] const std::vector<Parameter *> &getParams() const { return params; }
     [[nodiscard]] TypeExpr *getRetTyp() const { return retTyp; }
     [[nodiscard]] Block *getBody() const { return body; }
+};
+
+class MemberDecl : public Declaration {
+    IdentExpr *modifier;
+    Declaration *declaration;
+  public:
+    MemberDecl(const Loc &loc, IdentExpr *modifier, Declaration *declaration)
+        : Declaration(loc), modifier(modifier), declaration(declaration) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getModifier() const { return modifier; }
+    [[nodiscard]] Declaration *getDeclaration() const { return declaration; }
+};
+
+class ClassDecl : public Declaration {
+    IdentExpr *name;
+    IdentExpr *baseclass;
+    std::vector<IdentExpr *> interfaces;
+    std::vector<MemberDecl *> members;
+  public:
+    ClassDecl(const Loc &loc,
+              IdentExpr *name,
+              IdentExpr *baseclass,
+              std::vector<IdentExpr *> interfaces,
+              std::vector<MemberDecl *> members)
+        : Declaration(loc),
+          name(name),
+          baseclass(baseclass),
+          interfaces(std::move(interfaces)),
+          members(std::move(members)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getName() const { return name; }
+    [[nodiscard]] IdentExpr *getBaseclass() const { return baseclass; }
+    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const { return interfaces; }
+    [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const { return members; }
 };
 
 }
