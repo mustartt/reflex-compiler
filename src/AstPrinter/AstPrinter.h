@@ -5,7 +5,7 @@
 #ifndef REFLEX_SRC_AST_VISITOR_ASTPRINTER_H_
 #define REFLEX_SRC_AST_VISITOR_ASTPRINTER_H_
 
-#include "../AstVisitor.h"
+#include "../AST/AstVisitor.h"
 #include <ostream>
 
 namespace reflex {

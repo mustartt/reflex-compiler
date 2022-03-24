@@ -3,8 +3,8 @@
 //
 
 #include "AstPrinter.h"
-#include "../AstNodes.h"
-#include "../Operator.h"
+#include "../AST/AstNodes.h"
+#include "../AST/Operator.h"
 
 namespace reflex {
 

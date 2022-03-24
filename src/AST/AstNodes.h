@@ -19,82 +19,79 @@ namespace reflex {
 
 class Expression : public AstExpr {
   public:
-    explicit Expression(const Loc &loc) : AstExpr(loc) {}
+    explicit Expression(const Loc &loc);
 };
 
 class IdentExpr : public Expression {
   public:
-    explicit IdentExpr(const Loc &loc) : Expression(loc) {}
+    explicit IdentExpr(const Loc &loc);
     [[nodiscard]] virtual std::string getIdent() const = 0;
 };
 
 class Identifier : public IdentExpr {
     std::string name;
   public:
-    Identifier(const Loc &loc, std::string name) : IdentExpr(loc), name(std::move(name)) {}
-    [[nodiscard]] std::string getIdent() const override { return name; }
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    Identifier(const Loc &loc, std::string name);
+    [[nodiscard]] std::string getIdent() const override;
+    void accept(AstVisitor *visitor) override;
 };
 
 class ModuleSelector : public IdentExpr {
     IdentExpr *basename;
     std::string selector;
   public:
-    ModuleSelector(const Loc &loc, IdentExpr *basename, std::string aSelector)
-        : IdentExpr(loc), basename(basename), selector(std::move(aSelector)) {}
-    [[nodiscard]] std::string getIdent() const override {
-        return basename->getIdent() + "::" + selector;
-    }
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    ModuleSelector(const Loc &loc, IdentExpr *basename, std::string aSelector);
+    [[nodiscard]] std::string getIdent() const override;
+    void accept(AstVisitor *visitor) override;
 };
 
 class Literal : public Expression {
   public:
-    explicit Literal(const Loc &loc) : Expression(loc) {}
+    explicit Literal(const Loc &loc);
 };
 
 class BasicLiteral : public Literal {
     std::string value;
   public:
-    BasicLiteral(const Loc &loc, std::string value) : Literal(loc), value(std::move(value)) {}
-    [[nodiscard]] const std::string &getValue() const { return value; }
+    BasicLiteral(const Loc &loc, std::string value);
+    [[nodiscard]] const std::string &getValue() const;
 };
 
 class NumberLit : public BasicLiteral {
   public:
-    NumberLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    NumberLit(const Loc &loc, const std::string &value);
+    void accept(AstVisitor *visitor) override;
 };
 
 class StringLit : public BasicLiteral {
   public:
-    StringLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    StringLit(const Loc &loc, const std::string &value);
+    void accept(AstVisitor *visitor) override;
 };
 
 class BoolLit : public BasicLiteral {
   public:
-    BoolLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    BoolLit(const Loc &loc, const std::string &value);
+    void accept(AstVisitor *visitor) override;
 };
 
 class NullLit : public BasicLiteral {
   public:
-    NullLit(const Loc &loc, const std::string &value) : BasicLiteral(loc, value) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    NullLit(const Loc &loc, const std::string &value);
+    void accept(AstVisitor *visitor) override;
 };
 
 class TypeExpr : public AstExpr {
   public:
-    explicit TypeExpr(const Loc &loc) : AstExpr(loc) {}
+    explicit TypeExpr(const Loc &loc);
 };
 
 class IdentifierType : public TypeExpr {
     IdentExpr *name;
   public:
-    IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getTypename() const { return name; }
+    IdentifierType(const Loc &loc, IdentExpr *name);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getTypename() const;
 };
 
 class Expression;
@@ -103,67 +100,61 @@ class ArrayType : public TypeExpr {
     AstExpr *elementTyp;
     Expression *lengthExpr;
   public:
-    ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr)
-        : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] AstExpr *getElementTyp() const { return elementTyp; }
-    [[nodiscard]] Expression *getLengthExpr() const { return lengthExpr; }
+    ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] AstExpr *getElementTyp() const;
+    [[nodiscard]] Expression *getLengthExpr() const;
 };
 
 class FunctionType : public TypeExpr {
     TypeExpr *returnTyp;
     std::vector<TypeExpr *> paramList;
   public:
-    FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
-        : TypeExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] TypeExpr *getReturnTyp() const { return returnTyp; }
-    [[nodiscard]] const std::vector<TypeExpr *> &getParamList() const { return paramList; }
+    FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] TypeExpr *getReturnTyp() const;
+    [[nodiscard]] const std::vector<TypeExpr *> &getParamList() const;
 };
 
 class ArrayLit : public Literal {
     std::vector<AstExpr *> initializerList;
   public:
-    ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList)
-        : Literal(loc), initializerList(std::move(initializerList)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] const std::vector<AstExpr *> &getInitializerList() const { return initializerList; }
+    ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] const std::vector<AstExpr *> &getInitializerList() const;
 };
-
-class Block;
 
 class Parameter : public AstExpr {
     IdentExpr *name;
     AstExpr *typ;
   public:
-    Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ)
-        : AstExpr(loc), name(name), typ(typ) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getName() const { return name; }
-    [[nodiscard]] AstExpr *getTyp() const { return typ; }
+    Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getName() const;
+    [[nodiscard]] AstExpr *getTyp() const;
 };
 
+class Block;
 class FunctionLit : public Literal {
     std::vector<Parameter *> parameters;
     TypeExpr *returnTyp;
     Block *body;
   public:
-    FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body)
-        : Literal(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] const std::vector<Parameter *> &getParameters() const { return parameters; }
-    [[nodiscard]] TypeExpr *getReturnTyp() const { return returnTyp; }
-    [[nodiscard]] Block *getBody() const { return body; }
+    FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] const std::vector<Parameter *> &getParameters() const;
+    [[nodiscard]] TypeExpr *getReturnTyp() const;
+    [[nodiscard]] Block *getBody() const;
 };
 
 class UnaryExpr : public Expression {
     UnaryOperator op;
     Expression *expr;
   public:
-    UnaryExpr(const Loc &loc, UnaryOperator op, Expression *expr) : Expression(loc), op(op), expr(expr) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] UnaryOperator getOp() const { return op; }
-    [[nodiscard]] Expression *getExpr() const { return expr; }
+    UnaryExpr(const Loc &loc, UnaryOperator op, Expression *expr);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] UnaryOperator getOp() const;
+    [[nodiscard]] Expression *getExpr() const;
 };
 
 class BinaryExpr : public Expression {
@@ -171,79 +162,74 @@ class BinaryExpr : public Expression {
     Expression *lhs;
     Expression *rhs;
   public:
-    BinaryExpr(const Loc &loc, BinaryOperator op, Expression *lhs, Expression *rhs)
-        : Expression(loc), op(op), lhs(lhs), rhs(rhs) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] BinaryOperator getOp() const { return op; }
-    [[nodiscard]] Expression *getLhs() const { return lhs; }
-    [[nodiscard]] Expression *getRhs() const { return rhs; }
+    BinaryExpr(const Loc &loc, BinaryOperator op, Expression *lhs, Expression *rhs);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] BinaryOperator getOp() const;
+    [[nodiscard]] Expression *getLhs() const;
+    [[nodiscard]] Expression *getRhs() const;
 };
 
 class NewExpr : public Expression {
     AstExpr *instanceTyp;
   public:
-    NewExpr(const Loc &loc, AstExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] AstExpr *getInstanceTyp() const { return instanceTyp; }
+    NewExpr(const Loc &loc, AstExpr *instanceTyp);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] AstExpr *getInstanceTyp() const;
 };
 
 class CastExpr : public Expression {
     AstExpr *targetTyp;
     Expression *from;
   public:
-    CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from)
-        : Expression(loc), targetTyp(targetTyp), from(from) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] AstExpr *getTargetTyp() const { return targetTyp; }
-    [[nodiscard]] Expression *getFrom() const { return from; }
+    CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] AstExpr *getTargetTyp() const;
+    [[nodiscard]] Expression *getFrom() const;
 };
 
 class IndexExpr : public Expression {
     Expression *baseExpr;
     Expression *index;
   public:
-    IndexExpr(const Loc &loc, Expression *baseExpr, Expression *index)
-        : Expression(loc), baseExpr(baseExpr), index(index) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
-    [[nodiscard]] Expression *getIndex() const { return index; }
+    IndexExpr(const Loc &loc, Expression *baseExpr, Expression *index);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Expression *getBaseExpr() const;
+    [[nodiscard]] Expression *getIndex() const;
 };
 
 class SelectorExpr : public Expression {
     Expression *baseExpr;
     IdentExpr *selector;
   public:
-    SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector)
-        : Expression(loc), baseExpr(baseExpr), selector(aSelector) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
-    [[nodiscard]] IdentExpr *getSelector() const { return selector; }
+    SelectorExpr(const Loc &loc, Expression *baseExpr, IdentExpr *aSelector);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Expression *getBaseExpr() const;
+    [[nodiscard]] IdentExpr *getSelector() const;
 };
 
 class ArgumentExpr : public Expression {
     Expression *baseExpr;
     std::vector<Expression *> arguments;
   public:
-    ArgumentExpr(const Loc &loc, Expression *baseExpr, std::vector<Expression *> arguments)
-        : Expression(loc), baseExpr(baseExpr), arguments(std::move(arguments)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Expression *getBaseExpr() const { return baseExpr; }
-    [[nodiscard]] const std::vector<Expression *> &getArguments() const { return arguments; }
+    ArgumentExpr(const Loc &loc, Expression *baseExpr, std::vector<Expression *> arguments);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Expression *getBaseExpr() const;
+    [[nodiscard]] const std::vector<Expression *> &getArguments() const;
 };
 
 class Statement : public AstExpr {
   public:
-    explicit Statement(const Loc &loc) : AstExpr(loc) {}
+    explicit Statement(const Loc &loc);
 };
 
 class SimpleStmt : public Statement {
   public:
-    explicit SimpleStmt(const Loc &loc) : Statement(loc) {}
+    explicit SimpleStmt(const Loc &loc);
 };
 
 class Declaration : public Statement {
   public:
-    explicit Declaration(const Loc &loc) : Statement(loc) {}
+    explicit Declaration(const Loc &loc);
 };
 
 class VariableDecl : public Declaration {
@@ -251,32 +237,31 @@ class VariableDecl : public Declaration {
     AstExpr *typ;
     Expression *initializer;
   public:
-    VariableDecl(const Loc &loc, IdentExpr *name, AstExpr *typ, Expression *initializer)
-        : Declaration(loc), name(name), typ(typ), initializer(initializer) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getName() const { return name; }
-    [[nodiscard]] AstExpr *getTyp() const { return typ; }
-    [[nodiscard]] Expression *getInitializer() const { return initializer; }
+    VariableDecl(const Loc &loc, IdentExpr *name, AstExpr *typ, Expression *initializer);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getName() const;
+    [[nodiscard]] AstExpr *getTyp() const;
+    [[nodiscard]] Expression *getInitializer() const;
 };
 
 class ReturnStmt : public Statement {
     Expression *returnValue;
   public:
-    ReturnStmt(const Loc &loc, Expression *returnValue) : Statement(loc), returnValue(returnValue) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Expression *getReturnValue() const { return returnValue; }
+    ReturnStmt(const Loc &loc, Expression *returnValue);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Expression *getReturnValue() const;
 };
 
 class BreakStmt : public Statement {
   public:
-    explicit BreakStmt(const Loc &loc) : Statement(loc) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    explicit BreakStmt(const Loc &loc);
+    void accept(AstVisitor *visitor) override;
 };
 
 class ContinueStmt : public Statement {
   public:
-    explicit ContinueStmt(const Loc &loc) : Statement(loc) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    explicit ContinueStmt(const Loc &loc);
+    void accept(AstVisitor *visitor) override;
 };
 
 class Block;
@@ -286,12 +271,11 @@ class IfStmt : public Statement {
     Block *primaryBlock;
     Block *elseBlock;
   public:
-    IfStmt(const Loc &loc, SimpleStmt *cond, Block *primaryBlock, Block *elseBlock)
-        : Statement(loc), cond(cond), primaryBlock(primaryBlock), elseBlock(elseBlock) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] SimpleStmt *getCond() const { return cond; }
-    [[nodiscard]] Block *getPrimaryBlock() const { return primaryBlock; }
-    [[nodiscard]] Block *getElseBlock() const { return elseBlock; }
+    IfStmt(const Loc &loc, SimpleStmt *cond, Block *primaryBlock, Block *elseBlock);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] SimpleStmt *getCond() const;
+    [[nodiscard]] Block *getPrimaryBlock() const;
+    [[nodiscard]] Block *getElseBlock() const;
 };
 
 class ForClause : public AstExpr {
@@ -303,11 +287,10 @@ class ForRangeClause : public ForClause {
     VariableDecl *variable;
     Expression *iterExpr;
   public:
-    ForRangeClause(const Loc &loc, VariableDecl *variable, Expression *iterExpr)
-        : ForClause(loc), variable(variable), iterExpr(iterExpr) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] VariableDecl *getVariable() const { return variable; }
-    [[nodiscard]] Expression *getIterExpr() const { return iterExpr; }
+    ForRangeClause(const Loc &loc, VariableDecl *variable, Expression *iterExpr);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] VariableDecl *getVariable() const;
+    [[nodiscard]] Expression *getIterExpr() const;
 };
 
 class ForNormalClause : public ForClause {
@@ -315,38 +298,37 @@ class ForNormalClause : public ForClause {
     Expression *cond;
     SimpleStmt *post;
   public:
-    ForNormalClause(const Loc &loc, Statement *init, Expression *cond, SimpleStmt *post)
-        : ForClause(loc), init(init), cond(cond), post(post) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Statement *getInit() const { return init; }
-    [[nodiscard]] Expression *getCond() const { return cond; }
-    [[nodiscard]] SimpleStmt *getPost() const { return post; }
+    ForNormalClause(const Loc &loc, Statement *init, Expression *cond, SimpleStmt *post);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Statement *getInit() const;
+    [[nodiscard]] Expression *getCond() const;
+    [[nodiscard]] SimpleStmt *getPost() const;
 };
 
 class ForStmt : public Statement {
     ForClause *clause;
     Block *body;
   public:
-    ForStmt(const Loc &loc, ForClause *clause, Block *body) : Statement(loc), clause(clause), body(body) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] ForClause *getClause() const { return clause; }
-    [[nodiscard]] Block *getBody() const { return body; }
+    ForStmt(const Loc &loc, ForClause *clause, Block *body);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] ForClause *getClause() const;
+    [[nodiscard]] Block *getBody() const;
 };
 
 class WhileStmt : public Statement {
     SimpleStmt *cond;
     Block *body;
   public:
-    WhileStmt(const Loc &loc, SimpleStmt *cond, Block *body) : Statement(loc), cond(cond), body(body) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] SimpleStmt *getCond() const { return cond; }
-    [[nodiscard]] Block *getBody() const { return body; }
+    WhileStmt(const Loc &loc, SimpleStmt *cond, Block *body);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] SimpleStmt *getCond() const;
+    [[nodiscard]] Block *getBody() const;
 };
 
 class EmptyStmt : public SimpleStmt {
   public:
-    explicit EmptyStmt(const Loc &loc) : SimpleStmt(loc) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    explicit EmptyStmt(const Loc &loc);
+    void accept(AstVisitor *visitor) override;
 };
 
 class AssignmentStmt : public SimpleStmt {
@@ -354,40 +336,37 @@ class AssignmentStmt : public SimpleStmt {
     Expression *lhs;
     Expression *rhs;
   public:
-    AssignmentStmt(const Loc &loc, AssignOperator assignOp, Expression *lhs, Expression *rhs)
-        : SimpleStmt(loc), assignOp(assignOp), lhs(lhs), rhs(rhs) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] AssignOperator getAssignOp() const { return assignOp; }
-    [[nodiscard]] Expression *getLhs() const { return lhs; }
-    [[nodiscard]] Expression *getRhs() const { return rhs; }
+    AssignmentStmt(const Loc &loc, AssignOperator assignOp, Expression *lhs, Expression *rhs);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] AssignOperator getAssignOp() const;
+    [[nodiscard]] Expression *getLhs() const;
+    [[nodiscard]] Expression *getRhs() const;
 };
 
 class IncDecStmt : public SimpleStmt {
     PostfixOperator postfixOp;
     Expression *expr;
   public:
-    IncDecStmt(const Loc &loc, PostfixOperator postfixOp, Expression *expr)
-        : SimpleStmt(loc), postfixOp(postfixOp), expr(expr) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] PostfixOperator getPostfixOp() const { return postfixOp; }
-    [[nodiscard]] Expression *getExpr() const { return expr; }
+    IncDecStmt(const Loc &loc, PostfixOperator postfixOp, Expression *expr);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] PostfixOperator getPostfixOp() const;
+    [[nodiscard]] Expression *getExpr() const;
 };
 
 class ExpressionStmt : public SimpleStmt {
     Expression *expr;
   public:
-    ExpressionStmt(const Loc &loc, Expression *expr) : SimpleStmt(loc), expr(expr) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] Expression *getExpr() const { return expr; }
+    ExpressionStmt(const Loc &loc, Expression *expr);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] Expression *getExpr() const;
 };
 
 class Block : public Statement {
     std::vector<Statement *> stmts;
   public:
-    Block(const Loc &loc, std::vector<Statement *> stmts)
-        : Statement(loc), stmts(std::move(stmts)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] const std::vector<Statement *> &getStmts() const { return stmts; }
+    Block(const Loc &loc, std::vector<Statement *> stmts);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] const std::vector<Statement *> &getStmts() const;
 };
 
 class FunctionDecl : public Declaration {
@@ -396,24 +375,22 @@ class FunctionDecl : public Declaration {
     TypeExpr *retTyp;
     Block *body;
   public:
-    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<Parameter *> params, TypeExpr *retTyp, Block *body)
-        : Declaration(loc), name(name), params(std::move(params)), retTyp(retTyp), body(body) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getName() const { return name; }
-    [[nodiscard]] const std::vector<Parameter *> &getParams() const { return params; }
-    [[nodiscard]] TypeExpr *getRetTyp() const { return retTyp; }
-    [[nodiscard]] Block *getBody() const { return body; }
+    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<Parameter *> params, TypeExpr *retTyp, Block *body);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getName() const;
+    [[nodiscard]] const std::vector<Parameter *> &getParams() const;
+    [[nodiscard]] TypeExpr *getRetTyp() const;
+    [[nodiscard]] Block *getBody() const;
 };
 
 class MemberDecl : public Declaration {
     IdentExpr *modifier;
     Declaration *declaration;
   public:
-    MemberDecl(const Loc &loc, IdentExpr *modifier, Declaration *declaration)
-        : Declaration(loc), modifier(modifier), declaration(declaration) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getModifier() const { return modifier; }
-    [[nodiscard]] Declaration *getDeclaration() const { return declaration; }
+    MemberDecl(const Loc &loc, IdentExpr *modifier, Declaration *declaration);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getModifier() const;
+    [[nodiscard]] Declaration *getDeclaration() const;
 };
 
 class ClassDecl : public Declaration {
@@ -426,17 +403,12 @@ class ClassDecl : public Declaration {
               IdentExpr *name,
               IdentExpr *baseclass,
               std::vector<IdentExpr *> interfaces,
-              std::vector<MemberDecl *> members)
-        : Declaration(loc),
-          name(name),
-          baseclass(baseclass),
-          interfaces(std::move(interfaces)),
-          members(std::move(members)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getName() const { return name; }
+              std::vector<MemberDecl *> members);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] IdentExpr *getBaseclass() const { return baseclass; }
-    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const { return interfaces; }
-    [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const { return members; }
+    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
+    [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const;
 };
 
 class InterfaceDecl : public Declaration {
@@ -447,24 +419,19 @@ class InterfaceDecl : public Declaration {
     InterfaceDecl(const Loc &loc,
                   IdentExpr *name,
                   std::vector<IdentExpr *> interfaces,
-                  std::vector<FunctionDecl *> signatures)
-        : Declaration(loc),
-          name(name),
-          interfaces(std::move(interfaces)),
-          signatures(std::move(signatures)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] IdentExpr *getName() const { return name; }
-    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const { return interfaces; }
-    [[nodiscard]] const std::vector<FunctionDecl *> &getSignatures() const { return signatures; }
+                  std::vector<FunctionDecl *> signatures);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] IdentExpr *getName() const;
+    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
+    [[nodiscard]] const std::vector<FunctionDecl *> &getSignatures() const;
 };
 
 class CompilationUnit : public AstExpr {
     std::vector<Declaration *> decls;
   public:
-    CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)
-        : AstExpr(loc), decls(std::move(decls)) {}
-    void accept(AstVisitor *visitor) override { visitor->visit(this); }
-    [[nodiscard]] const std::vector<Declaration *> &getDecls() const { return decls; }
+    CompilationUnit(const Loc &loc, std::vector<Declaration *> decls);
+    void accept(AstVisitor *visitor) override;
+    [[nodiscard]] const std::vector<Declaration *> &getDecls() const;
 };
 
 }

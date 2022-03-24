@@ -6,14 +6,14 @@
 #include "Lexer/Lexer.h"
 #include "AST/AstContextManager.h"
 #include "Parser/Parser.h"
-#include "AST/Visitor/AstPrinter.h"
+#include "AstPrinter/AstPrinter.h"
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
-    std::ifstream file("test.reflex");
+    std::ifstream file("language_test.reflex");
     std::string content((std::istreambuf_iterator<char>(file)),
                         std::istreambuf_iterator<char>());
-    Source src("test.reflex", std::move(content));
+    Source src("language_test.reflex", std::move(content));
     Lexer lexer(&src, src.getContent(), getTokenDescription(), getKeywordDescription());
     AstContextManager ctx;
     Parser parser(&lexer, &ctx);

@@ -413,6 +413,8 @@ std::vector<Expression *> Parser::parseArgumentList() {
 }
 
 Expression *Parser::parseExpr() {
+    if (check(TokenType::RBracket)) return nullptr;     // IndexExpr
+    if (check(TokenType::SemiColon)) return nullptr;    // EmptyExpr
     return parseExpr1(0, parseUnaryExpr());
 }
 
@@ -726,7 +728,7 @@ Declaration *Parser::parseInterfaceDecl() {
     auto startToken = expect(TokenType::Interface);
     auto name = parseIdent();
     auto interfaces = parseInterfaceList();
-
+    return nullptr;
 }
 
 std::vector<FunctionDecl *> Parser::parseInterfaceMembers() {
