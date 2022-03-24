@@ -414,16 +414,16 @@ class ClassDecl : public Declaration {
 class InterfaceDecl : public Declaration {
     IdentExpr *name;
     std::vector<IdentExpr *> interfaces;
-    std::vector<FunctionDecl *> signatures;
+    std::vector<MemberDecl *> signatures;
   public:
     InterfaceDecl(const Loc &loc,
                   IdentExpr *name,
                   std::vector<IdentExpr *> interfaces,
-                  std::vector<FunctionDecl *> signatures);
+                  std::vector<MemberDecl *> signatures);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
-    [[nodiscard]] const std::vector<FunctionDecl *> &getSignatures() const;
+    [[nodiscard]] const std::vector<MemberDecl *> &getSignatures() const;
 };
 
 class CompilationUnit : public AstExpr {

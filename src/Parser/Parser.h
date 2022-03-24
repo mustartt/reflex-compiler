@@ -100,7 +100,8 @@ class Parser {
     Declaration *parseClassDecl();
     std::vector<MemberDecl *> parseClassBody();
     MemberDecl *parseClassMemberDecl();
-    std::vector<FunctionDecl *> parseInterfaceMembers();
+    std::vector<MemberDecl *> parseInterfaceBody();
+    MemberDecl *parseInterfaceMemberDecl();
     Declaration *parseInterfaceDecl();
     Declaration *parseAnnotationDecl();
 

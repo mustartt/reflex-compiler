@@ -225,7 +225,7 @@ const std::vector<MemberDecl *> &ClassDecl::getMembers() const { return members;
 InterfaceDecl::InterfaceDecl(const Loc &loc,
                              IdentExpr *name,
                              std::vector<IdentExpr *> interfaces,
-                             std::vector<FunctionDecl *> signatures)
+                             std::vector<MemberDecl *> signatures)
     : Declaration(loc),
       name(name),
       interfaces(std::move(interfaces)),
@@ -233,7 +233,7 @@ InterfaceDecl::InterfaceDecl(const Loc &loc,
 void InterfaceDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *InterfaceDecl::getName() const { return name; }
 const std::vector<IdentExpr *> &InterfaceDecl::getInterfaces() const { return interfaces; }
-const std::vector<FunctionDecl *> &InterfaceDecl::getSignatures() const { return signatures; }
+const std::vector<MemberDecl *> &InterfaceDecl::getSignatures() const { return signatures; }
 
 CompilationUnit::CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)
     : AstExpr(loc), decls(std::move(decls)) {}

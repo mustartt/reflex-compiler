@@ -728,22 +728,36 @@ Declaration *Parser::parseInterfaceDecl() {
     auto startToken = expect(TokenType::Interface);
     auto name = parseIdent();
     auto interfaces = parseInterfaceList();
-    return nullptr;
+    auto body = parseInterfaceBody();
+    return ctx->create<InterfaceDecl>(
+        startToken.getLocInfo(),
+        name, interfaces, body
+    );
 }
 
-std::vector<FunctionDecl *> Parser::parseInterfaceMembers() {
+std::vector<MemberDecl *> Parser::parseInterfaceBody() {
     auto start = expect(TokenType::LBrace);
-    std::vector<FunctionDecl *> methods;
+    std::vector<MemberDecl *> methods;
     while (!check(TokenType::RBrace)) {
-        methods.push_back(parseFunctionDecl());
+        methods.push_back(parseInterfaceMemberDecl());
     }
+    expect(TokenType::RBrace);
     return methods;
+}
+
+MemberDecl *Parser::parseInterfaceMemberDecl() {
+    auto modifier = parseIdent();
+    auto decl = parseFunctionDecl();
+    if (!decl->getBody()) expect(TokenType::SemiColon);
+    return ctx->create<MemberDecl>(
+        modifier->getLoc(),
+        modifier, decl
+    );
 }
 
 Declaration *Parser::parseAnnotationDecl() {
     return nullptr;
 }
-
 CompilationUnit *Parser::parseCompilationUnit() {
     std::vector<Declaration *> decls;
     auto startToken = tok;

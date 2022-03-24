@@ -138,9 +138,10 @@ class ClassType : public AggregateType {
     bool validate(std::vector<TypeError> &vector) const override {
         for (auto&[name, overloads]: members) {
             // no duplicate types for the same name except for functions
-            size_t funcCount = std::count(overloads.begin(), overloads.end(), [](auto memberTyp) {
-              return memberTyp.isFunctionTyp();
-            });
+            size_t funcCount = std::count_if(overloads.begin(), overloads.end(),
+                                             [](const auto memberTyp) -> bool {
+                                               return memberTyp->isFunctionTyp();
+                                             });
             if (overloads.size() - funcCount > 1) {
                 return false;
             }

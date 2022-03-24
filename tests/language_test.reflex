@@ -21,6 +21,10 @@ class BaseClass(DerivedClass) : InterfaceA, InterfaceB {
     }
 }
 
+interface IC : IA, IB {
+    public func interfaceMethod();
+}
+
 func main(argc: int, argv: String[]) -> int {
     var baseclass = new BaseClass();
     return 0;

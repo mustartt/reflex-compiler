@@ -65,9 +65,7 @@ KeywordDesc getKeywordDescription() {
     desc.emplace("null", TokenType::NullLiteral);
     desc.emplace("class", TokenType::Class);
     desc.emplace("new", TokenType::New);
-    desc.emplace("interfaces", TokenType::Interface);
-    desc.emplace("extends", TokenType::Extends);
-    desc.emplace("implements", TokenType::Implements);
+    desc.emplace("interface", TokenType::Interface);
     desc.emplace("or", TokenType::Or);
     desc.emplace("and", TokenType::And);
     desc.emplace("if", TokenType::If);
