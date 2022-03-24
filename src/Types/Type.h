@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include <ostream>
+#include <unordered_set>
 
 namespace reflex {
 
@@ -22,7 +23,7 @@ class Type {
 
 class VoidType : public Type {
   public:
-    void printType(std::ostream &os) override { os << "void"; };
+    void printType(std::ostream &os) override;;
 };
 
 class PrimType : public Type {
@@ -35,20 +36,8 @@ class PrimType : public Type {
     };
   public:
     explicit PrimType(BaseType baseTyp) : baseTyp(baseTyp) {}
-    [[nodiscard]]
-    BaseType getBaseTyp() const { return baseTyp; }
-    void printType(std::ostream &os) override {
-        switch (baseTyp) {
-            case Integer: os << "int";
-                break;
-            case Number:os << "num";
-                break;
-            case Character:os << "char";
-                break;
-            case Boolean:os << "bool";
-                break;
-        }
-    }
+    [[nodiscard]] BaseType getBaseTyp() const { return baseTyp; }
+    void printType(std::ostream &os) override;
   private:
     BaseType baseTyp;
 };
@@ -58,14 +47,8 @@ class ArrType : public Type {
   public:
     explicit ArrType(Type *elementTyp) : elementTyp(elementTyp) {}
     [[nodiscard]] Type *getElementTyp() const { return elementTyp; }
-    void printType(std::ostream &os) override {
-        os << "ArrayType: ";
-        elementTyp->printType(os);
-        os << "[]";
-    }
-    bool operator==(const ArrType &rhs) const {
-        return elementTyp == rhs.elementTyp;
-    }
+    void printType(std::ostream &os) override;
+    bool operator==(const ArrType &rhs) const;
 };
 
 class FuncType : public Type {
@@ -77,36 +60,16 @@ class FuncType : public Type {
     [[nodiscard]] virtual bool isMemberFuncTyp() const { return false; }
     [[nodiscard]] Type *getReturnTyp() const { return returnTyp; }
     [[nodiscard]] const std::vector<Type *> &getParamTyp() const { return paramTyp; }
-    void printType(std::ostream &os) override {
-        os << "FunctionType: ";
-        returnTyp->printType(os);
-        os << "(";
-        if (!paramTyp.empty()) {
-            paramTyp[0]->printType(os);
-            for (size_t i = 1; i < paramTyp.size(); ++i) {
-                os << ",";
-                paramTyp[i]->printType(os);
-            }
-        }
-        os << ")";
-    }
-    bool operator==(const FuncType &rhs) const {
-        return returnTyp == rhs.returnTyp
-            && paramTyp == rhs.paramTyp;
-    }
+    void printType(std::ostream &os) override;
+    bool operator==(const FuncType &rhs) const;
 };
 
 enum class Visibility {
   Public, Private, Protected
 };
+std::string getVisibilityString(Visibility visibility);
 
-std::string getVisibilityString(Visibility visibility) {
-    switch (visibility) {
-        case Visibility::Public: return "public";
-        case Visibility::Private: return "private";
-        case Visibility::Protected: return "protected";
-    }
-}
+class TypeError {};
 
 class MemberType;
 class AggregateType : public Type {
@@ -114,6 +77,7 @@ class AggregateType : public Type {
     virtual std::vector<MemberType *> findMemberTyp(const std::string &) = 0;
     [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
     [[nodiscard]] virtual bool isClassTyp() const = 0;
+    [[nodiscard]] virtual bool validate(std::vector<TypeError> &) const = 0;
 };
 
 class ClassType;
@@ -124,18 +88,12 @@ class MemberType : public Type {
   public:
     MemberType(ClassType *instanceTyp, Visibility visibility, Type *memberTyp)
         : instanceTyp(instanceTyp), visibility(visibility), memberTyp(memberTyp) {}
-    void printType(std::ostream &os) override {
-        os << "    MemberType: " << getVisibilityString(visibility) << " ";
-        memberTyp->printType(os);
-    }
+    void printType(std::ostream &os) override;
     [[nodiscard]] ClassType *getInstanceTyp() const { return instanceTyp; }
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
-    bool operator==(const MemberType &rhs) const {
-        return instanceTyp == rhs.instanceTyp
-            && visibility == rhs.visibility
-            && memberTyp == rhs.memberTyp;
-    }
+    [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FuncType *>(memberTyp); }
+    bool operator==(const MemberType &rhs) const;
 };
 
 class InterfaceType : public AggregateType {
@@ -152,18 +110,10 @@ class InterfaceType : public AggregateType {
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
-    void printType(std::ostream &os) override {
-        os << "InterfaceType: " << "(" << interfaces.size() << ")" << std::endl;
-        for (auto &[name, overloads]: members) {
-            os << "  " << name << ": " << std::endl;
-            for (auto overload: overloads) {
-                overload->printType(os);
-            }
-        }
-    }
-    bool operator==(const InterfaceType &rhs) const {
-        return interfaces == rhs.interfaces
-            && members == rhs.members;
+    void printType(std::ostream &os) override;
+    bool operator==(const InterfaceType &rhs) const;
+    bool validate(std::vector<TypeError> &vector) const override {
+        return false;
     }
 };
 
@@ -183,20 +133,36 @@ class ClassType : public AggregateType {
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return false; }
     [[nodiscard]] bool isClassTyp() const override { return true; }
-    void printType(std::ostream &os) override {
-        os << "ClassType: " << "(" << std::internal << std::hex << baseclass << ") -> "
-           << interfaces.size() << std::endl;
-        for (auto &[name, overloads]: members) {
-            os << "  " << name << ": " << std::endl;
+    void printType(std::ostream &os) override;
+    bool operator==(const ClassType &rhs) const;
+    bool validate(std::vector<TypeError> &vector) const override {
+        for (auto&[name, overloads]: members) {
+            // no duplicate types for the same name except for functions
+            size_t funcCount = std::count(overloads.begin(), overloads.end(), [](auto memberTyp) {
+              return memberTyp.isFunctionTyp();
+            });
+            if (overloads.size() - funcCount > 1) {
+                return false;
+            }
+            // overloads must have different parameter
+            std::vector<std::vector<Type *>> seenParams;
             for (auto overload: overloads) {
-                overload->printType(os);
+                if (overload->isFunctionTyp()) {
+                    auto func = dynamic_cast<FuncType *>(overload->getMemberTyp());
+                    auto &params = func->getParamTyp();
+                    if (std::find(seenParams.begin(), seenParams.end(), params) != seenParams.end()) {
+                        seenParams.push_back(params);
+                    } else {
+                        return false;
+                    }
+                }
             }
         }
+        return true;
     }
-    bool operator==(const ClassType &rhs) const {
-        return baseclass == rhs.baseclass
-            && interfaces == rhs.interfaces
-            && members == rhs.members;
+
+    [[nodiscard]] bool isAbstract() {
+        return false;
     }
 };
 
