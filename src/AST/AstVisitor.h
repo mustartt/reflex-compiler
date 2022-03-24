@@ -46,6 +46,8 @@ class Block;
 class FunctionDecl;
 class ClassDecl;
 class MemberDecl;
+class InterfaceDecl;
+class CompilationUnit;
 
 class AstVisitor {
   public:
@@ -85,6 +87,8 @@ class AstVisitor {
     virtual void visit(FunctionDecl *visitable) = 0;
     virtual void visit(ClassDecl *visitable) = 0;
     virtual void visit(MemberDecl *visitable) = 0;
+    virtual void visit(InterfaceDecl *visitable) = 0;
+    virtual void visit(CompilationUnit *visitable) = 0;
 };
 
 }

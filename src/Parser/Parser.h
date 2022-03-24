@@ -93,16 +93,18 @@ class Parser {
     Statement *parseWhileStmt();
     SimpleStmt *parseSimpleStmt();
 
-    Declaration *parseFunctionDecl();
+    FunctionDecl *parseFunctionDecl();
 
     std::vector<IdentExpr *> parseInterfaceList();
     IdentExpr *parseBaseClass();
     Declaration *parseClassDecl();
     std::vector<MemberDecl *> parseClassBody();
     MemberDecl *parseClassMemberDecl();
+    std::vector<FunctionDecl *> parseInterfaceMembers();
     Declaration *parseInterfaceDecl();
     Declaration *parseAnnotationDecl();
 
+    CompilationUnit *parseCompilationUnit();
 };
 
 }

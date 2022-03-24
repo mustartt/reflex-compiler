@@ -439,6 +439,34 @@ class ClassDecl : public Declaration {
     [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const { return members; }
 };
 
+class InterfaceDecl : public Declaration {
+    IdentExpr *name;
+    std::vector<IdentExpr *> interfaces;
+    std::vector<FunctionDecl *> signatures;
+  public:
+    InterfaceDecl(const Loc &loc,
+                  IdentExpr *name,
+                  std::vector<IdentExpr *> interfaces,
+                  std::vector<FunctionDecl *> signatures)
+        : Declaration(loc),
+          name(name),
+          interfaces(std::move(interfaces)),
+          signatures(std::move(signatures)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] IdentExpr *getName() const { return name; }
+    [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const { return interfaces; }
+    [[nodiscard]] const std::vector<FunctionDecl *> &getSignatures() const { return signatures; }
+};
+
+class CompilationUnit : public AstExpr {
+    std::vector<Declaration *> decls;
+  public:
+    CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)
+        : AstExpr(loc), decls(std::move(decls)) {}
+    void accept(AstVisitor *visitor) override { visitor->visit(this); }
+    [[nodiscard]] const std::vector<Declaration *> &getDecls() const { return decls; }
+};
+
 }
 
 #endif //REFLEX_SRC_AST_ASTNODES_H_

@@ -13,10 +13,10 @@ ParsingError::ParsingError(const std::string &msg)
 
 ExpectToken::ExpectToken(TokenType type, const Token &token)
     : ParsingError("Expected token of value " + type.getTypeString()
-                       + " but got " + token.toString() + "instead.") {}
+                       + " but got " + token.toString() + " instead.") {}
 
 Parser::Parser(Lexer *lexer, AstContextManager *ctx) : lexer(lexer), ctx(ctx) {
-    tok = lexer->nextToken();
+    tok = next();
 }
 
 Token Parser::next() {

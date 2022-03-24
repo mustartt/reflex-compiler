@@ -18,16 +18,14 @@ int main(int argc, char *argv[]) {
     AstContextManager ctx;
     Parser parser(&lexer, &ctx);
 
-    auto root = parser.parseClassDecl();
+    auto root = parser.parseCompilationUnit();
     AstPrinter printer(std::cout);
-    printer.visit(dynamic_cast<ClassDecl *>(root));
+    printer.visit(root);
 
     std::cout << std::endl << "Remaining Tokens: " << std::endl;
     while (lexer.hasNext()) {
         auto tok = lexer.nextToken();
-        if (tok.getTokenType().getValue() != TokenType::WhiteSpace) {
-            std::cout << tok << std::endl;
-        }
+        std::cout << tok << std::endl;
     }
     return 0;
 }

@@ -585,12 +585,6 @@ Statement *Parser::parseBlockStmt() {
     return parseBlock();
 }
 
-Declaration *Parser::parseInterfaceDecl() {
-    return nullptr;
-}
-Declaration *Parser::parseAnnotationDecl() {
-    return nullptr;
-}
 Statement *Parser::parseIfStmt() {
     auto startToken = tok;
     expect(TokenType::If);
@@ -618,7 +612,6 @@ Statement *Parser::parseForStmt() {
         clause, parseBlock()
     );
 }
-
 ForClause *Parser::parseForClause() {
     Statement *init = nullptr;
     if (check(TokenType::Var)) {
@@ -645,7 +638,6 @@ ForClause *Parser::parseForClause() {
         init, cond, post
     );
 }
-
 Statement *Parser::parseWhileStmt() {
     auto startToken = tok;
     expect(TokenType::While);
@@ -658,7 +650,7 @@ Statement *Parser::parseWhileStmt() {
     );
 }
 
-Declaration *Parser::parseFunctionDecl() {
+FunctionDecl *Parser::parseFunctionDecl() {
     auto startToken = expect(TokenType::Func);
     auto name = parseIdent();
     auto[params, ret] = parseSignature();
@@ -727,6 +719,44 @@ MemberDecl *Parser::parseClassMemberDecl() {
     return ctx->create<MemberDecl>(
         modifier->getLoc(),
         modifier, decl
+    );
+}
+
+Declaration *Parser::parseInterfaceDecl() {
+    auto startToken = expect(TokenType::Interface);
+    auto name = parseIdent();
+    auto interfaces = parseInterfaceList();
+
+}
+
+std::vector<FunctionDecl *> Parser::parseInterfaceMembers() {
+    auto start = expect(TokenType::LBrace);
+    std::vector<FunctionDecl *> methods;
+    while (!check(TokenType::RBrace)) {
+        methods.push_back(parseFunctionDecl());
+    }
+    return methods;
+}
+
+Declaration *Parser::parseAnnotationDecl() {
+    return nullptr;
+}
+
+CompilationUnit *Parser::parseCompilationUnit() {
+    std::vector<Declaration *> decls;
+    auto startToken = tok;
+    while (!check(TokenType::EndOfFile) && !check(TokenType::WhiteSpace)) {
+        if (check(TokenType::Func)) {
+            decls.push_back(parseFunctionDecl());
+        } else {
+            bool isVarDecl = check(TokenType::Var);
+            decls.push_back(parseVarOrTypeDecl());
+            if (isVarDecl) expect(TokenType::SemiColon);
+        }
+    }
+    return ctx->create<CompilationUnit>(
+        startToken.getLocInfo(),
+        decls
     );
 }
 

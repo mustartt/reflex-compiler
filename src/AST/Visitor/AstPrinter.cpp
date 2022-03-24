@@ -303,4 +303,26 @@ void AstPrinter::visit(MemberDecl *visitable) {
     visitable->getDeclaration()->accept(this);
 }
 
+void AstPrinter::visit(InterfaceDecl *visitable) {
+    generateIndent();
+    output << "InterfaceDecl: " << std::endl;
+    ScopeIndent scope(indent);
+    visitable->getName()->accept(this);
+    for (auto interface: visitable->getInterfaces()) {
+        interface->accept(this);
+    }
+    for (auto signature: visitable->getSignatures()) {
+        signature->accept(this);
+    }
+}
+
+void AstPrinter::visit(CompilationUnit *visitable) {
+    generateIndent();
+    output << "CompilationUnit: " << std::endl;
+    ScopeIndent scope(indent);
+    for (auto decls: visitable->getDecls()) {
+        decls->accept(this);
+    }
+}
+
 }

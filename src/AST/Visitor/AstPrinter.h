@@ -51,6 +51,8 @@ class AstPrinter : public AstVisitor {
     void visit(FunctionDecl *visitable) override;
     void visit(ClassDecl *visitable) override;
     void visit(MemberDecl *visitable) override;
+    void visit(InterfaceDecl *visitable) override;
+    void visit(CompilationUnit *visitable) override;
   private:
     void generateIndent();
 };

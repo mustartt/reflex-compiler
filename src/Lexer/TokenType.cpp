@@ -9,7 +9,7 @@ namespace reflex {
 std::string TokenType::getTypeString() const {
     switch (value) {
         case EndOfFile: return "EOF";
-        case WhiteSpace: return "WS";
+        case WhiteSpace: return "WHITESPACE";
         case NameSeparator: return "NAME_SEPARATOR";
         case Colon:return "COLON";
         case SemiColon:return "SEMICOLON";
