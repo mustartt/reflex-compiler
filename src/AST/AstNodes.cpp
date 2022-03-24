@@ -3,6 +3,7 @@
 //
 
 #include "AstNodes.h"
+#include "../Types/Type.h"
 
 namespace reflex {
 
