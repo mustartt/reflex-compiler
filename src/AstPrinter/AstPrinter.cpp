@@ -4,7 +4,6 @@
 
 #include "AstPrinter.h"
 #include "../AST/AstNodes.h"
-#include "../AST/Operator.h"
 
 namespace reflex {
 
