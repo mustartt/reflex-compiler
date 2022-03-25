@@ -1,7 +1,28 @@
-func sumArray(arr: int[]) -> int {
-    var sum: int = 0;
-    for (var i in arr) {
-        sum += i;
+class Point {
+    public var x: int = 0;
+    public var y: int = 0;
+
+    public func getX() -> int {
+        return x;
     }
-    return sum;
+    public func getY() -> int {
+        return y;
+    }
+}
+
+class DistancePoint(Point) {
+    public func distance2() -> int {
+        return x * x + y * y;
+    }
+}
+
+func getDistance(pt: DistancePoint) -> int {
+    var a: DistancePoint = new DistancePoint();
+    return pt.distance2();
+}
+
+func getPointProducer() -> func(int, int) -> Point {
+    return func(a: int, b: int) -> Point {
+        return new Point(a, b);
+    };
 }

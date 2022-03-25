@@ -11,30 +11,18 @@ TypeContextManager::TypeContextManager() {
     primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Number));
     primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Character));
     primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Boolean));
+    primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Null));
 }
 
 void TypeContextManager::dump(std::ostream &os) {
-    voidType->printType(os);
-    os << std::endl;
-    for (auto &p: primitiveTyp) {
-        p->printType(os);
-        os << std::endl;
-    }
-    for (auto &arr: arrayTyp) {
-        arr->printType(os);
-        os << std::endl;
-    }
     for (auto &func: funcTyp) {
-        func->printType(os);
-        os << std::endl;
+        os << func->getTypeString() << std::endl;
     }
     for (auto &[name, interface]: interfaceTyp) {
-        os << name << ": ";
-        interface->printType(os);
+        os << interface->getTypeString() << std::endl;
     }
     for (auto &[name, classTy]: classTyp) {
-        os << name << ": ";
-        classTy->printType(os);
+        os << classTy->getTypeString() << std::endl;
     }
 }
 
@@ -95,13 +83,13 @@ std::optional<InterfaceType *> TypeContextManager::getInterfaceTyp(const std::st
 ClassType *TypeContextManager::createOrGetClassTy(const std::string &name,
                                                   ClassType *baseclass,
                                                   const std::vector<InterfaceType *> &interfaces) {
-    classTyp.emplace(name, std::make_unique<ClassType>(baseclass, interfaces));
+    classTyp.emplace(name, std::make_unique<ClassType>(name, baseclass, interfaces));
     return classTyp[name].get();
 }
 
 InterfaceType *TypeContextManager::createOrGetInterfaceTy(const std::string &name,
                                                           const std::vector<InterfaceType *> &interfaces) {
-    interfaceTyp.emplace(name, std::make_unique<InterfaceType>(interfaces));
+    interfaceTyp.emplace(name, std::make_unique<InterfaceType>(name, interfaces));
     return interfaceTyp[name].get();
 }
 

@@ -18,12 +18,12 @@ namespace reflex {
 class Type {
   public:
     virtual ~Type() = default;
-    virtual void printType(std::ostream &os) = 0;
+    virtual std::string getTypeString() = 0;
 };
 
 class VoidType : public Type {
   public:
-    void printType(std::ostream &os) override;;
+    std::string getTypeString() override;
 };
 
 class PrimType : public Type {
@@ -32,12 +32,13 @@ class PrimType : public Type {
       Integer = 0,
       Number = 1,
       Character = 2,
-      Boolean = 3
+      Boolean = 3,
+      Null = 4
     };
   public:
     explicit PrimType(BaseType baseTyp) : baseTyp(baseTyp) {}
     [[nodiscard]] BaseType getBaseTyp() const { return baseTyp; }
-    void printType(std::ostream &os) override;
+    std::string getTypeString() override;
   private:
     BaseType baseTyp;
 };
@@ -47,7 +48,7 @@ class ArrayType : public Type {
   public:
     explicit ArrayType(Type *elementTyp) : elementTyp(elementTyp) {}
     [[nodiscard]] Type *getElementTyp() const { return elementTyp; }
-    void printType(std::ostream &os) override;
+    std::string getTypeString() override;
     bool operator==(const ArrayType &rhs) const;
 };
 
@@ -60,7 +61,7 @@ class FunctionType : public Type {
     [[nodiscard]] virtual bool isMemberFuncTyp() const { return false; }
     [[nodiscard]] Type *getReturnTyp() const { return returnTyp; }
     [[nodiscard]] const std::vector<Type *> &getParamTyp() const { return paramTyp; }
-    void printType(std::ostream &os) override;
+    std::string getTypeString() override;
     bool operator==(const FunctionType &rhs) const;
 };
 
@@ -89,20 +90,21 @@ class MemberType : public Type {
   public:
     MemberType(ClassType *instanceTyp, Visibility visibility, Type *memberTyp)
         : instanceTyp(instanceTyp), visibility(visibility), memberTyp(memberTyp) {}
-    void printType(std::ostream &os) override;
     [[nodiscard]] ClassType *getInstanceTyp() const { return instanceTyp; }
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
+    std::string getTypeString() override;
     [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FunctionType *>(memberTyp); }
     bool operator==(const MemberType &rhs) const;
 };
 
 class InterfaceType : public AggregateType {
+    std::string interfacename;
     std::vector<InterfaceType *> interfaces;
     std::map<std::string, std::vector<MemberType *>> members{};
   public:
-    explicit InterfaceType(std::vector<InterfaceType *> interfaces)
-        : interfaces(std::move(interfaces)) {}
+    explicit InterfaceType(std::string interfacename, std::vector<InterfaceType *> interfaces)
+        : interfacename(std::move(interfacename)), interfaces(std::move(interfaces)) {}
     void addInterfaceMethod(const std::string &name, MemberType *typ) {
         members[name].push_back(typ);
     }
@@ -111,7 +113,7 @@ class InterfaceType : public AggregateType {
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
-    void printType(std::ostream &os) override;
+    std::string getTypeString() override;
     bool operator==(const InterfaceType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override {
         return false;
@@ -120,12 +122,13 @@ class InterfaceType : public AggregateType {
 
 class ClassType : public AggregateType {
   private:
+    std::string classname;
     ClassType *baseclass;
     std::vector<InterfaceType *> interfaces;
     std::map<std::string, std::vector<MemberType *>> members{};
   public:
-    ClassType(ClassType *baseclass, std::vector<InterfaceType *> interfaces)
-        : baseclass(baseclass), interfaces(std::move(interfaces)) {}
+    ClassType(std::string classname, ClassType *baseclass, std::vector<InterfaceType *> interfaces)
+        : classname(std::move(classname)), baseclass(baseclass), interfaces(std::move(interfaces)) {}
     void addMember(const std::string &name, MemberType *typ) {
         members[name].push_back(typ);
     }
@@ -134,7 +137,7 @@ class ClassType : public AggregateType {
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return false; }
     [[nodiscard]] bool isClassTyp() const override { return true; }
-    void printType(std::ostream &os) override;
+    std::string getTypeString() override;
     bool operator==(const ClassType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override {
         for (auto&[name, overloads]: members) {

@@ -2,6 +2,7 @@
 // Created by henry on 2022-03-24.
 //
 
+#include <sstream>
 #include "Type.h"
 
 namespace reflex {
@@ -21,43 +22,39 @@ Visibility getVisibilityFromString(const std::string &ident) {
     throw std::runtime_error("Unknown access modifier " + ident);
 }
 
-void VoidType::printType(std::ostream &os) { os << "void"; }
-
-void PrimType::printType(std::ostream &os) {
-    switch (baseTyp) {
-        case Integer: os << "int";
-            break;
-        case Number:os << "num";
-            break;
-        case Character:os << "char";
-            break;
-        case Boolean:os << "bool";
-            break;
-    }
+std::string VoidType::getTypeString() {
+    return "void";
 }
 
-void ArrayType::printType(std::ostream &os) {
-    os << "ArrayType: ";
-    elementTyp->printType(os);
-    os << "[]";
+std::string PrimType::getTypeString() {
+    switch (baseTyp) {
+        case Integer: return "int";
+        case Number: return "num";
+        case Character: return "char";
+        case Boolean: return "bool";
+        case Null: return "null";
+    }
 }
 
 bool ArrayType::operator==(const ArrayType &rhs) const {
     return elementTyp == rhs.elementTyp;
 }
 
-void FunctionType::printType(std::ostream &os) {
-    os << "FunctionType: ";
-    returnTyp->printType(os);
-    os << "(";
+std::string ArrayType::getTypeString() {
+    return elementTyp->getTypeString() + " []";
+}
+
+std::string FunctionType::getTypeString() {
+    std::stringstream ss;
+    ss << "(";
     if (!paramTyp.empty()) {
-        paramTyp[0]->printType(os);
+        ss << paramTyp[0]->getTypeString();
         for (size_t i = 1; i < paramTyp.size(); ++i) {
-            os << ",";
-            paramTyp[i]->printType(os);
+            ss << "," << paramTyp[i]->getTypeString();
         }
     }
-    os << ")";
+    ss << ")->" << returnTyp->getTypeString();
+    return ss.str();
 }
 
 bool FunctionType::operator==(const FunctionType &rhs) const {
@@ -65,10 +62,9 @@ bool FunctionType::operator==(const FunctionType &rhs) const {
         && paramTyp == rhs.paramTyp;
 }
 
-void MemberType::printType(std::ostream &os) {
-    os << "    MemberType: " << getVisibilityString(visibility) << " ";
-    memberTyp->printType(os);
-    os << std::endl;
+std::string MemberType::getTypeString() {
+    return getVisibilityString(visibility) + " "
+        + memberTyp->getTypeString();
 }
 
 bool MemberType::operator==(const MemberType &rhs) const {
@@ -77,14 +73,8 @@ bool MemberType::operator==(const MemberType &rhs) const {
         && memberTyp == rhs.memberTyp;
 }
 
-void InterfaceType::printType(std::ostream &os) {
-    os << "InterfaceType: " << "(" << interfaces.size() << ")" << std::endl;
-    for (auto &[name, overloads]: members) {
-        os << "  " << name << ": " << std::endl;
-        for (auto overload: overloads) {
-            overload->printType(os);
-        }
-    }
+std::string InterfaceType::getTypeString() {
+    return "interface " + interfacename;
 }
 
 bool InterfaceType::operator==(const InterfaceType &rhs) const {
@@ -92,15 +82,8 @@ bool InterfaceType::operator==(const InterfaceType &rhs) const {
         && members == rhs.members;
 }
 
-void ClassType::printType(std::ostream &os) {
-    os << "ClassType: " << "(" << std::internal << std::hex << baseclass << ") -> "
-       << interfaces.size() << std::endl;
-    for (auto &[name, overloads]: members) {
-        os << "  " << name << ": " << std::endl;
-        for (auto overload: overloads) {
-            overload->printType(os);
-        }
-    }
+std::string ClassType::getTypeString() {
+    return "class " + classname;
 }
 
 bool ClassType::operator==(const ClassType &rhs) const {

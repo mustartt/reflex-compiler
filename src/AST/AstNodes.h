@@ -173,20 +173,20 @@ class BinaryExpr : public Expression {
 };
 
 class NewExpr : public Expression {
-    AstExpr *instanceTyp;
+    TypeExpr *instanceTyp;
   public:
-    NewExpr(const Loc &loc, AstExpr *instanceTyp);
+    NewExpr(const Loc &loc, TypeExpr *instanceTyp);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] AstExpr *getInstanceTyp() const;
+    [[nodiscard]] TypeExpr *getInstanceTyp() const;
 };
 
 class CastExpr : public Expression {
-    AstExpr *targetTyp;
+    TypeExpr *targetTyp;
     Expression *from;
   public:
-    CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from);
+    CastExpr(const Loc &loc, TypeExpr *targetTyp, Expression *from);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] AstExpr *getTargetTyp() const;
+    [[nodiscard]] TypeExpr *getTargetTyp() const;
     [[nodiscard]] Expression *getFrom() const;
 };
 

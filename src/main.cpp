@@ -22,17 +22,13 @@ int main(int argc, char *argv[]) {
     AstPrinter printer(std::cout);
     printer.visit(root);
 
-    std::cout << std::endl << "Remaining Tokens: " << std::endl;
-    while (lexer.hasNext()) {
-        auto tok = lexer.nextToken();
-        std::cout << tok << std::endl;
-    }
-
-    std::cout << std::endl << "Dumped Class Decls: " << std::endl;
+    std::cout << "=============================================" << std::endl;
 
     TypeContextManager manager;
     AstTypeAnnotator annotator(&ctx, &manager);
     annotator.annotate();
+
+    printer.visit(root);
 
     manager.dump(std::cout);
 

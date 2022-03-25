@@ -345,13 +345,10 @@ Expression *Parser::parsePrimaryExpr2(Expression *base) {
 
 Expression *Parser::parseNewExpr() {
     expect(TokenType::New);
-    auto ident = parseIdent();
-    if (check(TokenType::NameSeparator)) {
-        ident = parseModuleIdent(ident);
-    }
+    auto instanceTyp = parseType();
     return ctx->create<NewExpr>(
-        ident->getLoc(),
-        ident
+        instanceTyp->getLoc(),
+        instanceTyp
     );
 }
 

@@ -36,20 +36,20 @@ class AstTypeAnnotator : public AstVisitor {
   public:
     void visit(Identifier *visitable) override {}
     void visit(ModuleSelector *visitable) override {}
-    void visit(NumberLit *visitable) override {}
+    void visit(NumberLit *visitable) override;
     void visit(StringLit *visitable) override {}
-    void visit(BoolLit *visitable) override {}
-    void visit(NullLit *visitable) override {}
+    void visit(BoolLit *visitable) override;
+    void visit(NullLit *visitable) override;
     void visit(IdentifierTypeExpr *visitable) override {}
     void visit(ArrayTypeExpr *visitable) override {}
     void visit(FunctionTypeExpr *visitable) override {}
     void visit(ArrayLit *visitable) override {}
     void visit(ParamDecl *visitable) override;
-    void visit(FunctionLit *visitable) override {}
+    void visit(FunctionLit *visitable) override;
     void visit(UnaryExpr *visitable) override {}
     void visit(BinaryExpr *visitable) override {}
-    void visit(NewExpr *visitable) override {}
-    void visit(CastExpr *visitable) override {}
+    void visit(NewExpr *visitable) override;
+    void visit(CastExpr *visitable) override;
     void visit(SelectorExpr *visitable) override {}
     void visit(IndexExpr *visitable) override {}
     void visit(ArgumentExpr *visitable) override {}
@@ -78,6 +78,14 @@ class AstTypeAnnotator : public AstVisitor {
 
     void annotateInterfaceBody();
     void annotateClassBody();
+
+    void annotateFunctionDecls();
+    void annotateFunctionLits();
+
+    void annotateVariableDecls();
+    void annotateCastAndNewExpr();
+
+    void annotateBasicLiterals();
 
     std::vector<ClassDecl *> sortClassInheritance();
     std::vector<InterfaceDecl *> sortInterfaceInheritance();

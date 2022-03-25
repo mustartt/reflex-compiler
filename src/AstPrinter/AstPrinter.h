@@ -21,6 +21,7 @@ class Scope {
     friend class AstPrinter;
 };
 
+class Type;
 class AstPrinter : public AstVisitor {
     std::ostream &output;
     size_t depth;
@@ -72,6 +73,7 @@ class AstPrinter : public AstVisitor {
   private:
     void printTreePrefix();
     void printNodePrefix(const std::string &message, bool end = true);
+    std::string printAstType(Type *type);
 };
 
 }

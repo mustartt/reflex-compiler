@@ -4,6 +4,7 @@
 
 #include "AstPrinter.h"
 #include "../AST/AstNodes.h"
+#include "Type.h"
 
 namespace reflex {
 
@@ -34,6 +35,13 @@ void AstPrinter::printTreePrefix() {
     }
 }
 
+std::string AstPrinter::printAstType(Type *type) {
+    if (!type) {
+        return "<<unknown>>";
+    }
+    return "<" + type->getTypeString() + ">";
+}
+
 void AstPrinter::printNodePrefix(const std::string &message, bool end) {
     printTreePrefix();
     if (depth == 0) {
@@ -48,7 +56,9 @@ void AstPrinter::printNodePrefix(const std::string &message, bool end) {
 }
 
 void AstPrinter::visit(CompilationUnit *visitable) {
-    printNodePrefix("CompilationUnit: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("CompilationUnit: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         int it = 0;
         for (auto i = visitable->getDecls().begin(); i != visitable->getDecls().end(); ++i, ++it) {
@@ -61,7 +71,9 @@ void AstPrinter::visit(CompilationUnit *visitable) {
 }
 
 void AstPrinter::visit(InterfaceDecl *visitable) {
-    printNodePrefix("InterfaceDecl: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("InterfaceDecl: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         int it = 0;
         for (auto i = visitable->getSignatures().begin(); i != visitable->getSignatures().end(); ++i, ++it) {
@@ -74,7 +86,9 @@ void AstPrinter::visit(InterfaceDecl *visitable) {
 }
 
 void AstPrinter::visit(ClassDecl *visitable) {
-    printNodePrefix("ClassDecl: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ClassDecl: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         int it = 0;
         for (auto i = visitable->getMembers().begin(); i != visitable->getMembers().end(); ++i, ++it) {
@@ -87,9 +101,12 @@ void AstPrinter::visit(ClassDecl *visitable) {
 }
 
 void AstPrinter::visit(FunctionDecl *visitable) {
-    printNodePrefix("FunctionDecl: " + visitable->getLoc().getFormattedRepr());
-    int it = 0;
+    printNodePrefix("FunctionDecl: "
+                        + visitable->getName()->getIdent() + " "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
+        int it = 0;
         for (auto i = visitable->getParams().begin(); i != visitable->getParams().end(); ++i, ++it) {
             auto isLastNode = it == visitable->getParams().size() - 1;
             Scope _s(*this, visitable->getBody() == nullptr && isLastNode);
@@ -104,7 +121,9 @@ void AstPrinter::visit(FunctionDecl *visitable) {
 }
 
 void AstPrinter::visit(MemberDecl *visitable) {
-    printNodePrefix("MemberDecl: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("MemberDecl: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getDeclaration()->accept(this);
@@ -113,7 +132,9 @@ void AstPrinter::visit(MemberDecl *visitable) {
 }
 
 void AstPrinter::visit(Block *visitable) {
-    printNodePrefix("Block: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("Block: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         int it = 0;
         for (auto i = visitable->getStmts().begin(); i != visitable->getStmts().end(); ++i, ++it) {
@@ -126,7 +147,9 @@ void AstPrinter::visit(Block *visitable) {
 }
 
 void AstPrinter::visit(ExpressionStmt *visitable) {
-    printNodePrefix("ExpressionStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ExpressionStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _s(*this, true);
         visitable->getExpr()->accept(this);
@@ -137,7 +160,8 @@ void AstPrinter::visit(ExpressionStmt *visitable) {
 void AstPrinter::visit(IncDecStmt *visitable) {
     printNodePrefix("IncDecStmt: '"
                         + getPostfixOperator(visitable->getPostfixOp()) + "' "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _s(*this, true);
         visitable->getExpr()->accept(this);
@@ -148,7 +172,8 @@ void AstPrinter::visit(IncDecStmt *visitable) {
 void AstPrinter::visit(AssignmentStmt *visitable) {
     printNodePrefix("AssignmentStmt: '"
                         + getAssignOperator(visitable->getAssignOp()) + "' "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _s(*this, false);
         visitable->getLhs()->accept(this);
@@ -161,12 +186,16 @@ void AstPrinter::visit(AssignmentStmt *visitable) {
 }
 
 void AstPrinter::visit(EmptyStmt *visitable) {
-    printNodePrefix("EmptyStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("EmptyStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(WhileStmt *visitable) {
-    printNodePrefix("WhileStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("WhileStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getCond()->accept(this);
@@ -179,7 +208,9 @@ void AstPrinter::visit(WhileStmt *visitable) {
 }
 
 void AstPrinter::visit(ForStmt *visitable) {
-    printNodePrefix("ForStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ForStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getClause()->accept(this);
@@ -192,7 +223,9 @@ void AstPrinter::visit(ForStmt *visitable) {
 }
 
 void AstPrinter::visit(ForNormalClause *visitable) {
-    printNodePrefix("ForNormalClause: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ForNormalClause: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getInit()->accept(this);
@@ -206,7 +239,9 @@ void AstPrinter::visit(ForNormalClause *visitable) {
 }
 
 void AstPrinter::visit(ForRangeClause *visitable) {
-    printNodePrefix("ForRangeClause: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ForRangeClause: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getVariable()->accept(this);
@@ -219,7 +254,9 @@ void AstPrinter::visit(ForRangeClause *visitable) {
 }
 
 void AstPrinter::visit(IfStmt *visitable) {
-    printNodePrefix("IfStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("IfStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getCond()->accept(this);
@@ -237,17 +274,23 @@ void AstPrinter::visit(IfStmt *visitable) {
 }
 
 void AstPrinter::visit(ContinueStmt *visitable) {
-    printNodePrefix("ContinueStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ContinueStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(BreakStmt *visitable) {
-    printNodePrefix("BreakStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("BreakStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(ReturnStmt *visitable) {
-    printNodePrefix("ReturnStmt: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ReturnStmt: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getReturnValue()->accept(this);
@@ -257,10 +300,8 @@ void AstPrinter::visit(ReturnStmt *visitable) {
 
 void AstPrinter::visit(VariableDecl *visitable) {
     printNodePrefix("VariableDecl: "
-                        + visitable->getLoc().getFormattedRepr(),
-                    false);
-    if (visitable->getVariableType()) visitable->getVariableType()->accept(this);
-    output << std::endl;
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, !visitable->getInitializer());
         visitable->getName()->accept(this);
@@ -274,12 +315,15 @@ void AstPrinter::visit(VariableDecl *visitable) {
 }
 
 void AstPrinter::visit(ArgumentExpr *visitable) {
-    printNodePrefix("ArgumentExpr: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ArgumentExpr: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     auto hasArgument = !visitable->getArguments().empty();
     {
         Scope _(*this, !hasArgument);
         visitable->getBaseExpr()->accept(this);
-
+    }
+    {
         int it = 0;
         for (auto i = visitable->getArguments().begin(); i != visitable->getArguments().end(); ++i, ++it) {
             auto isLastNode = it == visitable->getArguments().size() - 1;
@@ -293,7 +337,8 @@ void AstPrinter::visit(ArgumentExpr *visitable) {
 void AstPrinter::visit(SelectorExpr *visitable) {
     printNodePrefix("SelectorExpr: "
                         + visitable->getSelector()->getIdent() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getBaseExpr()->accept(this);
@@ -302,7 +347,9 @@ void AstPrinter::visit(SelectorExpr *visitable) {
 }
 
 void AstPrinter::visit(CastExpr *visitable) {
-    printNodePrefix("CastExpr: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("CastExpr: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getFrom()->accept(this);
@@ -311,10 +358,16 @@ void AstPrinter::visit(CastExpr *visitable) {
 }
 
 void AstPrinter::visit(NewExpr *visitable) {
-    printNodePrefix("NewExpr: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("NewExpr: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
+        printNodePrefix("InstanceType: ", false);
         visitable->getInstanceTyp()->accept(this);
+        output << visitable->getInstanceTyp()->getLoc().getFormattedRepr() << " "
+               << printAstType(visitable->getTyp())
+               << std::endl;
     }
     depthFlag[depth] = true;
 }
@@ -322,7 +375,8 @@ void AstPrinter::visit(NewExpr *visitable) {
 void AstPrinter::visit(BinaryExpr *visitable) {
     printNodePrefix("BinaryExpr: '"
                         + getBinaryOperator(visitable->getOp()) + "' "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getLhs()->accept(this);
@@ -337,7 +391,8 @@ void AstPrinter::visit(BinaryExpr *visitable) {
 void AstPrinter::visit(UnaryExpr *visitable) {
     printNodePrefix("UnaryExpr: '"
                         + getUnaryOperator(visitable->getOp()) + "' "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getExpr()->accept(this);
@@ -346,7 +401,9 @@ void AstPrinter::visit(UnaryExpr *visitable) {
 }
 
 void AstPrinter::visit(FunctionLit *visitable) {
-    printNodePrefix("FunctionLit: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("FunctionLit: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         for (auto param: visitable->getParameters()) {
             Scope _(*this, false);
@@ -359,9 +416,9 @@ void AstPrinter::visit(FunctionLit *visitable) {
 }
 
 void AstPrinter::visit(ParamDecl *visitable) {
-    printNodePrefix("ParamDecl: " + visitable->getLoc().getFormattedRepr() + " ", false);
-    visitable->getParamType()->accept(this);
-    output << std::endl;
+    printNodePrefix("ParamDecl: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getName()->accept(this);
@@ -370,7 +427,9 @@ void AstPrinter::visit(ParamDecl *visitable) {
 }
 
 void AstPrinter::visit(ArrayLit *visitable) {
-    printNodePrefix("ArrayLit: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("ArrayLit: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         int it = 0;
         auto &initLst = visitable->getInitializerList();
@@ -411,33 +470,38 @@ void AstPrinter::visit(IdentifierTypeExpr *visitable) {
 void AstPrinter::visit(NullLit *visitable) {
     printNodePrefix("NullLit: "
                         + visitable->getValue() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(BoolLit *visitable) {
     printNodePrefix("BoolLit: "
                         + visitable->getValue() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(StringLit *visitable) {
     printNodePrefix("StringLit: '" + visitable->getValue() + "' "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(NumberLit *visitable) {
     printNodePrefix("NumberLit: " + visitable->getValue() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(ModuleSelector *visitable) {
     printNodePrefix("ModuleSelector: "
                         + visitable->getSelector() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
         visitable->getBasename()->accept(this);
@@ -448,12 +512,15 @@ void AstPrinter::visit(ModuleSelector *visitable) {
 void AstPrinter::visit(Identifier *visitable) {
     printNodePrefix("Identifier: "
                         + visitable->getIdent() + " "
-                        + visitable->getLoc().getFormattedRepr());
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     depthFlag[depth] = true;
 }
 
 void AstPrinter::visit(IndexExpr *visitable) {
-    printNodePrefix("IndexExpr: " + visitable->getLoc().getFormattedRepr());
+    printNodePrefix("IndexExpr: "
+                        + visitable->getLoc().getFormattedRepr() + " "
+                        + printAstType(visitable->getTyp()));
     {
         Scope _(*this, false);
         visitable->getBaseExpr()->accept(this);

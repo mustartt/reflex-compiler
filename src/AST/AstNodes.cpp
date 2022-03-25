@@ -86,14 +86,14 @@ BinaryOperator BinaryExpr::getOp() const { return op; }
 Expression *BinaryExpr::getLhs() const { return lhs; }
 Expression *BinaryExpr::getRhs() const { return rhs; }
 
-NewExpr::NewExpr(const Loc &loc, AstExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
+NewExpr::NewExpr(const Loc &loc, TypeExpr *instanceTyp) : Expression(loc), instanceTyp(instanceTyp) {}
 void NewExpr::accept(AstVisitor *visitor) { visitor->visit(this); }
-AstExpr *NewExpr::getInstanceTyp() const { return instanceTyp; }
+TypeExpr *NewExpr::getInstanceTyp() const { return instanceTyp; }
 
-CastExpr::CastExpr(const Loc &loc, AstExpr *targetTyp, Expression *from)
+CastExpr::CastExpr(const Loc &loc, TypeExpr *targetTyp, Expression *from)
     : Expression(loc), targetTyp(targetTyp), from(from) {}
 void CastExpr::accept(AstVisitor *visitor) { visitor->visit(this); }
-AstExpr *CastExpr::getTargetTyp() const { return targetTyp; }
+TypeExpr *CastExpr::getTargetTyp() const { return targetTyp; }
 Expression *CastExpr::getFrom() const { return from; }
 
 IndexExpr::IndexExpr(const Loc &loc, Expression *baseExpr, Expression *index)

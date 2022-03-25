@@ -77,6 +77,13 @@ void AstTypeAnnotator::annotate() {
     annotateClassDecls();
     annotateInterfaceBody();
     annotateClassBody();
+    annotateFunctionDecls();
+    annotateFunctionLits();
+    annotateVariableDecls();
+
+    annotateCastAndNewExpr();
+
+    annotateBasicLiterals();
 }
 
 void AstTypeAnnotator::annotateClassDecls() {
@@ -94,29 +101,101 @@ void AstTypeAnnotator::annotateInterfaceDecls() {
 }
 
 void AstTypeAnnotator::annotateInterfaceBody() {
-    auto ordering = sortInterfaceInheritance();
-    for (auto decl: ordering) {
-        // add interface methods
-        for (auto member: decl->getSignatures()) {
-            member->accept(this);
-            auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
-            auto theInterfaceType = dynamic_cast<InterfaceType *>(decl->getTyp());
-            theInterfaceType->addInterfaceMethod(funcDecl->getName()->getIdent(),
-                                                 dynamic_cast<MemberType *>(member->getTyp()));
+    try {
+        auto ordering = sortInterfaceInheritance();
+        for (auto decl: ordering) {
+            // add interface methods
+            for (auto member: decl->getSignatures()) {
+                member->accept(this);
+                auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
+                auto theInterfaceType = dynamic_cast<InterfaceType *>(decl->getTyp());
+                theInterfaceType->addInterfaceMethod(funcDecl->getName()->getIdent(),
+                                                     dynamic_cast<MemberType *>(member->getTyp()));
+            }
         }
+    } catch (CyclicError &err) {
+        throw InterfaceTypeError{"Cyclic inheritance detected"};
     }
 }
 
 void AstTypeAnnotator::annotateClassBody() {
-    auto ordering = sortClassInheritance();
-    for (auto decl: ordering) {
-        // add class members
-        for (auto member: decl->getMembers()) {
-            member->accept(this);
-            auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
-            auto theClassType = dynamic_cast<ClassType *>(decl->getTyp());
-            theClassType->addMember(funcDecl->getName()->getIdent(),
-                                    dynamic_cast<MemberType *>(member->getTyp()));
+    try {
+        auto ordering = sortClassInheritance();
+        for (auto decl: ordering) {
+            // add class members
+            for (auto member: decl->getMembers()) {
+                member->accept(this);
+                auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
+                if (!funcDecl) continue;
+                auto theClassType = dynamic_cast<ClassType *>(decl->getTyp());
+                theClassType->addMember(funcDecl->getName()->getIdent(),
+                                        dynamic_cast<MemberType *>(member->getTyp()));
+            }
+        }
+    } catch (CyclicError &err) {
+        throw ClassTypeError{"Cyclic inheritance detected"};
+    }
+}
+
+void AstTypeAnnotator::annotateFunctionDecls() {
+    for (auto &decl: astContext->getAstNodesByType<FunctionDecl>()) {
+        auto funcDecl = dynamic_cast<FunctionDecl *>(decl.get());
+        if (!funcDecl->getTyp()) {
+            funcDecl->accept(this);
+        }
+    }
+}
+
+void AstTypeAnnotator::annotateFunctionLits() {
+    for (auto &decl: astContext->getAstNodesByType<FunctionLit>()) {
+        auto funcDecl = dynamic_cast<FunctionLit *>(decl.get());
+        if (!funcDecl->getTyp()) {
+            funcDecl->accept(this);
+        }
+    }
+}
+
+void AstTypeAnnotator::annotateVariableDecls() {
+    for (auto &decl: astContext->getAstNodesByType<VariableDecl>()) {
+        auto varDecl = dynamic_cast<VariableDecl *>(decl.get());
+        if (!varDecl->getTyp()) {
+            varDecl->accept(this);
+        }
+    }
+}
+
+void AstTypeAnnotator::annotateBasicLiterals() {
+    for (auto &decl: astContext->getAstNodesByType<NumberLit>()) {
+        auto literal = dynamic_cast<NumberLit *>(decl.get());
+        if (!literal->getTyp()) {
+            literal->accept(this);
+        }
+    }
+    for (auto &decl: astContext->getAstNodesByType<BoolLit>()) {
+        auto literal = dynamic_cast<BoolLit *>(decl.get());
+        if (!literal->getTyp()) {
+            literal->accept(this);
+        }
+    }
+    for (auto &decl: astContext->getAstNodesByType<NullLit>()) {
+        auto literal = dynamic_cast<NullLit *>(decl.get());
+        if (!literal->getTyp()) {
+            literal->accept(this);
+        }
+    }
+}
+
+void AstTypeAnnotator::annotateCastAndNewExpr() {
+    for (auto &decl: astContext->getAstNodesByType<CastExpr>()) {
+        auto cast = dynamic_cast<CastExpr *>(decl.get());
+        if (!cast->getTyp()) {
+            cast->accept(this);
+        }
+    }
+    for (auto &decl: astContext->getAstNodesByType<NewExpr>()) {
+        auto newExpr = dynamic_cast<NewExpr *>(decl.get());
+        if (!newExpr->getTyp()) {
+            newExpr->accept(this);
         }
     }
 }
@@ -181,28 +260,79 @@ void AstTypeAnnotator::visit(FunctionDecl *visitable) {
     std::vector<Type *> paramTypes;
     for (auto p: visitable->getParams()) {
         p->accept(this);
-        paramTypes.push_back(p->getTyp());
+        auto ty = p->getTyp();
+        if (!ty) throw TypeParseError{"Unable to parse FunctionDecl Parameter Type"};
+        paramTypes.push_back(ty);
     }
-    TypeParser typeParser(typeContext);
-    auto retType = typeParser.parseTypeExpr(visitable->getRetTyp());
+    auto retType = parser.parseTypeExpr(visitable->getRetTyp());
     if (!retType)
         throw TypeParseError{"Unable to parse FunctionDecl type "
                                  + visitable->getName()->getIdent()};
     visitable->setTyp(typeContext->getFunctionTy(retType, paramTypes));
 }
+
+void AstTypeAnnotator::visit(FunctionLit *visitable) {
+    std::vector<Type *> paramTypes;
+    for (auto p: visitable->getParameters()) {
+        p->accept(this);
+        auto ty = p->getTyp();
+        if (!ty) throw TypeParseError{"Unable to parse FunctionDecl Parameter Type"};
+        paramTypes.push_back(ty);
+    }
+    auto retType = parser.parseTypeExpr(visitable->getReturnTyp());
+    if (!retType)
+        throw TypeParseError{"Unable to parse FunctionLit Return Type"};
+    visitable->setTyp(typeContext->getFunctionTy(retType, paramTypes));
+}
+
 void AstTypeAnnotator::visit(VariableDecl *visitable) {
     auto type = parser.parseTypeExpr(visitable->getVariableType());
     if (!type)
         throw TypeParseError{"Unable to parse VariableDecl type "
                                  + visitable->getName()->getIdent()};
     visitable->setTyp(type);
+    visitable->getName()->setTyp(type);
 }
+
 void AstTypeAnnotator::visit(ParamDecl *visitable) {
     auto type = parser.parseTypeExpr(visitable->getParamType());
     if (!type)
         throw TypeParseError{"Unable to parse ParamDecl type "
                                  + visitable->getName()->getIdent()};
+    visitable->getName()->setTyp(type);
     visitable->setTyp(type);
+}
+
+void AstTypeAnnotator::visit(NewExpr *visitable) {
+    auto type = parser.parseTypeExpr(visitable->getInstanceTyp());
+    if (!type) throw TypeParseError{"Unable to parse NewExpr instance type"};
+    visitable->setTyp(type);
+}
+
+void AstTypeAnnotator::visit(CastExpr *visitable) {
+    auto type = parser.parseTypeExpr(visitable->getTargetTyp());
+    if (!type) throw TypeParseError{"Unable to parse CastExpr target type"};
+    visitable->setTyp(type);
+}
+
+bool isFloatNumber(const std::string &str) {
+    return std::find(str.begin(), str.end(), '.') != str.end();
+}
+
+void AstTypeAnnotator::visit(NumberLit *visitable) {
+    auto value = visitable->getValue();
+    if (isFloatNumber(value)) {
+        visitable->setTyp(typeContext->getPrimitiveTy(PrimType::Number));
+    } else {
+        visitable->setTyp(typeContext->getPrimitiveTy(PrimType::Integer));
+    }
+}
+
+void AstTypeAnnotator::visit(BoolLit *visitable) {
+    visitable->setTyp(typeContext->getPrimitiveTy(PrimType::Boolean));
+}
+void AstTypeAnnotator::visit(NullLit *visitable) {
+    visitable->setTyp(typeContext->getPrimitiveTy(PrimType::Null));
 }
 
 }
