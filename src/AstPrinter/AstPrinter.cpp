@@ -7,321 +7,463 @@
 
 namespace reflex {
 
-AstPrinter::AstPrinter(std::ostream &output) : output(output), indent(0) {}
+Scope::Scope(AstPrinter &printer, bool isLast) : printer(printer) {
+    printer.isLast.push(isLast);
+    ++printer.depth;
+}
 
-void AstPrinter::generateIndent() {
-    for (size_t i = 0; i < 2 * indent; ++i) {
-        output << ' ';
+Scope::~Scope() {
+    printer.isLast.pop();
+    --printer.depth;
+}
+
+AstPrinter::AstPrinter(std::ostream &output)
+    : output(output), depth(0), isLast() {
+    std::vector<bool> tmp(100, true);
+    depthFlag = std::move(tmp);
+    isLast.push(false);
+}
+
+void AstPrinter::printTreePrefix() {
+    for (size_t i = 1; i < depth; ++i) {
+        if (depthFlag[i]) {
+            output << "| ";
+        } else {
+            output << "  ";
+        }
     }
 }
 
-class ScopeIndent {
-    size_t &indent;
-  public:
-    explicit ScopeIndent(size_t &ident) : indent(ident) { ++indent; }
-    ~ScopeIndent() { --indent; }
-};
-
-void AstPrinter::visit(Identifier *visitable) {
-    generateIndent();
-    output << "Identifier: " << visitable->getIdent() << std::endl;
-}
-void AstPrinter::visit(ModuleSelector *visitable) {
-    generateIndent();
-    output << "ModuleSelector: " << visitable->getIdent() << std::endl;
-}
-void AstPrinter::visit(NumberLit *visitable) {
-    generateIndent();
-    output << "NumberLit: " << visitable->getValue() << std::endl;
-}
-void AstPrinter::visit(StringLit *visitable) {
-    generateIndent();
-    output << "StringLit: " << visitable->getValue() << std::endl;
-}
-void AstPrinter::visit(BoolLit *visitable) {
-    generateIndent();
-    output << "BoolLit: " << visitable->getValue() << std::endl;
-}
-void AstPrinter::visit(NullLit *visitable) {
-    generateIndent();
-    output << "NullLit: " << visitable->getValue() << std::endl;
-}
-void AstPrinter::visit(IdentifierTypeExpr *visitable) {
-    generateIndent();
-    output << "IdentifierTypeExpr: " << std::endl;
-    ScopeIndent type(indent);
-    visitable->getTypename()->accept(this);
-}
-void AstPrinter::visit(ArrayTypeExpr *visitable) {
-    generateIndent();
-    output << "ArrayTypeExpr: " << std::endl;
-    ScopeIndent elem(indent);
-    visitable->getElementTyp()->accept(this);
-    output << std::endl;
-    if (visitable->getLengthExpr())
-        visitable->getLengthExpr()->accept(this);
-}
-
-void AstPrinter::visit(FunctionTypeExpr *visitable) {
-    generateIndent();
-    output << "FunctionTypeExpr: " << std::endl;
-    ScopeIndent paramScope(indent);
-    for (auto param: visitable->getParamList()) {
-        param->accept(this);
+void AstPrinter::printNodePrefix(const std::string &message, bool end) {
+    printTreePrefix();
+    if (depth == 0) {
+        output << message;
+    } else if (isLast.top()) {
+        output << "`-" << message;
+        depthFlag[depth] = false;
+    } else {
+        output << "|-" << message;
     }
-    visitable->getReturnTyp()->accept(this);
-}
-
-void AstPrinter::visit(ArrayLit *visitable) {
-    generateIndent();
-    output << "ArrayLit: " << std::endl;
-    ScopeIndent arr(indent);
-    for (auto element: visitable->getInitializerList()) {
-        element->accept(this);
-    }
-}
-
-void AstPrinter::visit(ParamDecl *visitable) {
-    generateIndent();
-    output << "ParamDecl: " << std::endl;
-    ScopeIndent param(indent);
-    visitable->getName()->accept(this);
-    visitable->getParamType()->accept(this);
-}
-
-void AstPrinter::visit(FunctionLit *visitable) {
-    generateIndent();
-    output << "FunctionLit: " << std::endl;
-    ScopeIndent param(indent);
-    for (auto decl: visitable->getParameters()) {
-        decl->accept(this);
-    }
-
-    visitable->getReturnTyp()->accept(this);
-    ScopeIndent body(indent);
-    visitable->getBody()->accept(this);
-}
-
-void AstPrinter::visit(UnaryExpr *visitable) {
-    generateIndent();
-    output << "UnaryExpr: " << getUnaryOperator(visitable->getOp()) << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getExpr()->accept(this);
-}
-
-void AstPrinter::visit(BinaryExpr *visitable) {
-    generateIndent();
-    output << "BinaryExpr: " << getBinaryOperator(visitable->getOp()) << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getLhs()->accept(this);
-    visitable->getRhs()->accept(this);
-}
-
-void AstPrinter::visit(IndexExpr *visitable) {
-    generateIndent();
-    output << "IndexExpr: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getBaseExpr()->accept(this);
-    visitable->getIndex()->accept(this);
-}
-
-void AstPrinter::visit(NewExpr *visitable) {
-    generateIndent();
-    output << "NewExpr: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getInstanceTyp()->accept(this);
-}
-
-void AstPrinter::visit(CastExpr *visitable) {
-    generateIndent();
-    output << "CastExpr: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getTargetTyp()->accept(this);
-    visitable->getFrom()->accept(this);
-}
-
-void AstPrinter::visit(SelectorExpr *visitable) {
-    generateIndent();
-    output << "SelectorExpr: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getBaseExpr()->accept(this);
-    visitable->getSelector()->accept(this);
-}
-void AstPrinter::visit(ArgumentExpr *visitable) {
-    generateIndent();
-    output << "ArgumentExpr: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getBaseExpr()->accept(this);
-    ScopeIndent params(indent);
-    generateIndent();
-    output << "Arguments: " << std::endl;
-    for (auto arg: visitable->getArguments()) {
-        ScopeIndent argScope(indent);
-        arg->accept(this);
-    }
-}
-
-void AstPrinter::visit(VariableDecl *visitable) {
-    generateIndent();
-    output << "VariableDecl: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getName()->accept(this);
-    if (visitable->getVariableType()) visitable->getVariableType()->accept(this);
-    if (visitable->getInitializer()) visitable->getInitializer()->accept(this);
-}
-
-void AstPrinter::visit(ReturnStmt *visitable) {
-    generateIndent();
-    output << "ReturnStmt: " << std::endl;
-    ScopeIndent expr(indent);
-    visitable->getReturnValue()->accept(this);
-}
-
-void AstPrinter::visit(BreakStmt *visitable) {
-    generateIndent();
-    output << "BreakStmt" << std::endl;
-}
-
-void AstPrinter::visit(ContinueStmt *visitable) {
-    generateIndent();
-    output << "ContinueStmt" << std::endl;
-}
-
-void AstPrinter::visit(IfStmt *visitable) {
-    generateIndent();
-    output << "IfStmt: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getCond()->accept(this);
-    visitable->getPrimaryBlock()->accept(this);
-    if (visitable->getElseBlock()) visitable->getElseBlock()->accept(this);
-}
-
-void AstPrinter::visit(ForRangeClause *visitable) {
-    generateIndent();
-    output << "ForRangeClause: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getVariable()->accept(this);
-    visitable->getIterExpr()->accept(this);
-}
-
-void AstPrinter::visit(ForNormalClause *visitable) {
-    generateIndent();
-    output << "ForNormalClause: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getInit()->accept(this);
-    visitable->getCond()->accept(this);
-    visitable->getPost()->accept(this);
-}
-
-void AstPrinter::visit(ForStmt *visitable) {
-    generateIndent();
-    output << "ForStmt: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getClause()->accept(this);
-    visitable->getBody()->accept(this);
-}
-
-void AstPrinter::visit(WhileStmt *visitable) {
-    generateIndent();
-    output << "WhileStmt: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getCond()->accept(this);
-    visitable->getBody()->accept(this);
-}
-
-void AstPrinter::visit(EmptyStmt *visitable) {
-    generateIndent();
-    output << "EmptyStmt" << std::endl;
-}
-
-void AstPrinter::visit(AssignmentStmt *visitable) {
-    generateIndent();
-    output << "AssignmentStmt: "
-           << getAssignOperator(visitable->getAssignOp())
-           << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getLhs()->accept(this);
-    visitable->getRhs()->accept(this);
-}
-
-void AstPrinter::visit(IncDecStmt *visitable) {
-    generateIndent();
-    output << "IncDecStmt: "
-           << getPostfixOperator(visitable->getPostfixOp())
-           << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getExpr()->accept(this);
-}
-
-void AstPrinter::visit(ExpressionStmt *visitable) {
-    generateIndent();
-    output << "ExpressionStmt: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getExpr()->accept(this);
-}
-
-void AstPrinter::visit(Block *visitable) {
-    generateIndent();
-    output << "Block: " << std::endl;
-    ScopeIndent scope(indent);
-    for (auto stmt: visitable->getStmts()) {
-        stmt->accept(this);
-    }
-}
-
-void AstPrinter::visit(FunctionDecl *visitable) {
-    generateIndent();
-    output << "FunctionDecl: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getName()->accept(this);
-    for (auto param: visitable->getParams()) {
-        param->accept(this);
-    }
-    visitable->getRetTyp()->accept(this);
-    if (visitable->getBody()) visitable->getBody()->accept(this);
-}
-
-void AstPrinter::visit(ClassDecl *visitable) {
-    generateIndent();
-    output << "ClassDecl: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getName()->accept(this);
-    if (visitable->getBaseclass()) visitable->getBaseclass()->accept(this);
-    for (auto interface: visitable->getInterfaces()) {
-        interface->accept(this);
-    }
-    for (auto member: visitable->getMembers()) {
-        member->accept(this);
-    }
-}
-
-void AstPrinter::visit(MemberDecl *visitable) {
-    generateIndent();
-    output << "MemberDecl: " << visitable->getModifier()->getIdent() << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getDeclaration()->accept(this);
-}
-
-void AstPrinter::visit(InterfaceDecl *visitable) {
-    generateIndent();
-    output << "InterfaceDecl: " << std::endl;
-    ScopeIndent scope(indent);
-    visitable->getName()->accept(this);
-    for (auto interface: visitable->getInterfaces()) {
-        interface->accept(this);
-    }
-    for (auto signature: visitable->getSignatures()) {
-        signature->accept(this);
-    }
+    if (end) output << std::endl;
 }
 
 void AstPrinter::visit(CompilationUnit *visitable) {
-    generateIndent();
-    output << "CompilationUnit: " << std::endl;
-    ScopeIndent scope(indent);
-    for (auto decls: visitable->getDecls()) {
-        decls->accept(this);
+    printNodePrefix("CompilationUnit: " + visitable->getLoc().getFormattedRepr());
+    {
+        int it = 0;
+        for (auto i = visitable->getDecls().begin(); i != visitable->getDecls().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getDecls().size() - 1;
+            Scope _(*this, isLastNode);
+            (*i)->accept(this);
+        }
     }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(InterfaceDecl *visitable) {
+    printNodePrefix("InterfaceDecl: " + visitable->getLoc().getFormattedRepr());
+    {
+        int it = 0;
+        for (auto i = visitable->getSignatures().begin(); i != visitable->getSignatures().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getSignatures().size() - 1;
+            Scope _(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ClassDecl *visitable) {
+    printNodePrefix("ClassDecl: " + visitable->getLoc().getFormattedRepr());
+    {
+        int it = 0;
+        for (auto i = visitable->getMembers().begin(); i != visitable->getMembers().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getMembers().size() - 1;
+            Scope _s(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(FunctionDecl *visitable) {
+    printNodePrefix("FunctionDecl: " + visitable->getLoc().getFormattedRepr());
+    int it = 0;
+    {
+        for (auto i = visitable->getParams().begin(); i != visitable->getParams().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getParams().size() - 1;
+            Scope _s(*this, visitable->getBody() == nullptr && isLastNode);
+            (*i)->accept(this);
+        }
+        if (visitable->getBody()) {
+            Scope _s(*this, true);
+            visitable->getBody()->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(MemberDecl *visitable) {
+    printNodePrefix("MemberDecl: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getDeclaration()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(Block *visitable) {
+    printNodePrefix("Block: " + visitable->getLoc().getFormattedRepr());
+    {
+        int it = 0;
+        for (auto i = visitable->getStmts().begin(); i != visitable->getStmts().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getStmts().size() - 1;
+            Scope _s(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ExpressionStmt *visitable) {
+    printNodePrefix("ExpressionStmt: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _s(*this, true);
+        visitable->getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(IncDecStmt *visitable) {
+    printNodePrefix("IncDecStmt: '"
+                        + getPostfixOperator(visitable->getPostfixOp()) + "' "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _s(*this, true);
+        visitable->getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(AssignmentStmt *visitable) {
+    printNodePrefix("AssignmentStmt: '"
+                        + getAssignOperator(visitable->getAssignOp()) + "' "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _s(*this, false);
+        visitable->getLhs()->accept(this);
+    }
+    {
+        Scope _s(*this, true);
+        visitable->getRhs()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(EmptyStmt *visitable) {
+    printNodePrefix("EmptyStmt: " + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(WhileStmt *visitable) {
+    printNodePrefix("WhileStmt: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getCond()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        visitable->getBody()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ForStmt *visitable) {
+    printNodePrefix("ForStmt: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getClause()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        visitable->getBody()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ForNormalClause *visitable) {
+    printNodePrefix("ForNormalClause: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getInit()->accept(this);
+        visitable->getCond()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        visitable->getPost()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ForRangeClause *visitable) {
+    printNodePrefix("ForRangeClause: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getVariable()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        visitable->getIterExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(IfStmt *visitable) {
+    printNodePrefix("IfStmt: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getCond()->accept(this);
+    }
+    auto hasElseBlock = visitable->getElseBlock();
+    {
+        Scope _(*this, hasElseBlock);
+        visitable->getPrimaryBlock()->accept(this);
+    }
+    if (hasElseBlock) {
+        Scope _(*this, true);
+        visitable->getElseBlock()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ContinueStmt *visitable) {
+    printNodePrefix("ContinueStmt: " + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(BreakStmt *visitable) {
+    printNodePrefix("BreakStmt: " + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ReturnStmt *visitable) {
+    printNodePrefix("ReturnStmt: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getReturnValue()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(VariableDecl *visitable) {
+    printNodePrefix("VariableDecl: "
+                        + visitable->getLoc().getFormattedRepr(),
+                    false);
+    if (visitable->getVariableType()) visitable->getVariableType()->accept(this);
+    output << std::endl;
+    {
+        Scope _(*this, !visitable->getInitializer());
+        visitable->getName()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        if (visitable->getInitializer())
+            visitable->getInitializer()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ArgumentExpr *visitable) {
+    printNodePrefix("ArgumentExpr: " + visitable->getLoc().getFormattedRepr());
+    auto hasArgument = !visitable->getArguments().empty();
+    {
+        Scope _(*this, !hasArgument);
+        visitable->getBaseExpr()->accept(this);
+
+        int it = 0;
+        for (auto i = visitable->getArguments().begin(); i != visitable->getArguments().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getArguments().size() - 1;
+            Scope _s(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(SelectorExpr *visitable) {
+    printNodePrefix("SelectorExpr: "
+                        + visitable->getSelector()->getIdent() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getBaseExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(CastExpr *visitable) {
+    printNodePrefix("CastExpr: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getFrom()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(NewExpr *visitable) {
+    printNodePrefix("NewExpr: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getInstanceTyp()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(BinaryExpr *visitable) {
+    printNodePrefix("BinaryExpr: '"
+                        + getBinaryOperator(visitable->getOp()) + "' "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getLhs()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        visitable->getRhs()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(UnaryExpr *visitable) {
+    printNodePrefix("UnaryExpr: '"
+                        + getUnaryOperator(visitable->getOp()) + "' "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(FunctionLit *visitable) {
+    printNodePrefix("FunctionLit: " + visitable->getLoc().getFormattedRepr());
+    {
+        for (auto param: visitable->getParameters()) {
+            Scope _(*this, false);
+            param->accept(this);
+        }
+        Scope _(*this, true);
+        visitable->getBody()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ParamDecl *visitable) {
+    printNodePrefix("ParamDecl: " + visitable->getLoc().getFormattedRepr() + " ", false);
+    visitable->getParamType()->accept(this);
+    output << std::endl;
+    {
+        Scope _(*this, true);
+        visitable->getName()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ArrayLit *visitable) {
+    printNodePrefix("ArrayLit: " + visitable->getLoc().getFormattedRepr());
+    {
+        int it = 0;
+        auto &initLst = visitable->getInitializerList();
+        for (auto i = initLst.begin(); i != initLst.end(); ++i, ++it) {
+            auto isLastNode = it == initLst.size() - 1;
+            Scope _s(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(FunctionTypeExpr *visitable) {
+    output << "(func(";
+    auto &params = visitable->getParamList();
+    if (!params.empty()) {
+        params[0]->accept(this);
+        for (size_t i = 1; i < params.size(); ++i) {
+            output << ",";
+            params[i]->accept(this);
+        }
+    }
+    output << ")->";
+    visitable->getReturnTyp()->accept(this);
+    output << ")";
+}
+
+void AstPrinter::visit(ArrayTypeExpr *visitable) {
+    output << "(";
+    visitable->getElementTyp()->accept(this);
+    output << ")[]";
+}
+
+void AstPrinter::visit(IdentifierTypeExpr *visitable) {
+    output << visitable->getTypename()->getIdent();
+}
+
+void AstPrinter::visit(NullLit *visitable) {
+    printNodePrefix("NullLit: "
+                        + visitable->getValue() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(BoolLit *visitable) {
+    printNodePrefix("BoolLit: "
+                        + visitable->getValue() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(StringLit *visitable) {
+    printNodePrefix("StringLit: '" + visitable->getValue() + "' "
+                        + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(NumberLit *visitable) {
+    printNodePrefix("NumberLit: " + visitable->getValue() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(ModuleSelector *visitable) {
+    printNodePrefix("ModuleSelector: "
+                        + visitable->getSelector() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, true);
+        visitable->getBasename()->accept(this);
+    }
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(Identifier *visitable) {
+    printNodePrefix("Identifier: "
+                        + visitable->getIdent() + " "
+                        + visitable->getLoc().getFormattedRepr());
+    depthFlag[depth] = true;
+}
+
+void AstPrinter::visit(IndexExpr *visitable) {
+    printNodePrefix("IndexExpr: " + visitable->getLoc().getFormattedRepr());
+    {
+        Scope _(*this, false);
+        visitable->getBaseExpr()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        if (visitable->getIndex())
+            visitable->getIndex()->accept(this);
+    }
+    depthFlag[depth] = true;
 }
 
 }

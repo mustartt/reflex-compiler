@@ -15,7 +15,7 @@ Loc::Loc(Source *source, size_t line, size_t col, size_t size)
 
 std::string Loc::getFormattedRepr() const {
     std::stringstream output;
-    output << "line " << line << ", " << col << ":" << size;
+    output << "<line:" << line << ", col:" << col << ":" << size << ">";
     return output.str();
 }
 

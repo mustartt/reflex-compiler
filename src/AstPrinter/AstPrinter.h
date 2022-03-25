@@ -7,14 +7,28 @@
 
 #include "../AST/AstVisitor.h"
 #include <ostream>
+#include <vector>
+#include <stack>
 
 namespace reflex {
 
+class AstPrinter;
+class Scope {
+    AstPrinter &printer;
+  public:
+    explicit Scope(AstPrinter &printer, bool isLast = false);
+    ~Scope();
+    friend class AstPrinter;
+};
+
 class AstPrinter : public AstVisitor {
     std::ostream &output;
-    size_t indent;
+    size_t depth;
+    std::vector<bool> depthFlag;
+    std::stack<bool> isLast;
   public:
     explicit AstPrinter(std::ostream &output);
+
     void visit(IndexExpr *visitable) override;
     void visit(Identifier *visitable) override;
     void visit(ModuleSelector *visitable) override;
@@ -53,8 +67,11 @@ class AstPrinter : public AstVisitor {
     void visit(MemberDecl *visitable) override;
     void visit(InterfaceDecl *visitable) override;
     void visit(CompilationUnit *visitable) override;
+
+    friend class Scope;
   private:
-    void generateIndent();
+    void printTreePrefix();
+    void printNodePrefix(const std::string &message, bool end = true);
 };
 
 }

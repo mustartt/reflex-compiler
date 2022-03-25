@@ -18,6 +18,8 @@ std::string ModuleSelector::getIdent() const {
     return basename->getIdent() + "::" + selector;
 }
 void ModuleSelector::accept(AstVisitor *visitor) { visitor->visit(this); }
+const std::string &ModuleSelector::getSelector() const { return selector; }
+IdentExpr *ModuleSelector::getBasename() const { return basename; }
 
 Literal::Literal(const Loc &loc) : Expression(loc) {}
 

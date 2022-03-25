@@ -44,6 +44,8 @@ class ModuleSelector : public IdentExpr {
     ModuleSelector(const Loc &loc, IdentExpr *basename, std::string aSelector);
     [[nodiscard]] std::string getIdent() const override;
     void accept(AstVisitor *visitor) override;
+    [[nodiscard]] const std::string &getSelector() const;
+    [[nodiscard]] IdentExpr *getBasename() const;
 };
 
 class Literal : public Expression {
