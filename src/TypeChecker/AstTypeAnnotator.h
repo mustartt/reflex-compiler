@@ -68,13 +68,16 @@ class AstTypeAnnotator : public AstVisitor {
     void visit(ExpressionStmt *visitable) override {}
     void visit(Block *visitable) override {}
     void visit(FunctionDecl *visitable) override;
-    void visit(ClassDecl *visitable) override {}
+    void visit(ClassDecl *visitable) override;
     void visit(MemberDecl *visitable) override;
     void visit(InterfaceDecl *visitable) override;
     void visit(CompilationUnit *visitable) override {}
   private:
     void annotateInterfaceDecls();
     void annotateClassDecls();
+
+    void annotateInterfaceBody();
+    void annotateClassBody();
 
     std::vector<ClassDecl *> sortClassInheritance();
     std::vector<InterfaceDecl *> sortInterfaceInheritance();

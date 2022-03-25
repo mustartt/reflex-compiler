@@ -1,11 +1,14 @@
-interface A {
+interface IA {
     public func method(a: int) -> int;
 }
 
-interface B {
+interface IB {
     public func method2(b: num) -> int;
 }
 
-interface C : A, B {
+interface IC : IA, IB {
     public func method3(c: A) -> int;
 }
+
+class A {}
+class B(A) : IA, IB, IC {}

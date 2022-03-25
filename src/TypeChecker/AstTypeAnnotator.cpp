@@ -74,12 +74,50 @@ std::vector<InterfaceDecl *> AstTypeAnnotator::sortInterfaceInheritance() {
 
 void AstTypeAnnotator::annotate() {
     annotateInterfaceDecls();
+    annotateClassDecls();
+    annotateInterfaceBody();
+    annotateClassBody();
+}
+
+void AstTypeAnnotator::annotateClassDecls() {
+    auto ordering = sortClassInheritance();
+    for (auto decl: ordering) {
+        decl->accept(this);
+    }
 }
 
 void AstTypeAnnotator::annotateInterfaceDecls() {
     auto ordering = sortInterfaceInheritance();
     for (auto decl: ordering) {
         decl->accept(this);
+    }
+}
+
+void AstTypeAnnotator::annotateInterfaceBody() {
+    auto ordering = sortInterfaceInheritance();
+    for (auto decl: ordering) {
+        // add interface methods
+        for (auto member: decl->getSignatures()) {
+            member->accept(this);
+            auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
+            auto theInterfaceType = dynamic_cast<InterfaceType *>(decl->getTyp());
+            theInterfaceType->addInterfaceMethod(funcDecl->getName()->getIdent(),
+                                                 dynamic_cast<MemberType *>(member->getTyp()));
+        }
+    }
+}
+
+void AstTypeAnnotator::annotateClassBody() {
+    auto ordering = sortClassInheritance();
+    for (auto decl: ordering) {
+        // add class members
+        for (auto member: decl->getMembers()) {
+            member->accept(this);
+            auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
+            auto theClassType = dynamic_cast<ClassType *>(decl->getTyp());
+            theClassType->addMember(funcDecl->getName()->getIdent(),
+                                    dynamic_cast<MemberType *>(member->getTyp()));
+        }
     }
 }
 
@@ -95,14 +133,30 @@ void AstTypeAnnotator::visit(InterfaceDecl *visitable) {
     }
     auto interfaceName = visitable->getName()->getIdent();
     auto theInterface = typeContext->createOrGetInterfaceTy(interfaceName, inherited);
-    // add interface methods
-    for (auto member: visitable->getSignatures()) {
-        member->accept(this);
-        auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
-        theInterface->addInterfaceMethod(funcDecl->getName()->getIdent(),
-                                         dynamic_cast<MemberType *>(member->getTyp()));
-    }
     visitable->setTyp(theInterface);
+}
+
+void AstTypeAnnotator::visit(ClassDecl *visitable) {
+    // find baseclass type
+    ClassType *baseclass = nullptr;
+    auto basename = visitable->getBaseClassname();
+    if (basename) {
+        auto baseType = typeContext->getClassTyp(basename.value());
+        if (!baseType)
+            throw ClassTypeError{"Unknown base class " + basename.value()};
+        baseclass = baseType.value();
+    }
+    std::vector<InterfaceType *> inherited;
+    for (auto ident: visitable->getInterfaces()) {
+        auto inheritedInterfaceName = ident->getIdent();
+        auto interfaceTyp = typeContext->getInterfaceTyp(inheritedInterfaceName);
+        if (!interfaceTyp)
+            throw InterfaceTypeError{"Unknown interface " + inheritedInterfaceName};
+        inherited.push_back(interfaceTyp.value());
+    }
+    auto classname = visitable->getName()->getIdent();
+    auto theClassType = typeContext->createOrGetClassTy(classname, baseclass, inherited);
+    visitable->setTyp(theClassType);
 }
 
 void AstTypeAnnotator::visit(MemberDecl *visitable) {
@@ -136,7 +190,6 @@ void AstTypeAnnotator::visit(FunctionDecl *visitable) {
                                  + visitable->getName()->getIdent()};
     visitable->setTyp(typeContext->getFunctionTy(retType, paramTypes));
 }
-
 void AstTypeAnnotator::visit(VariableDecl *visitable) {
     auto type = parser.parseTypeExpr(visitable->getVariableType());
     if (!type)
@@ -144,7 +197,6 @@ void AstTypeAnnotator::visit(VariableDecl *visitable) {
                                  + visitable->getName()->getIdent()};
     visitable->setTyp(type);
 }
-
 void AstTypeAnnotator::visit(ParamDecl *visitable) {
     auto type = parser.parseTypeExpr(visitable->getParamType());
     if (!type)
