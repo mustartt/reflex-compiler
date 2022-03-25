@@ -226,7 +226,7 @@ Literal *Parser::parseFunctionLit() {
     );
 }
 
-std::pair<std::vector<Parameter *>, TypeExpr *> Parser::parseSignature() {
+std::pair<std::vector<ParamDecl *>, TypeExpr *> Parser::parseSignature() {
     expect(TokenType::LParen);
     auto params = parseParamList();
     auto end = expect(TokenType::RParen);
@@ -241,11 +241,11 @@ std::pair<std::vector<Parameter *>, TypeExpr *> Parser::parseSignature() {
     return {params, retTyp};
 }
 
-std::vector<Parameter *> Parser::parseParamList() {
+std::vector<ParamDecl *> Parser::parseParamList() {
     if (check(TokenType::RParen)) {
         return {};
     }
-    std::vector<Parameter *> params;
+    std::vector<ParamDecl *> params;
     params.push_back(parseFuncParam());
     while (!check(TokenType::RParen)) {
         expect(TokenType::Comma);
@@ -254,10 +254,10 @@ std::vector<Parameter *> Parser::parseParamList() {
     return params;
 }
 
-Parameter *Parser::parseFuncParam() {
+ParamDecl *Parser::parseFuncParam() {
     auto ident = parseIdent();
     expect(TokenType::Colon);
-    return ctx->create<Parameter>(
+    return ctx->create<ParamDecl>(
         ident->getLoc(),
         ident,
         parseType()

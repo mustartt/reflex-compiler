@@ -5,6 +5,7 @@
 #include <AstContextManager.h>
 #include <Parser.h>
 #include <AstPrinter.h>
+#include <AstTypeAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -26,5 +27,14 @@ int main(int argc, char *argv[]) {
         auto tok = lexer.nextToken();
         std::cout << tok << std::endl;
     }
+
+    std::cout << std::endl << "Dumped Class Decls: " << std::endl;
+
+    TypeContextManager manager;
+    AstTypeAnnotator annotator(&ctx, &manager);
+    annotator.annotate();
+
+    manager.dump(std::cout);
+
     return 0;
 }

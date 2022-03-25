@@ -7,7 +7,7 @@
 
 #include "Type.h"
 
-#include <unordered_set>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 
@@ -19,8 +19,8 @@ class TypeContextManager {
     std::vector<std::unique_ptr<ArrType>> arrayTyp;
     std::vector<std::unique_ptr<FuncType>> funcTyp;
     std::vector<std::unique_ptr<MemberType>> memberTyp;
-    std::vector<std::unique_ptr<ClassType>> classTyp;
-    std::vector<std::unique_ptr<InterfaceType>> interfaceTyp;
+    std::unordered_map<std::string, std::unique_ptr<ClassType>> classTyp;
+    std::unordered_map<std::string, std::unique_ptr<InterfaceType>> interfaceTyp;
   public:
     TypeContextManager() {
         primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Integer));
@@ -70,14 +70,27 @@ class TypeContextManager {
         return memberTyp.back().get();
     }
 
-    [[nodiscard]] ClassType *createClassTy(ClassType *baseclass, const std::vector<InterfaceType *> &interfaces) {
-        classTyp.push_back(std::make_unique<ClassType>(baseclass, interfaces));
-        return classTyp.back().get();
+    [[nodiscard]] std::optional<ClassType *> getClassTyp(const std::string &name) {
+        if (classTyp.count(name)) return {classTyp[name].get()};
+        return std::nullopt;
     }
 
-    [[nodiscard]] ClassType *createInterfaceTy(const std::vector<InterfaceType *> &interfaces) {
-        interfaceTyp.push_back(std::make_unique<InterfaceType>(interfaces));
-        return classTyp.back().get();
+    [[nodiscard]] std::optional<InterfaceType *> getInterfaceTyp(const std::string &name) {
+        if (interfaceTyp.count(name)) return {interfaceTyp[name].get()};
+        return std::nullopt;
+    }
+
+    [[nodiscard]] ClassType *createOrGetClassTy(const std::string &name,
+                                                ClassType *baseclass,
+                                                const std::vector<InterfaceType *> &interfaces) {
+        classTyp.emplace(name, std::make_unique<ClassType>(baseclass, interfaces));
+        return classTyp[name].get();
+    }
+
+    [[nodiscard]] InterfaceType *createOrGetInterfaceTy(const std::string &name,
+                                                        const std::vector<InterfaceType *> &interfaces) {
+        interfaceTyp.emplace(name, std::make_unique<InterfaceType>(interfaces));
+        return interfaceTyp[name].get();
     }
 
     void dump(std::ostream &os) {
@@ -95,13 +108,13 @@ class TypeContextManager {
             func->printType(os);
             os << std::endl;
         }
-        for (auto &cls: classTyp) {
-            cls->printType(os);
-            os << std::endl;
+        for (auto &[name, interface]: interfaceTyp) {
+            os << name << ": ";
+            interface->printType(os);
         }
-        for (auto &inf: interfaceTyp) {
-            inf->printType(os);
-            os << std::endl;
+        for (auto &[name, classTy]: classTyp) {
+            os << name << ": ";
+            classTy->printType(os);
         }
     }
 };

@@ -17,7 +17,7 @@ class IdentifierType;
 class ArrayType;
 class FunctionType;
 class ArrayLit;
-class Parameter;
+class ParamDecl;
 class FunctionLit;
 class UnaryExpr;
 class BinaryExpr;
@@ -48,9 +48,11 @@ class ClassDecl;
 class MemberDecl;
 class InterfaceDecl;
 class CompilationUnit;
+class TypeExpr;
 
 class AstVisitor {
   public:
+    virtual void visit(TypeExpr *visitable);
     virtual void visit(Identifier *visitable) = 0;
     virtual void visit(ModuleSelector *visitable) = 0;
     virtual void visit(NumberLit *visitable) = 0;
@@ -61,7 +63,7 @@ class AstVisitor {
     virtual void visit(ArrayType *visitable) = 0;
     virtual void visit(FunctionType *visitable) = 0;
     virtual void visit(ArrayLit *visitable) = 0;
-    virtual void visit(Parameter *visitable) = 0;
+    virtual void visit(ParamDecl *visitable) = 0;
     virtual void visit(FunctionLit *visitable) = 0;
     virtual void visit(UnaryExpr *visitable) = 0;
     virtual void visit(BinaryExpr *visitable) = 0;

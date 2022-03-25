@@ -82,12 +82,12 @@ void AstPrinter::visit(ArrayLit *visitable) {
     }
 }
 
-void AstPrinter::visit(Parameter *visitable) {
+void AstPrinter::visit(ParamDecl *visitable) {
     generateIndent();
     output << "ParamDecl: " << std::endl;
     ScopeIndent param(indent);
     visitable->getName()->accept(this);
-    visitable->getTyp()->accept(this);
+    visitable->getParamType()->accept(this);
 }
 
 void AstPrinter::visit(FunctionLit *visitable) {
@@ -167,7 +167,7 @@ void AstPrinter::visit(VariableDecl *visitable) {
     output << "VariableDecl: " << std::endl;
     ScopeIndent expr(indent);
     visitable->getName()->accept(this);
-    if (visitable->getTyp()) visitable->getTyp()->accept(this);
+    if (visitable->getVariableType()) visitable->getVariableType()->accept(this);
     if (visitable->getInitializer()) visitable->getInitializer()->accept(this);
 }
 

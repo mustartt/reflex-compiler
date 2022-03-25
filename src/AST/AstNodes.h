@@ -10,6 +10,7 @@
 
 #include <utility>
 #include <vector>
+#include <optional>
 
 #include "../Lexer/Token.h"
 #include "Operator.h"
@@ -97,12 +98,12 @@ class IdentifierType : public TypeExpr {
 class Expression;
 
 class ArrayType : public TypeExpr {
-    AstExpr *elementTyp;
+    TypeExpr *elementTyp;
     Expression *lengthExpr;
   public:
-    ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr);
+    ArrayType(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] AstExpr *getElementTyp() const;
+    [[nodiscard]] TypeExpr *getElementTyp() const;
     [[nodiscard]] Expression *getLengthExpr() const;
 };
 
@@ -124,25 +125,25 @@ class ArrayLit : public Literal {
     [[nodiscard]] const std::vector<AstExpr *> &getInitializerList() const;
 };
 
-class Parameter : public AstExpr {
+class ParamDecl : public AstExpr {
     IdentExpr *name;
-    AstExpr *typ;
+    TypeExpr *typ;
   public:
-    Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ);
+    ParamDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getName() const;
-    [[nodiscard]] AstExpr *getTyp() const;
+    [[nodiscard]] TypeExpr *getParamType() const;
 };
 
 class Block;
 class FunctionLit : public Literal {
-    std::vector<Parameter *> parameters;
+    std::vector<ParamDecl *> parameters;
     TypeExpr *returnTyp;
     Block *body;
   public:
-    FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body);
+    FunctionLit(const Loc &loc, std::vector<ParamDecl *> parameters, TypeExpr *returnTyp, Block *body);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] const std::vector<Parameter *> &getParameters() const;
+    [[nodiscard]] const std::vector<ParamDecl *> &getParameters() const;
     [[nodiscard]] TypeExpr *getReturnTyp() const;
     [[nodiscard]] Block *getBody() const;
 };
@@ -234,13 +235,13 @@ class Declaration : public Statement {
 
 class VariableDecl : public Declaration {
     IdentExpr *name;
-    AstExpr *typ;
+    TypeExpr *typ;
     Expression *initializer;
   public:
-    VariableDecl(const Loc &loc, IdentExpr *name, AstExpr *typ, Expression *initializer);
+    VariableDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ, Expression *initializer);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getName() const;
-    [[nodiscard]] AstExpr *getTyp() const;
+    [[nodiscard]] TypeExpr *getVariableType() const;
     [[nodiscard]] Expression *getInitializer() const;
 };
 
@@ -371,14 +372,14 @@ class Block : public Statement {
 
 class FunctionDecl : public Declaration {
     IdentExpr *name;
-    std::vector<Parameter *> params;
+    std::vector<ParamDecl *> params;
     TypeExpr *retTyp;
     Block *body;
   public:
-    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<Parameter *> params, TypeExpr *retTyp, Block *body);
+    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<ParamDecl *> params, TypeExpr *retTyp, Block *body);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getName() const;
-    [[nodiscard]] const std::vector<Parameter *> &getParams() const;
+    [[nodiscard]] const std::vector<ParamDecl *> &getParams() const;
     [[nodiscard]] TypeExpr *getRetTyp() const;
     [[nodiscard]] Block *getBody() const;
 };
@@ -409,6 +410,9 @@ class ClassDecl : public Declaration {
     [[nodiscard]] IdentExpr *getBaseclass() const { return baseclass; }
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
     [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const;
+    [[nodiscard]] std::optional<std::string> getBaseClassname() const;
+    [[nodiscard]] std::string getClassname() const;
+    [[nodiscard]] bool hasBaseclass() const;
 };
 
 class InterfaceDecl : public Declaration {
@@ -422,6 +426,7 @@ class InterfaceDecl : public Declaration {
                   std::vector<MemberDecl *> signatures);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getName() const;
+    [[nodiscard]] std::string getInterfaceName() const;
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
     [[nodiscard]] const std::vector<MemberDecl *> &getSignatures() const;
 };

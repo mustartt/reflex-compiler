@@ -1,31 +1,11 @@
-var global_var: int = 20;
-
-class BaseClass(DerivedClass) : InterfaceA, InterfaceB {
-    private var a: int;
-    public var b: String = "Hello World!";
-
-    private class NestedInnerClass {}
-
-    public func classMethod(arr: int[]) -> int {
-        var sum = 0;
-        for (var i = 0; i < arr.size(); i++) {
-            sum += arr[i] + a;
-        }
-        return sum;
-    }
-
-    public func lambdaProducer() -> func(int, int) -> int {
-        return func(a: int, b: int) -> int {
-            return a + b;
-        };
-    }
+interface A {
+    public func method(a: int) -> int;
 }
 
-interface IC : IA, IB {
-    public func interfaceMethod();
+interface B {
+    public func method2(b: num) -> int;
 }
 
-func main(argc: int, argv: String[]) -> int {
-    var baseclass = new BaseClass();
-    return 0;
+interface C : A, B {
+    public func method3(c: A) -> int;
 }

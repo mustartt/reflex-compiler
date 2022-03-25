@@ -43,10 +43,10 @@ IdentifierType::IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc),
 void IdentifierType::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *IdentifierType::getTypename() const { return name; }
 
-ArrayType::ArrayType(const Loc &loc, AstExpr *elementTyp, Expression *lengthExpr)
+ArrayType::ArrayType(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr)
     : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
 void ArrayType::accept(AstVisitor *visitor) { visitor->visit(this); }
-AstExpr *ArrayType::getElementTyp() const { return elementTyp; }
+TypeExpr *ArrayType::getElementTyp() const { return elementTyp; }
 Expression *ArrayType::getLengthExpr() const { return lengthExpr; }
 
 FunctionType::FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
@@ -60,16 +60,16 @@ ArrayLit::ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList)
 void ArrayLit::accept(AstVisitor *visitor) { visitor->visit(this); }
 const std::vector<AstExpr *> &ArrayLit::getInitializerList() const { return initializerList; }
 
-Parameter::Parameter(const Loc &loc, IdentExpr *name, AstExpr *typ)
+ParamDecl::ParamDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ)
     : AstExpr(loc), name(name), typ(typ) {}
-void Parameter::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *Parameter::getName() const { return name; }
-AstExpr *Parameter::getTyp() const { return typ; }
+void ParamDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
+IdentExpr *ParamDecl::getName() const { return name; }
+TypeExpr *ParamDecl::getParamType() const { return typ; }
 
-FunctionLit::FunctionLit(const Loc &loc, std::vector<Parameter *> parameters, TypeExpr *returnTyp, Block *body)
+FunctionLit::FunctionLit(const Loc &loc, std::vector<ParamDecl *> parameters, TypeExpr *returnTyp, Block *body)
     : Literal(loc), parameters(std::move(parameters)), returnTyp(returnTyp), body(body) {}
 void FunctionLit::accept(AstVisitor *visitor) { visitor->visit(this); }
-const std::vector<Parameter *> &FunctionLit::getParameters() const { return parameters; }
+const std::vector<ParamDecl *> &FunctionLit::getParameters() const { return parameters; }
 TypeExpr *FunctionLit::getReturnTyp() const { return returnTyp; }
 Block *FunctionLit::getBody() const { return body; }
 
@@ -117,11 +117,11 @@ Statement::Statement(const Loc &loc) : AstExpr(loc) {}
 SimpleStmt::SimpleStmt(const Loc &loc) : Statement(loc) {}
 Declaration::Declaration(const Loc &loc) : Statement(loc) {}
 
-VariableDecl::VariableDecl(const Loc &loc, IdentExpr *name, AstExpr *typ, Expression *initializer)
+VariableDecl::VariableDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ, Expression *initializer)
     : Declaration(loc), name(name), typ(typ), initializer(initializer) {}
 void VariableDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *VariableDecl::getName() const { return name; }
-AstExpr *VariableDecl::getTyp() const { return typ; }
+TypeExpr *VariableDecl::getVariableType() const { return typ; }
 Expression *VariableDecl::getInitializer() const { return initializer; }
 
 ReturnStmt::ReturnStmt(const Loc &loc, Expression *returnValue) : Statement(loc), returnValue(returnValue) {}
@@ -191,13 +191,13 @@ const std::vector<Statement *> &Block::getStmts() const { return stmts; }
 
 FunctionDecl::FunctionDecl(const Loc &loc,
                            IdentExpr *name,
-                           std::vector<Parameter *> params,
+                           std::vector<ParamDecl *> params,
                            TypeExpr *retTyp,
                            Block *body)
     : Declaration(loc), name(name), params(std::move(params)), retTyp(retTyp), body(body) {}
 void FunctionDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *FunctionDecl::getName() const { return name; }
-const std::vector<Parameter *> &FunctionDecl::getParams() const { return params; }
+const std::vector<ParamDecl *> &FunctionDecl::getParams() const { return params; }
 TypeExpr *FunctionDecl::getRetTyp() const { return retTyp; }
 Block *FunctionDecl::getBody() const { return body; }
 
@@ -221,6 +221,12 @@ void ClassDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *ClassDecl::getName() const { return name; }
 const std::vector<IdentExpr *> &ClassDecl::getInterfaces() const { return interfaces; }
 const std::vector<MemberDecl *> &ClassDecl::getMembers() const { return members; }
+std::optional<std::string> ClassDecl::getBaseClassname() const {
+    if (baseclass) return baseclass->getIdent();
+    return std::nullopt;
+}
+std::string ClassDecl::getClassname() const { return name->getIdent(); }
+bool ClassDecl::hasBaseclass() const { return baseclass; }
 
 InterfaceDecl::InterfaceDecl(const Loc &loc,
                              IdentExpr *name,
@@ -234,6 +240,7 @@ void InterfaceDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *InterfaceDecl::getName() const { return name; }
 const std::vector<IdentExpr *> &InterfaceDecl::getInterfaces() const { return interfaces; }
 const std::vector<MemberDecl *> &InterfaceDecl::getSignatures() const { return signatures; }
+std::string InterfaceDecl::getInterfaceName() const { return name->getIdent(); }
 
 CompilationUnit::CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)
     : AstExpr(loc), decls(std::move(decls)) {}

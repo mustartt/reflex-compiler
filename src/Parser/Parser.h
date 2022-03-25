@@ -57,9 +57,9 @@ class Parser {
     std::vector<AstExpr *> parseElementList();
     AstExpr *parseElement();
     Literal *parseFunctionLit();
-    std::pair<std::vector<Parameter *>, TypeExpr *> parseSignature();
-    std::vector<Parameter *> parseParamList();
-    Parameter *parseFuncParam();
+    std::pair<std::vector<ParamDecl *>, TypeExpr *> parseSignature();
+    std::vector<ParamDecl *> parseParamList();
+    ParamDecl *parseFuncParam();
 
     Expression *parseExpr();
     Expression *parseNamedOperand();

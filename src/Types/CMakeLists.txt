@@ -7,7 +7,8 @@ add_library(types
         Type.cpp
         TypeContextManager.h
         TypeContextManager.cpp
-        )
+        TypeParser.cpp
+        TypeParser.h)
 
 set_target_properties(types PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(types PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

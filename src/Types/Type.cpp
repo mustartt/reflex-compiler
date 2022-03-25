@@ -14,6 +14,13 @@ std::string getVisibilityString(Visibility visibility) {
     }
 }
 
+Visibility getVisibilityFromString(const std::string &ident) {
+    if (ident == "public") return Visibility::Public;
+    if (ident == "private") return Visibility::Private;
+    if (ident == "protected") return Visibility::Protected;
+    throw std::runtime_error("Unknown access modifier " + ident);
+}
+
 void VoidType::printType(std::ostream &os) { os << "void"; }
 
 void PrimType::printType(std::ostream &os) {
@@ -61,6 +68,7 @@ bool FuncType::operator==(const FuncType &rhs) const {
 void MemberType::printType(std::ostream &os) {
     os << "    MemberType: " << getVisibilityString(visibility) << " ";
     memberTyp->printType(os);
+    os << std::endl;
 }
 
 bool MemberType::operator==(const MemberType &rhs) const {

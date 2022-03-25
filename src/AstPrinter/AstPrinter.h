@@ -26,7 +26,7 @@ class AstPrinter : public AstVisitor {
     void visit(ArrayType *visitable) override;
     void visit(FunctionType *visitable) override;
     void visit(ArrayLit *visitable) override;
-    void visit(Parameter *visitable) override;
+    void visit(ParamDecl *visitable) override;
     void visit(FunctionLit *visitable) override;
     void visit(UnaryExpr *visitable) override;
     void visit(BinaryExpr *visitable) override;

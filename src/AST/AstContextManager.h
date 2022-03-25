@@ -22,31 +22,11 @@ class AstContextManager {
     AstContextManager(const AstContextManager &) = delete;
     AstContextManager(AstContextManager &&) = default;
 
-    template<class AstType>
-    class AstWalker {
-        AstContextList *lst;
-      public:
-        explicit AstWalker(AstContextList *lst) : lst(lst) {}
-        class Iterator {
-            AstContextList::iterator iter;
-          public:
-            explicit Iterator(const AstContextList::iterator &iter) : iter(iter) {}
-            bool operator!=(const Iterator &other) { return other.iter != iter; }
-            AstType *operator*() { static_cast<AstType *>((*iter).get()); }
-            Iterator operator++() {
-                ++iter;
-                return this;
-            }
-        };
-        Iterator begin() { return {lst->begin()}; }
-        Iterator end() { return {lst->end()}; }
-    };
-
     template<class AstType, class... Arguments>
     AstType *create(Arguments &&...args);
 
     template<class AstType>
-    AstWalker<AstType> getAstByType();
+    AstContextList &getAstNodesByType();
 };
 
 template<typename AstType, typename... Arguments>
@@ -56,10 +36,9 @@ AstType *AstContextManager::create(Arguments &&... args) {
     ctx[typeid(AstType)].push_back(std::move(node));
     return tmp;
 }
-
 template<class AstType>
-AstContextManager::AstWalker<AstType> AstContextManager::getAstByType() {
-    return {&ctx[typeid(AstType)]};
+AstContextManager::AstContextList &AstContextManager::getAstNodesByType() {
+    return ctx[typeid(AstType)];
 }
 
 }
