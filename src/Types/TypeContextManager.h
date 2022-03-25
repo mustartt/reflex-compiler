@@ -16,8 +16,8 @@ namespace reflex {
 class TypeContextManager {
     std::unique_ptr<VoidType> voidType = std::make_unique<VoidType>();
     std::vector<std::unique_ptr<PrimType>> primitiveTyp;
-    std::vector<std::unique_ptr<ArrType>> arrayTyp;
-    std::vector<std::unique_ptr<FuncType>> funcTyp;
+    std::vector<std::unique_ptr<ArrayType>> arrayTyp;
+    std::vector<std::unique_ptr<FunctionType>> funcTyp;
     std::vector<std::unique_ptr<MemberType>> memberTyp;
     std::unordered_map<std::string, std::unique_ptr<ClassType>> classTyp;
     std::unordered_map<std::string, std::unique_ptr<InterfaceType>> interfaceTyp;
@@ -26,8 +26,8 @@ class TypeContextManager {
 
     [[nodiscard]] VoidType *getVoidTy() const;
     [[nodiscard]] PrimType *getPrimitiveTy(PrimType::BaseType typ) const;
-    [[nodiscard]] ArrType *getArrayTy(Type *elementTyp);
-    [[nodiscard]] FuncType *getFunctionTy(Type *returnType, const std::vector<Type *> &paramTyp);
+    [[nodiscard]] ArrayType *getArrayTy(Type *elementTyp);
+    [[nodiscard]] FunctionType *getFunctionTy(Type *returnType, const std::vector<Type *> &paramTyp);
 
     [[nodiscard]] MemberType *createMemberTy(ClassType *instance, Visibility visibility, Type *type);
 

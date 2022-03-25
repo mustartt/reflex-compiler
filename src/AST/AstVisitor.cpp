@@ -8,15 +8,15 @@
 namespace reflex {
 
 void AstVisitor::visit(TypeExpr *visitable) {
-    if (auto ptr = dynamic_cast<IdentifierType *>(visitable); ptr) {
+    if (auto ptr = dynamic_cast<IdentifierTypeExpr *>(visitable); ptr) {
         ptr->accept(this);
         return;
     }
-    if (auto ptr = dynamic_cast<ArrayType *>(visitable); ptr) {
+    if (auto ptr = dynamic_cast<ArrayTypeExpr *>(visitable); ptr) {
         ptr->accept(this);
         return;
     }
-    if (auto ptr = dynamic_cast<FunctionType *>(visitable); ptr) {
+    if (auto ptr = dynamic_cast<FunctionTypeExpr *>(visitable); ptr) {
         ptr->accept(this);
         return;
     }

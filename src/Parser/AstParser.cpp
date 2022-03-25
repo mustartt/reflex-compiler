@@ -43,9 +43,9 @@ TypeExpr *Parser::parseType() {
             auto lenExpr = parseExpr();
             expect(TokenType::RBracket);
             Loc loc = nestedTyp->getLoc();
-            auto arrTyp = parseElementType1(ctx->create<ArrayType>(loc, nestedTyp, lenExpr));
+            auto arrTyp = parseElementType1(ctx->create<ArrayTypeExpr>(loc, nestedTyp, lenExpr));
             return parseElementType1(
-                ctx->create<ArrayType>(loc, arrTyp, lenExpr)
+                ctx->create<ArrayTypeExpr>(loc, arrTyp, lenExpr)
             );
         }
         return nestedTyp;
@@ -56,7 +56,7 @@ TypeExpr *Parser::parseType() {
         if (check(TokenType::NameSeparator)) {
             typ = parseModuleIdent(typ);
         }
-        baseTyp = ctx->create<IdentifierType>(typ->getLoc(), typ);
+        baseTyp = ctx->create<IdentifierTypeExpr>(typ->getLoc(), typ);
     } else {
         baseTyp = parseFunctionType();
     }
@@ -65,13 +65,13 @@ TypeExpr *Parser::parseType() {
         auto lenExpr = parseExpr();
         expect(TokenType::RBracket);
         return parseElementType1(
-            ctx->create<ArrayType>(baseTyp->getLoc(), baseTyp, lenExpr)
+            ctx->create<ArrayTypeExpr>(baseTyp->getLoc(), baseTyp, lenExpr)
         );
     }
     return baseTyp;
 }
 
-ArrayType *Parser::parseArrayType() {
+ArrayTypeExpr *Parser::parseArrayType() {
     TypeExpr *base;
     if (check(TokenType::LParen)) {
         next();
@@ -84,35 +84,35 @@ ArrayType *Parser::parseArrayType() {
         if (check(TokenType::NameSeparator)) {
             typ = parseModuleIdent(typ);
         }
-        base = ctx->create<IdentifierType>(typ->getLoc(), typ);
+        base = ctx->create<IdentifierTypeExpr>(typ->getLoc(), typ);
     }
     expect(TokenType::LBracket);
     auto lenExpr = parseExpr();
     expect(TokenType::RBracket);
     return parseElementType1(
-        ctx->create<ArrayType>(base->getLoc(), base, lenExpr)
+        ctx->create<ArrayTypeExpr>(base->getLoc(), base, lenExpr)
     );
 }
 
-ArrayType *Parser::parseElementType1(ArrayType *baseTyp) {
+ArrayTypeExpr *Parser::parseElementType1(ArrayTypeExpr *baseTyp) {
     if (check(TokenType::LBracket)) {
         expect(TokenType::LBracket);
         auto lenExpr = parseExpr();
         expect(TokenType::RBracket);
         return parseElementType1(
-            ctx->create<ArrayType>(baseTyp->getLoc(), baseTyp, lenExpr)
+            ctx->create<ArrayTypeExpr>(baseTyp->getLoc(), baseTyp, lenExpr)
         );
     }
     return baseTyp;
 }
 
-FunctionType *Parser::parseFunctionType() {
+FunctionTypeExpr *Parser::parseFunctionType() {
     auto start = expect(TokenType::Func);
     expect(TokenType::LParen);
     auto typeParams = parseParamTypeList();
     auto end = expect(TokenType::RParen);
 
-    TypeExpr *retTyp = ctx->create<IdentifierType>(
+    TypeExpr *retTyp = ctx->create<IdentifierTypeExpr>(
         end.getLocInfo(),
         ctx->create<Identifier>(end.getLocInfo(), "void")
     );
@@ -120,7 +120,7 @@ FunctionType *Parser::parseFunctionType() {
         next();
         retTyp = parseType();
     }
-    return ctx->create<FunctionType>(
+    return ctx->create<FunctionTypeExpr>(
         start.getLocInfo(),
         retTyp,
         typeParams
@@ -229,7 +229,7 @@ std::pair<std::vector<ParamDecl *>, TypeExpr *> Parser::parseSignature() {
     expect(TokenType::LParen);
     auto params = parseParamList();
     auto end = expect(TokenType::RParen);
-    TypeExpr *retTyp = ctx->create<IdentifierType>(
+    TypeExpr *retTyp = ctx->create<IdentifierTypeExpr>(
         end.getLocInfo(),
         ctx->create<Identifier>(end.getLocInfo(), "void")
     );

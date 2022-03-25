@@ -40,9 +40,9 @@ class Parser {
     IdentExpr *parseModuleIdent(IdentExpr *base);
 
     TypeExpr *parseType();
-    ArrayType *parseArrayType();
-    ArrayType *parseElementType1(ArrayType *baseTyp);
-    FunctionType *parseFunctionType();
+    ArrayTypeExpr *parseArrayType();
+    ArrayTypeExpr *parseElementType1(ArrayTypeExpr *baseTyp);
+    FunctionTypeExpr *parseFunctionType();
     std::vector<TypeExpr *> parseParamTypeList();
 
     Literal *parseLiteral();

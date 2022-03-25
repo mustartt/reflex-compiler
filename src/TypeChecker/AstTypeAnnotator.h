@@ -40,9 +40,9 @@ class AstTypeAnnotator : public AstVisitor {
     void visit(StringLit *visitable) override {}
     void visit(BoolLit *visitable) override {}
     void visit(NullLit *visitable) override {}
-    void visit(IdentifierType *visitable) override {}
-    void visit(ArrayType *visitable) override {}
-    void visit(FunctionType *visitable) override {}
+    void visit(IdentifierTypeExpr *visitable) override {}
+    void visit(ArrayTypeExpr *visitable) override {}
+    void visit(FunctionTypeExpr *visitable) override {}
     void visit(ArrayLit *visitable) override {}
     void visit(ParamDecl *visitable) override;
     void visit(FunctionLit *visitable) override {}

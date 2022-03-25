@@ -38,21 +38,21 @@ void NullLit::accept(AstVisitor *visitor) { visitor->visit(this); }
 
 TypeExpr::TypeExpr(const Loc &loc) : AstExpr(loc) {}
 
-IdentifierType::IdentifierType(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
-void IdentifierType::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *IdentifierType::getTypename() const { return name; }
+IdentifierTypeExpr::IdentifierTypeExpr(const Loc &loc, IdentExpr *name) : TypeExpr(loc), name(name) {}
+void IdentifierTypeExpr::accept(AstVisitor *visitor) { visitor->visit(this); }
+IdentExpr *IdentifierTypeExpr::getTypename() const { return name; }
 
-ArrayType::ArrayType(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr)
+ArrayTypeExpr::ArrayTypeExpr(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr)
     : TypeExpr(loc), elementTyp(elementTyp), lengthExpr(lengthExpr) {}
-void ArrayType::accept(AstVisitor *visitor) { visitor->visit(this); }
-TypeExpr *ArrayType::getElementTyp() const { return elementTyp; }
-Expression *ArrayType::getLengthExpr() const { return lengthExpr; }
+void ArrayTypeExpr::accept(AstVisitor *visitor) { visitor->visit(this); }
+TypeExpr *ArrayTypeExpr::getElementTyp() const { return elementTyp; }
+Expression *ArrayTypeExpr::getLengthExpr() const { return lengthExpr; }
 
-FunctionType::FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
+FunctionTypeExpr::FunctionTypeExpr(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList)
     : TypeExpr(loc), returnTyp(returnTyp), paramList(std::move(paramList)) {}
-void FunctionType::accept(AstVisitor *visitor) { visitor->visit(this); }
-TypeExpr *FunctionType::getReturnTyp() const { return returnTyp; }
-const std::vector<TypeExpr *> &FunctionType::getParamList() const { return paramList; }
+void FunctionTypeExpr::accept(AstVisitor *visitor) { visitor->visit(this); }
+TypeExpr *FunctionTypeExpr::getReturnTyp() const { return returnTyp; }
+const std::vector<TypeExpr *> &FunctionTypeExpr::getParamList() const { return paramList; }
 
 ArrayLit::ArrayLit(const Loc &loc, std::vector<AstExpr *> initializerList)
     : Literal(loc), initializerList(std::move(initializerList)) {}

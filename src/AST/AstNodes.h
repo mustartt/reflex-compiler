@@ -87,31 +87,31 @@ class TypeExpr : public AstExpr {
     explicit TypeExpr(const Loc &loc);
 };
 
-class IdentifierType : public TypeExpr {
+class IdentifierTypeExpr : public TypeExpr {
     IdentExpr *name;
   public:
-    IdentifierType(const Loc &loc, IdentExpr *name);
+    IdentifierTypeExpr(const Loc &loc, IdentExpr *name);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] IdentExpr *getTypename() const;
 };
 
 class Expression;
 
-class ArrayType : public TypeExpr {
+class ArrayTypeExpr : public TypeExpr {
     TypeExpr *elementTyp;
     Expression *lengthExpr;
   public:
-    ArrayType(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr);
+    ArrayTypeExpr(const Loc &loc, TypeExpr *elementTyp, Expression *lengthExpr);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] TypeExpr *getElementTyp() const;
     [[nodiscard]] Expression *getLengthExpr() const;
 };
 
-class FunctionType : public TypeExpr {
+class FunctionTypeExpr : public TypeExpr {
     TypeExpr *returnTyp;
     std::vector<TypeExpr *> paramList;
   public:
-    FunctionType(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList);
+    FunctionTypeExpr(const Loc &loc, TypeExpr *returnTyp, std::vector<TypeExpr *> paramList);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] TypeExpr *getReturnTyp() const;
     [[nodiscard]] const std::vector<TypeExpr *> &getParamList() const;

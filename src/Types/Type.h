@@ -42,33 +42,33 @@ class PrimType : public Type {
     BaseType baseTyp;
 };
 
-class ArrType : public Type {
+class ArrayType : public Type {
     Type *elementTyp;
   public:
-    explicit ArrType(Type *elementTyp) : elementTyp(elementTyp) {}
+    explicit ArrayType(Type *elementTyp) : elementTyp(elementTyp) {}
     [[nodiscard]] Type *getElementTyp() const { return elementTyp; }
     void printType(std::ostream &os) override;
-    bool operator==(const ArrType &rhs) const;
+    bool operator==(const ArrayType &rhs) const;
 };
 
-class FuncType : public Type {
+class FunctionType : public Type {
     Type *returnTyp;
     std::vector<Type *> paramTyp;
   public:
-    FuncType(Type *returnTyp, std::vector<Type *> paramTyp)
+    FunctionType(Type *returnTyp, std::vector<Type *> paramTyp)
         : returnTyp(returnTyp), paramTyp(std::move(paramTyp)) {}
     [[nodiscard]] virtual bool isMemberFuncTyp() const { return false; }
     [[nodiscard]] Type *getReturnTyp() const { return returnTyp; }
     [[nodiscard]] const std::vector<Type *> &getParamTyp() const { return paramTyp; }
     void printType(std::ostream &os) override;
-    bool operator==(const FuncType &rhs) const;
+    bool operator==(const FunctionType &rhs) const;
 };
 
 enum class Visibility {
   Public, Private, Protected
 };
 std::string getVisibilityString(Visibility visibility);
-Visibility getVisibilityFromString(const std::string& ident);
+Visibility getVisibilityFromString(const std::string &ident);
 
 class TypeError {};
 
@@ -93,7 +93,7 @@ class MemberType : public Type {
     [[nodiscard]] ClassType *getInstanceTyp() const { return instanceTyp; }
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
-    [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FuncType *>(memberTyp); }
+    [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FunctionType *>(memberTyp); }
     bool operator==(const MemberType &rhs) const;
 };
 
@@ -150,7 +150,7 @@ class ClassType : public AggregateType {
             std::vector<std::vector<Type *>> seenParams;
             for (auto overload: overloads) {
                 if (overload->isFunctionTyp()) {
-                    auto func = dynamic_cast<FuncType *>(overload->getMemberTyp());
+                    auto func = dynamic_cast<FunctionType *>(overload->getMemberTyp());
                     auto &params = func->getParamTyp();
                     if (std::find(seenParams.begin(), seenParams.end(), params) != seenParams.end()) {
                         seenParams.push_back(params);

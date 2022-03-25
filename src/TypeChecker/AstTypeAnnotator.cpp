@@ -171,7 +171,7 @@ void AstTypeAnnotator::visit(MemberDecl *visitable) {
     if (auto ptr = dynamic_cast<FunctionDecl *>(declaration)) {
         ptr->accept(this);
         auto type = typeContext->createMemberTy(nullptr, modifier, ptr->getTyp());
-        if (!type) throw TypeParseError{"Unable to parse MemberDecl FunctionType"};
+        if (!type) throw TypeParseError{"Unable to parse MemberDecl FunctionTypeExpr"};
         visitable->setTyp(type);
     }
     // falls through for class and interface decl

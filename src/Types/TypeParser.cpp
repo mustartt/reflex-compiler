@@ -6,13 +6,13 @@
 
 namespace reflex {
 
-VoidType *TypeParser::parseVoidTypeExpr(IdentifierType *decl) {
+VoidType *TypeParser::parseVoidTypeExpr(IdentifierTypeExpr *decl) {
     if (decl->getTypename()->getIdent() == "void")
         return typeContext->getVoidTy();
     return nullptr;
 }
 
-PrimType *TypeParser::parsePrimTypeExpr(IdentifierType *decl) {
+PrimType *TypeParser::parsePrimTypeExpr(IdentifierTypeExpr *decl) {
     auto keyword = decl->getTypename()->getIdent();
     if (keyword == "int") return typeContext->getPrimitiveTy(PrimType::Integer);
     if (keyword == "num") return typeContext->getPrimitiveTy(PrimType::Number);
@@ -21,13 +21,13 @@ PrimType *TypeParser::parsePrimTypeExpr(IdentifierType *decl) {
     return nullptr;
 }
 
-ArrType *TypeParser::parseArrTypeExpr(ArrayType *decl) {
+ArrayType *TypeParser::parseArrTypeExpr(ArrayTypeExpr *decl) {
     auto elementTyp = parseTypeExpr(decl->getElementTyp());
     if (!elementTyp) return nullptr;
     return typeContext->getArrayTy(elementTyp);
 }
 
-FuncType *TypeParser::parseFuncTypeExpr(FunctionType *decl) {
+FunctionType *TypeParser::parseFuncTypeExpr(FunctionTypeExpr *decl) {
     std::vector<Type *> params;
     for (auto param: decl->getParamList()) {
         params.push_back(parseTypeExpr(param));
@@ -38,7 +38,7 @@ FuncType *TypeParser::parseFuncTypeExpr(FunctionType *decl) {
     return typeContext->getFunctionTy(returnType, params);
 }
 
-AggregateType *TypeParser::parseAggregateExpr(IdentifierType *decl) {
+AggregateType *TypeParser::parseAggregateExpr(IdentifierTypeExpr *decl) {
     auto name = decl->getTypename()->getIdent();
     auto classTyp = typeContext->getClassTyp(name);
     auto interfaceTyp = typeContext->getInterfaceTyp(name);
@@ -48,16 +48,16 @@ AggregateType *TypeParser::parseAggregateExpr(IdentifierType *decl) {
 }
 
 Type *TypeParser::parseTypeExpr(TypeExpr *decl) {
-    if (auto ptr = dynamic_cast<IdentifierType *>(decl)) {
+    if (auto ptr = dynamic_cast<IdentifierTypeExpr *>(decl)) {
         if (auto res = parseVoidTypeExpr(ptr)) return res;
         if (auto res = parsePrimTypeExpr(ptr)) return res;
         if (auto res = parseAggregateExpr(ptr)) return res;
         return nullptr;
     }
-    if (auto ptr = dynamic_cast<ArrayType *>(decl)) {
+    if (auto ptr = dynamic_cast<ArrayTypeExpr *>(decl)) {
         return parseArrTypeExpr(ptr);
     }
-    if (auto ptr = dynamic_cast<FunctionType *>(decl)) {
+    if (auto ptr = dynamic_cast<FunctionTypeExpr *>(decl)) {
         return parseFuncTypeExpr(ptr);
     }
     return nullptr;

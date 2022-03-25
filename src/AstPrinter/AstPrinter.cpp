@@ -46,15 +46,15 @@ void AstPrinter::visit(NullLit *visitable) {
     generateIndent();
     output << "NullLit: " << visitable->getValue() << std::endl;
 }
-void AstPrinter::visit(IdentifierType *visitable) {
+void AstPrinter::visit(IdentifierTypeExpr *visitable) {
     generateIndent();
-    output << "IdentifierType: " << std::endl;
+    output << "IdentifierTypeExpr: " << std::endl;
     ScopeIndent type(indent);
     visitable->getTypename()->accept(this);
 }
-void AstPrinter::visit(ArrayType *visitable) {
+void AstPrinter::visit(ArrayTypeExpr *visitable) {
     generateIndent();
-    output << "ArrayType: " << std::endl;
+    output << "ArrayTypeExpr: " << std::endl;
     ScopeIndent elem(indent);
     visitable->getElementTyp()->accept(this);
     output << std::endl;
@@ -62,9 +62,9 @@ void AstPrinter::visit(ArrayType *visitable) {
         visitable->getLengthExpr()->accept(this);
 }
 
-void AstPrinter::visit(FunctionType *visitable) {
+void AstPrinter::visit(FunctionTypeExpr *visitable) {
     generateIndent();
-    output << "FunctionType: " << std::endl;
+    output << "FunctionTypeExpr: " << std::endl;
     ScopeIndent paramScope(indent);
     for (auto param: visitable->getParamList()) {
         param->accept(this);

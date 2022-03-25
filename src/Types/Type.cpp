@@ -36,17 +36,17 @@ void PrimType::printType(std::ostream &os) {
     }
 }
 
-void ArrType::printType(std::ostream &os) {
+void ArrayType::printType(std::ostream &os) {
     os << "ArrayType: ";
     elementTyp->printType(os);
     os << "[]";
 }
 
-bool ArrType::operator==(const ArrType &rhs) const {
+bool ArrayType::operator==(const ArrayType &rhs) const {
     return elementTyp == rhs.elementTyp;
 }
 
-void FuncType::printType(std::ostream &os) {
+void FunctionType::printType(std::ostream &os) {
     os << "FunctionType: ";
     returnTyp->printType(os);
     os << "(";
@@ -60,7 +60,7 @@ void FuncType::printType(std::ostream &os) {
     os << ")";
 }
 
-bool FuncType::operator==(const FuncType &rhs) const {
+bool FunctionType::operator==(const FunctionType &rhs) const {
     return returnTyp == rhs.returnTyp
         && paramTyp == rhs.paramTyp;
 }

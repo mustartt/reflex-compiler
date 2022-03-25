@@ -44,20 +44,20 @@ PrimType *TypeContextManager::getPrimitiveTy(PrimType::BaseType typ) const {
     return primitiveTyp[typ].get();
 }
 
-ArrType *TypeContextManager::getArrayTy(Type *elementTyp) {
+ArrayType *TypeContextManager::getArrayTy(Type *elementTyp) {
     auto res = std::find_if(arrayTyp.begin(), arrayTyp.end(),
                             [elementTyp](const auto &existing) {
                               return existing->getElementTyp() == elementTyp;
                             });
     if (res == arrayTyp.end()) {
-        arrayTyp.push_back(std::make_unique<ArrType>(elementTyp));
+        arrayTyp.push_back(std::make_unique<ArrayType>(elementTyp));
         return arrayTyp.back().get();
     }
     return res->get();
 }
 
-FuncType *TypeContextManager::getFunctionTy(Type *returnType, const std::vector<Type *> &paramTyp) {
-    FuncType typ(returnType, paramTyp);
+FunctionType *TypeContextManager::getFunctionTy(Type *returnType, const std::vector<Type *> &paramTyp) {
+    FunctionType typ(returnType, paramTyp);
     auto res = std::find_if(funcTyp.begin(), funcTyp.end(),
                             [=](const auto &existing) {
                               return *existing == typ;
@@ -65,7 +65,7 @@ FuncType *TypeContextManager::getFunctionTy(Type *returnType, const std::vector<
     if (res != funcTyp.end()) {
         return res->get();
     }
-    funcTyp.push_back(std::make_unique<FuncType>(returnType, paramTyp));
+    funcTyp.push_back(std::make_unique<FunctionType>(returnType, paramTyp));
     return funcTyp.back().get();
 }
 

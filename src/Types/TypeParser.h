@@ -17,11 +17,11 @@ class TypeParser {
     explicit TypeParser(TypeContextManager *typeContext) : typeContext(typeContext) {}
     Type *parseTypeExpr(TypeExpr *decl);
   private:
-    AggregateType *parseAggregateExpr(IdentifierType *decl);
-    VoidType *parseVoidTypeExpr(IdentifierType *decl);
-    PrimType *parsePrimTypeExpr(IdentifierType *decl);
-    ArrType *parseArrTypeExpr(ArrayType *decl);
-    FuncType *parseFuncTypeExpr(FunctionType *decl);
+    AggregateType *parseAggregateExpr(IdentifierTypeExpr *decl);
+    VoidType *parseVoidTypeExpr(IdentifierTypeExpr *decl);
+    PrimType *parsePrimTypeExpr(IdentifierTypeExpr *decl);
+    ArrayType *parseArrTypeExpr(ArrayTypeExpr *decl);
+    FunctionType *parseFuncTypeExpr(FunctionTypeExpr *decl);
 };
 
 }
