@@ -52,45 +52,47 @@ class TypeExpr;
 
 class AstVisitor {
   public:
+    virtual ~AstVisitor() = default;
+
     virtual void visit(TypeExpr *visitable);
-    virtual void visit(Identifier *visitable) = 0;
-    virtual void visit(ModuleSelector *visitable) = 0;
-    virtual void visit(NumberLit *visitable) = 0;
-    virtual void visit(StringLit *visitable) = 0;
-    virtual void visit(BoolLit *visitable) = 0;
-    virtual void visit(NullLit *visitable) = 0;
-    virtual void visit(IdentifierTypeExpr *visitable) = 0;
-    virtual void visit(ArrayTypeExpr *visitable) = 0;
-    virtual void visit(FunctionTypeExpr *visitable) = 0;
-    virtual void visit(ArrayLit *visitable) = 0;
-    virtual void visit(ParamDecl *visitable) = 0;
-    virtual void visit(FunctionLit *visitable) = 0;
-    virtual void visit(UnaryExpr *visitable) = 0;
-    virtual void visit(BinaryExpr *visitable) = 0;
-    virtual void visit(NewExpr *visitable) = 0;
-    virtual void visit(CastExpr *visitable) = 0;
-    virtual void visit(SelectorExpr *visitable) = 0;
-    virtual void visit(IndexExpr *visitable) = 0;
-    virtual void visit(ArgumentExpr *visitable) = 0;
-    virtual void visit(VariableDecl *visitable) = 0;
-    virtual void visit(ReturnStmt *visitable) = 0;
-    virtual void visit(BreakStmt *visitable) = 0;
-    virtual void visit(ContinueStmt *visitable) = 0;
-    virtual void visit(IfStmt *visitable) = 0;
-    virtual void visit(ForRangeClause *visitable) = 0;
-    virtual void visit(ForNormalClause *visitable) = 0;
-    virtual void visit(ForStmt *visitable) = 0;
-    virtual void visit(WhileStmt *visitable) = 0;
-    virtual void visit(EmptyStmt *visitable) = 0;
-    virtual void visit(AssignmentStmt *visitable) = 0;
-    virtual void visit(IncDecStmt *visitable) = 0;
-    virtual void visit(ExpressionStmt *visitable) = 0;
-    virtual void visit(Block *visitable) = 0;
-    virtual void visit(FunctionDecl *visitable) = 0;
-    virtual void visit(ClassDecl *visitable) = 0;
-    virtual void visit(MemberDecl *visitable) = 0;
-    virtual void visit(InterfaceDecl *visitable) = 0;
-    virtual void visit(CompilationUnit *visitable) = 0;
+    virtual void visit(Identifier *visitable) {}
+    virtual void visit(ModuleSelector *visitable) {}
+    virtual void visit(NumberLit *visitable) {}
+    virtual void visit(StringLit *visitable) {}
+    virtual void visit(BoolLit *visitable) {}
+    virtual void visit(NullLit *visitable) {}
+    virtual void visit(IdentifierTypeExpr *visitable) {}
+    virtual void visit(ArrayTypeExpr *visitable) {}
+    virtual void visit(FunctionTypeExpr *visitable) {}
+    virtual void visit(ArrayLit *visitable) {}
+    virtual void visit(ParamDecl *visitable) {}
+    virtual void visit(FunctionLit *visitable) {}
+    virtual void visit(UnaryExpr *visitable) {}
+    virtual void visit(BinaryExpr *visitable) {}
+    virtual void visit(NewExpr *visitable) {}
+    virtual void visit(CastExpr *visitable) {}
+    virtual void visit(SelectorExpr *visitable) {}
+    virtual void visit(IndexExpr *visitable) {}
+    virtual void visit(ArgumentExpr *visitable) {}
+    virtual void visit(VariableDecl *visitable) {}
+    virtual void visit(ReturnStmt *visitable) {}
+    virtual void visit(BreakStmt *visitable) {}
+    virtual void visit(ContinueStmt *visitable) {}
+    virtual void visit(IfStmt *visitable) {}
+    virtual void visit(ForRangeClause *visitable) {}
+    virtual void visit(ForNormalClause *visitable) {}
+    virtual void visit(ForStmt *visitable) {}
+    virtual void visit(WhileStmt *visitable) {}
+    virtual void visit(EmptyStmt *visitable) {}
+    virtual void visit(AssignmentStmt *visitable) {}
+    virtual void visit(IncDecStmt *visitable) {}
+    virtual void visit(ExpressionStmt *visitable) {}
+    virtual void visit(Block *visitable) {}
+    virtual void visit(FunctionDecl *visitable) {}
+    virtual void visit(ClassDecl *visitable) {}
+    virtual void visit(MemberDecl *visitable) {}
+    virtual void visit(InterfaceDecl *visitable) {}
+    virtual void visit(CompilationUnit *visitable) {}
 };
 
 }
