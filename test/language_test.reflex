@@ -1,9 +1,3 @@
-interface IC {
-    interface ID : IC {
-        interface IE : ID {}
-        interface IF : IA {}
-    }
-}
 
 interface IA : IC {
     interface IB : IC::ID {}
@@ -16,3 +10,10 @@ class CA {
 }
 
 interface IE : CA::NIA {}
+
+interface IC {
+    interface ID : IC {
+        interface IE : ID {}
+        interface IF : IA {}
+    }
+}

@@ -1,0 +1,16 @@
+//
+// Created by henry on 2022-03-26.
+//
+
+#ifndef REFLEX_SRC_TYPECHECKER_ASTCLASSDECLANNOTATOR_H_
+#define REFLEX_SRC_TYPECHECKER_ASTCLASSDECLANNOTATOR_H_
+
+namespace reflex {
+
+class AstClassDeclAnnotator {
+
+};
+
+}
+
+#endif //REFLEX_SRC_TYPECHECKER_ASTCLASSDECLANNOTATOR_H_

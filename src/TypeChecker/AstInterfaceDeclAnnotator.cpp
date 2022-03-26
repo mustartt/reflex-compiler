@@ -89,7 +89,7 @@ void flattenHoistTree(std::unique_ptr<InterfaceNode> &root) {
         for (auto &derived: child->derivedFrom) {
             auto res = std::find_if(root->children.begin(), root->children.end(),
                                     [&](const auto &childPtr) {
-                                      return childPtr->qualifiedName == derived;
+                                      return derived.starts_with(childPtr->qualifiedName);
                                     });
             if (res != root->children.end()) {
                 derived = root->qualifiedName + "::" + derived;
@@ -113,6 +113,7 @@ void AstInterfaceDeclAnnotator::getHoistedInterfaceTree() {
     hoistRoot->children.remove_if([](const auto &child) {
       return !child->self; // clean up class decl nodes
     });
+    hoistRoot->debugHoistTree(std::cout, 0);
 }
 
 std::vector<InterfaceNode *> AstInterfaceDeclAnnotator::getInterfaceTypeConstructionOrder() {
