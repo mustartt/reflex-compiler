@@ -4,22 +4,14 @@
 
 #include <iostream>
 #include "AstInterfaceDeclAnnotator.h"
-#include "TopologicalSort/TopSort.h"
+#include "Utils/TopSort.h"
+#include "Utils/TypeCheckerUtils.h"
 #include "SemanticError.h"
 
 namespace reflex {
 
 AstInterfaceDeclAnnotator::AstInterfaceDeclAnnotator(TypeContextManager *typeContext, CompilationUnit *root)
     : typeContext(typeContext), root(root) {}
-
-bool isInterfaceOrClassDecl(Declaration *decl) {
-    return typeid(*decl) == typeid(ClassDecl)
-        || typeid(*decl) == typeid(InterfaceDecl);
-}
-
-void printIndent(std::ostream &os, size_t indent) {
-    for (size_t i = 0; i < indent; ++i) os << "  ";
-}
 
 void InterfaceNode::debugHoistTree(std::ostream &os, size_t indent) {
     printIndent(os, indent);
@@ -144,7 +136,7 @@ void AstInterfaceDeclAnnotator::annotate() {
             i->self->accept(this);
         }
     } catch (CyclicError &err) {
-        throw InterfaceTypeError{"Cyclic inheritance detected"};
+        throw InterfaceTypeError{"Cyclic Interface inheritance detected"};
     }
 }
 

@@ -1,19 +1,9 @@
-
-interface IA : IC {
-    interface IB : IC::ID {}
-}
-
-interface ID {}
-
-class CA {
-    public interface NIA {}
-}
-
-interface IE : CA::NIA {}
-
-interface IC {
-    interface ID : IC {
-        interface IE : ID {}
-        interface IF : IA {}
+class A {
+    public interface IA {
+        interface IC {}
+    }
+    public interface IB : IA {}
+    public class B(A) : IB {
+        public class C(B) : IA::IC {}
     }
 }

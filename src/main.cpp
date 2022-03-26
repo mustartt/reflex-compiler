@@ -7,6 +7,7 @@
 #include <AstPrinter.h>
 #include <TypeContextManager.h>
 #include <AstInterfaceDeclAnnotator.h>
+#include <AstClassDeclAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -24,7 +25,9 @@ int main(int argc, char *argv[]) {
 
     TypeContextManager manager;
     AstInterfaceDeclAnnotator interfaceAnnotator(&manager, root);
+    AstClassDeclAnnotator classAnnotator(&manager, root);
     interfaceAnnotator.annotate();
+    classAnnotator.annotate();
 
     printer.visit(root);
     manager.dump(std::cout);
