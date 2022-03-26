@@ -5,7 +5,6 @@
 #include <AstContextManager.h>
 #include <Parser.h>
 #include <AstPrinter.h>
-#include <AstTypeAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -21,16 +20,6 @@ int main(int argc, char *argv[]) {
     auto root = parser.parseCompilationUnit();
     AstPrinter printer(std::cout);
     printer.visit(root);
-
-    std::cout << "=============================================" << std::endl;
-
-    TypeContextManager manager;
-    AstTypeAnnotator annotator(&ctx, &manager);
-    annotator.annotate();
-
-    printer.visit(root);
-
-    manager.dump(std::cout);
 
     return 0;
 }

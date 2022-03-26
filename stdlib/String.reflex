@@ -1,0 +1,19 @@
+class String {
+    private var buffer: char[];
+
+    public func String() -> void {
+        buffer = new char[0];
+    }
+
+    public func String(value: char[]) -> void {
+        buffer = value;
+    }
+
+    public func size() -> int {
+        return buffer.size();
+    }
+
+    public func charAt(index: int) -> char {
+        return buffer[index];
+    }
+}

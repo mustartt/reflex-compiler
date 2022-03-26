@@ -92,4 +92,66 @@ bool ClassType::operator==(const ClassType &rhs) const {
         && members == rhs.members;
 }
 
+bool ClassType::validate(std::vector<TypeError> &vector) const {
+    for (auto&[name, overloads]: members) {
+        // no duplicate types for the same name except for functions
+        size_t funcCount = std::count_if(overloads.begin(), overloads.end(),
+                                         [](const auto memberTyp) -> bool {
+                                           return memberTyp->isFunctionTyp();
+                                         });
+        if (overloads.size() - funcCount > 1) {
+            return false;
+        }
+        // overloads must have different parameter
+        std::vector<std::vector<Type *>> seenParams;
+        for (auto overload: overloads) {
+            if (overload->isFunctionTyp()) {
+                auto func = dynamic_cast<FunctionType *>(overload->getMemberTyp());
+                auto &params = func->getParamTyp();
+                if (std::find(seenParams.begin(), seenParams.end(), params) != seenParams.end()) {
+                    seenParams.push_back(params);
+                } else {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool InterfaceType::isDerivedFrom(InterfaceType *base) const {
+    std::vector<const InterfaceType *> curr;
+    curr.push_back(this);
+    while (!curr.empty()) {
+        std::vector<const InterfaceType *> next;
+        if (std::find(curr.begin(), curr.end(), base) != curr.end())
+            return true;
+        for (const auto i: curr) {
+            next.insert(next.end(), i->interfaces.begin(), i->interfaces.end());
+        }
+        curr = std::move(next);
+    }
+    return false;
+}
+
+bool ClassType::isDerivedFrom(ClassType *base) const {
+    auto curr = this;
+    while (curr) {
+        if (curr == base) return true;
+        curr = baseclass;
+    }
+    return false;
+}
+
+bool ClassType::implements(InterfaceType *base) const {
+    auto curr = this;
+    while (curr) {
+        for (auto interface: interfaces) {
+            if (interface == base) return true;
+        }
+        curr = baseclass;
+    }
+    return false;
+}
+
 }

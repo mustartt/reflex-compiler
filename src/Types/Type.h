@@ -113,6 +113,7 @@ class InterfaceType : public AggregateType {
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
+    [[nodiscard]] bool isDerivedFrom(InterfaceType *base) const;
     std::string getTypeString() override;
     bool operator==(const InterfaceType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override {
@@ -135,36 +136,13 @@ class ClassType : public AggregateType {
     std::vector<MemberType *> findMemberTyp(const std::string &name) override {
         return {};
     }
+    [[nodiscard]] bool isDerivedFrom(ClassType *base) const;
+    [[nodiscard]] bool implements(InterfaceType *base) const;
     [[nodiscard]] bool isInterfaceTyp() const override { return false; }
     [[nodiscard]] bool isClassTyp() const override { return true; }
     std::string getTypeString() override;
     bool operator==(const ClassType &rhs) const;
-    bool validate(std::vector<TypeError> &vector) const override {
-        for (auto&[name, overloads]: members) {
-            // no duplicate types for the same name except for functions
-            size_t funcCount = std::count_if(overloads.begin(), overloads.end(),
-                                             [](const auto memberTyp) -> bool {
-                                               return memberTyp->isFunctionTyp();
-                                             });
-            if (overloads.size() - funcCount > 1) {
-                return false;
-            }
-            // overloads must have different parameter
-            std::vector<std::vector<Type *>> seenParams;
-            for (auto overload: overloads) {
-                if (overload->isFunctionTyp()) {
-                    auto func = dynamic_cast<FunctionType *>(overload->getMemberTyp());
-                    auto &params = func->getParamTyp();
-                    if (std::find(seenParams.begin(), seenParams.end(), params) != seenParams.end()) {
-                        seenParams.push_back(params);
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
+    bool validate(std::vector<TypeError> &vector) const override;
 
     [[nodiscard]] bool isAbstract() {
         return false;

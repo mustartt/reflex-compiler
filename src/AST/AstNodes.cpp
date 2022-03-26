@@ -116,12 +116,12 @@ const std::vector<Expression *> &ArgumentExpr::getArguments() const { return arg
 
 Statement::Statement(const Loc &loc) : AstExpr(loc) {}
 SimpleStmt::SimpleStmt(const Loc &loc) : Statement(loc) {}
-Declaration::Declaration(const Loc &loc) : Statement(loc) {}
+Declaration::Declaration(const Loc &loc, Identifier *name) : Statement(loc), name(name) {}
+Identifier *Declaration::getName() const { return name; }
 
-VariableDecl::VariableDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ, Expression *initializer)
-    : Declaration(loc), name(name), typ(typ), initializer(initializer) {}
+VariableDecl::VariableDecl(const Loc &loc, Identifier *name, TypeExpr *typ, Expression *initializer)
+    : Declaration(loc, name), typ(typ), initializer(initializer) {}
 void VariableDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *VariableDecl::getName() const { return name; }
 TypeExpr *VariableDecl::getVariableType() const { return typ; }
 Expression *VariableDecl::getInitializer() const { return initializer; }
 
@@ -191,35 +191,32 @@ void Block::accept(AstVisitor *visitor) { visitor->visit(this); }
 const std::vector<Statement *> &Block::getStmts() const { return stmts; }
 
 FunctionDecl::FunctionDecl(const Loc &loc,
-                           IdentExpr *name,
+                           Identifier *name,
                            std::vector<ParamDecl *> params,
                            TypeExpr *retTyp,
                            Block *body)
-    : Declaration(loc), name(name), params(std::move(params)), retTyp(retTyp), body(body) {}
+    : Declaration(loc, name), params(std::move(params)), retTyp(retTyp), body(body) {}
 void FunctionDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *FunctionDecl::getName() const { return name; }
 const std::vector<ParamDecl *> &FunctionDecl::getParams() const { return params; }
 TypeExpr *FunctionDecl::getRetTyp() const { return retTyp; }
 Block *FunctionDecl::getBody() const { return body; }
 
 MemberDecl::MemberDecl(const Loc &loc, IdentExpr *modifier, Declaration *declaration)
-    : Declaration(loc), modifier(modifier), declaration(declaration) {}
+    : Declaration(loc, declaration->getName()), modifier(modifier), declaration(declaration) {}
 void MemberDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 IdentExpr *MemberDecl::getModifier() const { return modifier; }
 Declaration *MemberDecl::getDeclaration() const { return declaration; }
 
 ClassDecl::ClassDecl(const Loc &loc,
-                     IdentExpr *name,
+                     Identifier *name,
                      IdentExpr *baseclass,
                      std::vector<IdentExpr *> interfaces,
                      std::vector<MemberDecl *> members)
-    : Declaration(loc),
-      name(name),
+    : Declaration(loc, name),
       baseclass(baseclass),
       interfaces(std::move(interfaces)),
       members(std::move(members)) {}
 void ClassDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *ClassDecl::getName() const { return name; }
 const std::vector<IdentExpr *> &ClassDecl::getInterfaces() const { return interfaces; }
 const std::vector<MemberDecl *> &ClassDecl::getMembers() const { return members; }
 std::optional<std::string> ClassDecl::getBaseClassname() const {
@@ -230,17 +227,15 @@ std::string ClassDecl::getClassname() const { return name->getIdent(); }
 bool ClassDecl::hasBaseclass() const { return baseclass; }
 
 InterfaceDecl::InterfaceDecl(const Loc &loc,
-                             IdentExpr *name,
+                             Identifier *name,
                              std::vector<IdentExpr *> interfaces,
                              std::vector<MemberDecl *> signatures)
-    : Declaration(loc),
-      name(name),
+    : Declaration(loc, name),
       interfaces(std::move(interfaces)),
       signatures(std::move(signatures)) {}
 void InterfaceDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
-IdentExpr *InterfaceDecl::getName() const { return name; }
 const std::vector<IdentExpr *> &InterfaceDecl::getInterfaces() const { return interfaces; }
-const std::vector<MemberDecl *> &InterfaceDecl::getSignatures() const { return signatures; }
+const std::vector<MemberDecl *> &InterfaceDecl::getInterfaceMethods() const { return signatures; }
 std::string InterfaceDecl::getInterfaceName() const { return name->getIdent(); }
 
 CompilationUnit::CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)

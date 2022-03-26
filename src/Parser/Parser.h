@@ -36,7 +36,7 @@ class Parser {
     Token expect(TokenType::Value expectedType);
 
   public:
-    IdentExpr *parseIdent();
+    Identifier *parseIdent();
     IdentExpr *parseModuleIdent(IdentExpr *base);
 
     TypeExpr *parseType();
@@ -95,6 +95,7 @@ class Parser {
 
     FunctionDecl *parseFunctionDecl();
 
+    IdentExpr* parseDerivedInterface();
     std::vector<IdentExpr *> parseInterfaceList();
     IdentExpr *parseBaseClass();
     Declaration *parseClassDecl();

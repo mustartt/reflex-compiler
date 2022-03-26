@@ -231,18 +231,19 @@ class SimpleStmt : public Statement {
 };
 
 class Declaration : public Statement {
+  protected:
+    Identifier *name;
   public:
-    explicit Declaration(const Loc &loc);
+    explicit Declaration(const Loc &loc, Identifier *name);
+    [[nodiscard]] Identifier *getName() const;
 };
 
 class VariableDecl : public Declaration {
-    IdentExpr *name;
     TypeExpr *typ;
     Expression *initializer;
   public:
-    VariableDecl(const Loc &loc, IdentExpr *name, TypeExpr *typ, Expression *initializer);
+    VariableDecl(const Loc &loc, Identifier *name, TypeExpr *typ, Expression *initializer);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] TypeExpr *getVariableType() const;
     [[nodiscard]] Expression *getInitializer() const;
 };
@@ -373,14 +374,12 @@ class Block : public Statement {
 };
 
 class FunctionDecl : public Declaration {
-    IdentExpr *name;
     std::vector<ParamDecl *> params;
     TypeExpr *retTyp;
     Block *body;
   public:
-    FunctionDecl(const Loc &loc, IdentExpr *name, std::vector<ParamDecl *> params, TypeExpr *retTyp, Block *body);
+    FunctionDecl(const Loc &loc, Identifier *name, std::vector<ParamDecl *> params, TypeExpr *retTyp, Block *body);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] const std::vector<ParamDecl *> &getParams() const;
     [[nodiscard]] TypeExpr *getRetTyp() const;
     [[nodiscard]] Block *getBody() const;
@@ -397,18 +396,16 @@ class MemberDecl : public Declaration {
 };
 
 class ClassDecl : public Declaration {
-    IdentExpr *name;
     IdentExpr *baseclass;
     std::vector<IdentExpr *> interfaces;
     std::vector<MemberDecl *> members;
   public:
     ClassDecl(const Loc &loc,
-              IdentExpr *name,
+              Identifier *name,
               IdentExpr *baseclass,
               std::vector<IdentExpr *> interfaces,
               std::vector<MemberDecl *> members);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] IdentExpr *getBaseclass() const { return baseclass; }
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
     [[nodiscard]] const std::vector<MemberDecl *> &getMembers() const;
@@ -418,19 +415,17 @@ class ClassDecl : public Declaration {
 };
 
 class InterfaceDecl : public Declaration {
-    IdentExpr *name;
     std::vector<IdentExpr *> interfaces;
     std::vector<MemberDecl *> signatures;
   public:
     InterfaceDecl(const Loc &loc,
-                  IdentExpr *name,
+                  Identifier *name,
                   std::vector<IdentExpr *> interfaces,
                   std::vector<MemberDecl *> signatures);
     void accept(AstVisitor *visitor) override;
-    [[nodiscard]] IdentExpr *getName() const;
     [[nodiscard]] std::string getInterfaceName() const;
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
-    [[nodiscard]] const std::vector<MemberDecl *> &getSignatures() const;
+    [[nodiscard]] const std::vector<MemberDecl *> &getInterfaceMethods() const;
 };
 
 class CompilationUnit : public AstExpr {

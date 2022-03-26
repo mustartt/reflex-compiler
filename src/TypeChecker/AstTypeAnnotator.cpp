@@ -105,7 +105,7 @@ void AstTypeAnnotator::annotateInterfaceBody() {
         auto ordering = sortInterfaceInheritance();
         for (auto decl: ordering) {
             // add interface methods
-            for (auto member: decl->getSignatures()) {
+            for (auto member: decl->getInterfaceMethods()) {
                 member->accept(this);
                 auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
                 auto theInterfaceType = dynamic_cast<InterfaceType *>(decl->getTyp());
@@ -125,11 +125,16 @@ void AstTypeAnnotator::annotateClassBody() {
             // add class members
             for (auto member: decl->getMembers()) {
                 member->accept(this);
-                auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
-                if (!funcDecl) continue;
+                auto isTypeDecl = dynamic_cast<AggregateType *>(member->getDeclaration());
+                if (isTypeDecl) continue;
                 auto theClassType = dynamic_cast<ClassType *>(decl->getTyp());
-                theClassType->addMember(funcDecl->getName()->getIdent(),
-                                        dynamic_cast<MemberType *>(member->getTyp()));
+                if (auto var = dynamic_cast<VariableDecl *>(member->getDeclaration())) {
+                    theClassType->addMember(var->getName()->getIdent(),
+                                            dynamic_cast<MemberType *>(member->getTyp()));
+                } else if (auto func = dynamic_cast<FunctionDecl *>(member->getDeclaration())) {
+                    theClassType->addMember(func->getName()->getIdent(),
+                                            dynamic_cast<MemberType *>(member->getTyp()));
+                }
             }
         }
     } catch (CyclicError &err) {

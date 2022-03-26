@@ -32,7 +32,7 @@ class Loc {
 
 class Token {
     TokenType tokenType{TokenType::EndOfFile};
-    std::string lexeme;
+    std::string lexeme{"EOF"};
     Loc loc{};
   public:
     Token() = default;

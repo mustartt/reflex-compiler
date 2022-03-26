@@ -8,7 +8,7 @@
 
 namespace reflex {
 
-IdentExpr *Parser::parseIdent() {
+Identifier *Parser::parseIdent() {
     auto token = expect(TokenType::Identifier);
     return ctx->create<Identifier>(token.getLocInfo(), token.getLexeme());
 }
@@ -52,7 +52,7 @@ TypeExpr *Parser::parseType() {
     }
     TypeExpr *baseTyp;
     if (!check(TokenType::Func)) {
-        auto typ = parseIdent();
+        IdentExpr *typ = parseIdent();
         if (check(TokenType::NameSeparator)) {
             typ = parseModuleIdent(typ);
         }
@@ -80,7 +80,7 @@ ArrayTypeExpr *Parser::parseArrayType() {
     } else if (check(TokenType::Func)) {
         base = parseFunctionType();
     } else {
-        auto typ = parseIdent();
+        IdentExpr *typ = parseIdent();
         if (check(TokenType::NameSeparator)) {
             typ = parseModuleIdent(typ);
         }
@@ -265,7 +265,7 @@ ParamDecl *Parser::parseFuncParam() {
 
 Expression *Parser::parseNamedOperand() {
     if (check(TokenType::Identifier)) {
-        auto ident = parseIdent();
+        IdentExpr *ident = parseIdent();
         if (check(TokenType::NameSeparator)) {
             ident = parseModuleIdent(ident);
         }
@@ -295,7 +295,7 @@ Expression *Parser::parseUnaryExpr() {
 
 Expression *Parser::parseOperand() {
     if (check(TokenType::Identifier)) {
-        auto ident = parseIdent();
+        IdentExpr *ident = parseIdent();
         if (check(TokenType::NameSeparator)) {
             ident = parseModuleIdent(ident);
         }
@@ -610,6 +610,7 @@ Statement *Parser::parseForStmt() {
         clause, parseBlock()
     );
 }
+
 ForClause *Parser::parseForClause() {
     Statement *init = nullptr;
     if (check(TokenType::Var)) {
@@ -636,6 +637,7 @@ ForClause *Parser::parseForClause() {
         init, cond, post
     );
 }
+
 Statement *Parser::parseWhileStmt() {
     auto startToken = tok;
     expect(TokenType::While);
@@ -682,18 +684,6 @@ IdentExpr *Parser::parseBaseClass() {
     return baseclass;
 }
 
-std::vector<IdentExpr *> Parser::parseInterfaceList() {
-    if (!check(TokenType::Colon)) return {};
-    next();
-    std::vector<IdentExpr *> interfaces;
-    interfaces.push_back(parseIdent());
-    while (check(TokenType::Comma)) {
-        next();
-        interfaces.push_back(parseIdent());
-    }
-    return interfaces;
-}
-
 std::vector<MemberDecl *> Parser::parseClassBody() {
     auto startToken = expect(TokenType::LBrace);
     std::vector<MemberDecl *> members;
@@ -720,6 +710,26 @@ MemberDecl *Parser::parseClassMemberDecl() {
     );
 }
 
+IdentExpr *Parser::parseDerivedInterface() {
+    IdentExpr *ident = parseIdent();
+    if (check(TokenType::NameSeparator)) {
+        ident = parseModuleIdent(ident);
+    }
+    return ident;
+}
+
+std::vector<IdentExpr *> Parser::parseInterfaceList() {
+    if (!check(TokenType::Colon)) return {};
+    next();
+    std::vector<IdentExpr *> interfaces;
+    interfaces.push_back(parseDerivedInterface());
+    while (check(TokenType::Comma)) {
+        next();
+        interfaces.push_back(parseDerivedInterface());
+    }
+    return interfaces;
+}
+
 Declaration *Parser::parseInterfaceDecl() {
     auto startToken = expect(TokenType::Interface);
     auto name = parseIdent();
@@ -742,12 +752,17 @@ std::vector<MemberDecl *> Parser::parseInterfaceBody() {
 }
 
 MemberDecl *Parser::parseInterfaceMemberDecl() {
-    auto modifier = parseIdent();
-    auto decl = parseFunctionDecl();
-    if (!decl->getBody()) expect(TokenType::SemiColon);
+    Declaration *decl;
+    if (check(TokenType::Interface)) {
+        decl = parseInterfaceDecl();
+    } else {
+        auto func = parseFunctionDecl();
+        if (!func->getBody()) expect(TokenType::SemiColon);
+        decl = func;
+    }
     return ctx->create<MemberDecl>(
-        modifier->getLoc(),
-        modifier, decl
+        decl->getLoc(),
+        ctx->create<Identifier>(decl->getLoc(), "public"), decl
     );
 }
 

@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(typechecker
         AstTypeAnnotator.h
         AstTypeAnnotator.cpp
+        AstSemanticChecker.h
+        AstSemanticChecker.cpp
         TopologicalSort/TopSort.h)
 
 target_link_libraries(typechecker PUBLIC ast)

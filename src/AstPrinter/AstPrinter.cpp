@@ -76,8 +76,8 @@ void AstPrinter::visit(InterfaceDecl *visitable) {
                         + printAstType(visitable->getTyp()));
     {
         int it = 0;
-        for (auto i = visitable->getSignatures().begin(); i != visitable->getSignatures().end(); ++i, ++it) {
-            auto isLastNode = it == visitable->getSignatures().size() - 1;
+        for (auto i = visitable->getInterfaceMethods().begin(); i != visitable->getInterfaceMethods().end(); ++i, ++it) {
+            auto isLastNode = it == visitable->getInterfaceMethods().size() - 1;
             Scope _(*this, isLastNode);
             (*i)->accept(this);
         }
