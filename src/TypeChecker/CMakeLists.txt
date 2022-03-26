@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(typechecker
         Utils/TopSort.h
         AstInterfaceDeclAnnotator.cpp
-        AstInterfaceDeclAnnotator.h SemanticError.cpp SemanticError.h AstClassDeclAnnotator.cpp AstClassDeclAnnotator.h Utils/TypeCheckerUtils.cpp Utils/TypeCheckerUtils.h)
+        AstInterfaceDeclAnnotator.h SemanticError.cpp SemanticError.h AstClassDeclAnnotator.cpp AstClassDeclAnnotator.h Utils/TypeCheckerUtils.cpp Utils/TypeCheckerUtils.h AstMemberAnnotator.cpp AstMemberAnnotator.h)
 
 target_link_libraries(typechecker PUBLIC ast)
 target_link_libraries(typechecker PUBLIC types)

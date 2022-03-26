@@ -9,7 +9,9 @@ add_library(ast
         AstVisitor.h
         AstContextManager.h
         Operator.cpp
-        Operator.h AstVisitor.cpp)
+        Operator.h
+        AstVisitor.cpp
+        )
 
 target_link_libraries(ast PUBLIC types)
 target_link_libraries(ast PUBLIC lexer)

@@ -138,6 +138,7 @@ void AstClassDeclAnnotator::getHoistedClassTree() {
 
 void AstClassDeclAnnotator::annotate() {
     getHoistedClassTree();
+
     try {
         auto ordering = getClassTypeConstructionOrder();
         for (auto i: ordering) {
