@@ -29,7 +29,7 @@ class TypeContextManager {
     [[nodiscard]] ArrayType *getArrayTy(Type *elementTyp);
     [[nodiscard]] FunctionType *getFunctionTy(Type *returnType, const std::vector<Type *> &paramTyp);
 
-    [[nodiscard]] MemberType *createMemberTy(ClassType *instance, Visibility visibility, Type *type);
+    [[nodiscard]] MemberType *createMemberTy(Visibility visibility, Type *type);
 
     [[nodiscard]] std::optional<ClassType *> getClassTyp(const std::string &name);
     [[nodiscard]] std::optional<InterfaceType *> getInterfaceTyp(const std::string &name);

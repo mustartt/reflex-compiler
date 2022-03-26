@@ -3,11 +3,9 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(typechecker
-        AstTypeAnnotator.h
-        AstTypeAnnotator.cpp
-        AstSemanticChecker.h
-        AstSemanticChecker.cpp
-        TopologicalSort/TopSort.h AstInterfaceDeclAnnotator.cpp AstInterfaceDeclAnnotator.h)
+        TopologicalSort/TopSort.h
+        AstInterfaceDeclAnnotator.cpp
+        AstInterfaceDeclAnnotator.h SemanticError.cpp SemanticError.h)
 
 target_link_libraries(typechecker PUBLIC ast)
 target_link_libraries(typechecker PUBLIC types)

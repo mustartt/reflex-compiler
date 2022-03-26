@@ -73,24 +73,14 @@ Visibility getVisibilityFromString(const std::string &ident);
 
 class TypeError {};
 
-class MemberType;
-class AggregateType : public Type {
-  public:
-    virtual std::vector<MemberType *> findMemberTyp(const std::string &) = 0;
-    [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
-    [[nodiscard]] virtual bool isClassTyp() const = 0;
-    [[nodiscard]] virtual bool validate(std::vector<TypeError> &) const = 0;
-};
-
 class ClassType;
+
 class MemberType : public Type {
-    ClassType *instanceTyp;
     Visibility visibility;
     Type *memberTyp;
   public:
-    MemberType(ClassType *instanceTyp, Visibility visibility, Type *memberTyp)
-        : instanceTyp(instanceTyp), visibility(visibility), memberTyp(memberTyp) {}
-    [[nodiscard]] ClassType *getInstanceTyp() const { return instanceTyp; }
+    MemberType(Visibility visibility, Type *memberTyp)
+        : visibility(visibility), memberTyp(memberTyp) {}
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
     std::string getTypeString() override;
@@ -98,15 +88,26 @@ class MemberType : public Type {
     bool operator==(const MemberType &rhs) const;
 };
 
+class AggregateType : public Type {
+    std::string name;
+  public:
+    explicit AggregateType(std::string name) : name(std::move(name)) {}
+    virtual std::vector<MemberType *> findMemberTyp(const std::string &) = 0;
+    [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
+    [[nodiscard]] virtual bool isClassTyp() const = 0;
+    [[nodiscard]] virtual bool validate(std::vector<TypeError> &) const = 0;
+
+    [[nodiscard]] const std::string &getName() const { return name; }
+};
+
 class InterfaceType : public AggregateType {
-    std::string interfacename;
     std::vector<InterfaceType *> interfaces;
-    std::map<std::string, std::vector<MemberType *>> members{};
+    std::map<std::string, MemberType *> members{};
   public:
     explicit InterfaceType(std::string interfacename, std::vector<InterfaceType *> interfaces)
-        : interfacename(std::move(interfacename)), interfaces(std::move(interfaces)) {}
+        : AggregateType(std::move(interfacename)), interfaces(std::move(interfaces)) {}
     void addInterfaceMethod(const std::string &name, MemberType *typ) {
-        members[name].push_back(typ);
+        members[name] = typ;
     }
     std::vector<MemberType *> findMemberTyp(const std::string &name) override {
         return {};
@@ -114,24 +115,23 @@ class InterfaceType : public AggregateType {
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
     [[nodiscard]] bool isDerivedFrom(InterfaceType *base) const;
+    [[nodiscard]] const std::vector<InterfaceType *> &getInterfaces() const;
+    [[nodiscard]] const std::map<std::string, MemberType *> &getMembers() const;
+
     std::string getTypeString() override;
     bool operator==(const InterfaceType &rhs) const;
-    bool validate(std::vector<TypeError> &vector) const override {
-        return false;
-    }
+    bool validate(std::vector<TypeError> &vector) const override { return true; }
 };
 
 class ClassType : public AggregateType {
-  private:
-    std::string classname;
     ClassType *baseclass;
     std::vector<InterfaceType *> interfaces;
-    std::map<std::string, std::vector<MemberType *>> members{};
+    std::map<std::string, MemberType *> members{};
   public:
     ClassType(std::string classname, ClassType *baseclass, std::vector<InterfaceType *> interfaces)
-        : classname(std::move(classname)), baseclass(baseclass), interfaces(std::move(interfaces)) {}
+        : AggregateType(std::move(classname)), baseclass(baseclass), interfaces(std::move(interfaces)) {}
     void addMember(const std::string &name, MemberType *typ) {
-        members[name].push_back(typ);
+        members[name] = typ;
     }
     std::vector<MemberType *> findMemberTyp(const std::string &name) override {
         return {};
@@ -140,13 +140,13 @@ class ClassType : public AggregateType {
     [[nodiscard]] bool implements(InterfaceType *base) const;
     [[nodiscard]] bool isInterfaceTyp() const override { return false; }
     [[nodiscard]] bool isClassTyp() const override { return true; }
+    [[nodiscard]] ClassType *getBaseclass() const;
+    [[nodiscard]] const std::vector<InterfaceType *> &getInterfaces() const;
+    [[nodiscard]] const std::map<std::string, MemberType *> &getMembers() const;
     std::string getTypeString() override;
     bool operator==(const ClassType &rhs) const;
-    bool validate(std::vector<TypeError> &vector) const override;
-
-    [[nodiscard]] bool isAbstract() {
-        return false;
-    }
+    bool validate(std::vector<TypeError> &vector) const override { return true; }
+    [[nodiscard]] bool isAbstract() { return false; }
 };
 
 }

@@ -68,55 +68,29 @@ std::string MemberType::getTypeString() {
 }
 
 bool MemberType::operator==(const MemberType &rhs) const {
-    return instanceTyp == rhs.instanceTyp
-        && visibility == rhs.visibility
+    return visibility == rhs.visibility
         && memberTyp == rhs.memberTyp;
 }
 
 std::string InterfaceType::getTypeString() {
-    return "interface " + interfacename;
+    return "interface " + getName();
 }
 
 bool InterfaceType::operator==(const InterfaceType &rhs) const {
-    return interfaces == rhs.interfaces
-        && members == rhs.members;
-}
-
-std::string ClassType::getTypeString() {
-    return "class " + classname;
-}
-
-bool ClassType::operator==(const ClassType &rhs) const {
-    return baseclass == rhs.baseclass
+    return getName() == rhs.getName()
         && interfaces == rhs.interfaces
         && members == rhs.members;
 }
 
-bool ClassType::validate(std::vector<TypeError> &vector) const {
-    for (auto&[name, overloads]: members) {
-        // no duplicate types for the same name except for functions
-        size_t funcCount = std::count_if(overloads.begin(), overloads.end(),
-                                         [](const auto memberTyp) -> bool {
-                                           return memberTyp->isFunctionTyp();
-                                         });
-        if (overloads.size() - funcCount > 1) {
-            return false;
-        }
-        // overloads must have different parameter
-        std::vector<std::vector<Type *>> seenParams;
-        for (auto overload: overloads) {
-            if (overload->isFunctionTyp()) {
-                auto func = dynamic_cast<FunctionType *>(overload->getMemberTyp());
-                auto &params = func->getParamTyp();
-                if (std::find(seenParams.begin(), seenParams.end(), params) != seenParams.end()) {
-                    seenParams.push_back(params);
-                } else {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
+std::string ClassType::getTypeString() {
+    return "class " + getName();
+}
+
+bool ClassType::operator==(const ClassType &rhs) const {
+    return getName() == rhs.getName()
+        && baseclass == rhs.baseclass
+        && interfaces == rhs.interfaces
+        && members == rhs.members;
 }
 
 bool InterfaceType::isDerivedFrom(InterfaceType *base) const {
@@ -133,6 +107,12 @@ bool InterfaceType::isDerivedFrom(InterfaceType *base) const {
     }
     return false;
 }
+const std::vector<InterfaceType *> &InterfaceType::getInterfaces() const { return interfaces; }
+const std::map<std::string, MemberType *> &InterfaceType::getMembers() const { return members; }
+
+ClassType *ClassType::getBaseclass() const { return baseclass; }
+const std::vector<InterfaceType *> &ClassType::getInterfaces() const { return interfaces; }
+const std::map<std::string, MemberType *> &ClassType::getMembers() const { return members; }
 
 bool ClassType::isDerivedFrom(ClassType *base) const {
     auto curr = this;

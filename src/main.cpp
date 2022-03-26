@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     interfaceAnnotator.annotate();
 
     printer.visit(root);
+    manager.dump(std::cout);
 
     return 0;
 }

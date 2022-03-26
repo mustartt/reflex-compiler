@@ -14,11 +14,6 @@
 
 namespace reflex {
 
-class InterfaceTypeError : public std::runtime_error {
-  public:
-    explicit InterfaceTypeError(const std::string &arg);
-};
-
 struct InterfaceNode {
   public:
     InterfaceNode *parent{};

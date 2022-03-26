@@ -5,6 +5,7 @@
 #include <iostream>
 #include "AstInterfaceDeclAnnotator.h"
 #include "TopologicalSort/TopSort.h"
+#include "SemanticError.h"
 
 namespace reflex {
 

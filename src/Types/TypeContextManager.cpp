@@ -14,18 +14,6 @@ TypeContextManager::TypeContextManager() {
     primitiveTyp.push_back(std::make_unique<PrimType>(PrimType::Null));
 }
 
-void TypeContextManager::dump(std::ostream &os) {
-    for (auto &func: funcTyp) {
-        os << func->getTypeString() << std::endl;
-    }
-    for (auto &[name, interface]: interfaceTyp) {
-        os << interface->getTypeString() << std::endl;
-    }
-    for (auto &[name, classTy]: classTyp) {
-        os << classTy->getTypeString() << std::endl;
-    }
-}
-
 VoidType *TypeContextManager::getVoidTy() const { return voidType.get(); }
 
 PrimType *TypeContextManager::getPrimitiveTy(PrimType::BaseType typ) const {
@@ -57,8 +45,8 @@ FunctionType *TypeContextManager::getFunctionTy(Type *returnType, const std::vec
     return funcTyp.back().get();
 }
 
-MemberType *TypeContextManager::createMemberTy(ClassType *instance, Visibility visibility, Type *type) {
-    MemberType typ(instance, visibility, type);
+MemberType *TypeContextManager::createMemberTy(Visibility visibility, Type *type) {
+    MemberType typ(visibility, type);
     auto res = std::find_if(memberTyp.begin(), memberTyp.end(),
                             [=](const auto &existing) {
                               return *existing == typ;
@@ -66,7 +54,7 @@ MemberType *TypeContextManager::createMemberTy(ClassType *instance, Visibility v
     if (res != memberTyp.end()) {
         return res->get();
     }
-    memberTyp.push_back(std::make_unique<MemberType>(instance, visibility, type));
+    memberTyp.push_back(std::make_unique<MemberType>(visibility, type));
     return memberTyp.back().get();
 }
 
@@ -91,6 +79,45 @@ InterfaceType *TypeContextManager::createOrGetInterfaceTy(const std::string &nam
                                                           const std::vector<InterfaceType *> &interfaces) {
     interfaceTyp.emplace(name, std::make_unique<InterfaceType>(name, interfaces));
     return interfaceTyp[name].get();
+}
+
+void TypeContextManager::dump(std::ostream &os) {
+    for (auto &func: funcTyp) {
+        os << func->getTypeString() << std::endl;
+    }
+    for (auto &[name, interface]: interfaceTyp) {
+        os << interface->getTypeString();
+        if (!interface->getInterfaces().empty()) {
+            os << " :";
+            for (auto derived: interface->getInterfaces()) {
+                os << " " << derived->getName();
+            }
+        }
+        os << " {";
+        if (!interface->getMembers().empty()) os << std::endl;
+        for (auto &[member, type]: interface->getMembers()) {
+            os << "  " << member << ": " << type->getTypeString() << std::endl;
+        }
+        os << "}" << std::endl;
+    }
+    for (auto &[name, classTy]: classTyp) {
+        os << classTy->getTypeString();
+        if (classTy->getBaseclass()) {
+            os << " (" << classTy->getBaseclass()->getTypeString() << ")";
+        }
+        if (!classTy->getInterfaces().empty()) {
+            os << " :";
+            for (auto derived: classTy->getInterfaces()) {
+                os << " " << derived->getName();
+            }
+        }
+        os << " {";
+        if (!classTy->getMembers().empty()) os << std::endl;
+        for (auto &[member, type]: classTy->getMembers()) {
+            os << "  " << member << ": " << type->getTypeString() << std::endl;
+        }
+        os << "}" << std::endl;
+    }
 }
 
 }
