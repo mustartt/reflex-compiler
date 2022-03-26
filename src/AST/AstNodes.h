@@ -425,7 +425,7 @@ class InterfaceDecl : public Declaration {
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] std::string getInterfaceName() const;
     [[nodiscard]] const std::vector<IdentExpr *> &getInterfaces() const;
-    [[nodiscard]] const std::vector<MemberDecl *> &getInterfaceMethods() const;
+    [[nodiscard]] const std::vector<MemberDecl *> &getInterfaceMembers() const;
 };
 
 class CompilationUnit : public AstExpr {

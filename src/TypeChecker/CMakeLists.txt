@@ -7,7 +7,7 @@ add_library(typechecker
         AstTypeAnnotator.cpp
         AstSemanticChecker.h
         AstSemanticChecker.cpp
-        TopologicalSort/TopSort.h)
+        TopologicalSort/TopSort.h AstInterfaceDeclAnnotator.cpp AstInterfaceDeclAnnotator.h)
 
 target_link_libraries(typechecker PUBLIC ast)
 target_link_libraries(typechecker PUBLIC types)

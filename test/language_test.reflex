@@ -1,8 +1,18 @@
 interface IC {
     interface ID : IC {
         interface IE : ID {}
+        interface IF : IA {}
     }
 }
+
 interface IA : IC {
     interface IB : IC::ID {}
 }
+
+interface ID {}
+
+class CA {
+    public interface NIA {}
+}
+
+interface IE : CA::NIA {}

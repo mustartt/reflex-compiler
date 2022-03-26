@@ -5,6 +5,8 @@
 #include <AstContextManager.h>
 #include <Parser.h>
 #include <AstPrinter.h>
+#include <TypeContextManager.h>
+#include <AstInterfaceDeclAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -19,6 +21,11 @@ int main(int argc, char *argv[]) {
 
     auto root = parser.parseCompilationUnit();
     AstPrinter printer(std::cout);
+
+    TypeContextManager manager;
+    AstInterfaceDeclAnnotator interfaceAnnotator(&manager, root);
+    interfaceAnnotator.annotate();
+
     printer.visit(root);
 
     return 0;

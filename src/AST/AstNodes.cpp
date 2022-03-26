@@ -235,7 +235,7 @@ InterfaceDecl::InterfaceDecl(const Loc &loc,
       signatures(std::move(signatures)) {}
 void InterfaceDecl::accept(AstVisitor *visitor) { visitor->visit(this); }
 const std::vector<IdentExpr *> &InterfaceDecl::getInterfaces() const { return interfaces; }
-const std::vector<MemberDecl *> &InterfaceDecl::getInterfaceMethods() const { return signatures; }
+const std::vector<MemberDecl *> &InterfaceDecl::getInterfaceMembers() const { return signatures; }
 std::string InterfaceDecl::getInterfaceName() const { return name->getIdent(); }
 
 CompilationUnit::CompilationUnit(const Loc &loc, std::vector<Declaration *> decls)

@@ -105,7 +105,7 @@ void AstTypeAnnotator::annotateInterfaceBody() {
         auto ordering = sortInterfaceInheritance();
         for (auto decl: ordering) {
             // add interface methods
-            for (auto member: decl->getInterfaceMethods()) {
+            for (auto member: decl->getInterfaceMembers()) {
                 member->accept(this);
                 auto funcDecl = dynamic_cast<FunctionDecl *>(member->getDeclaration());
                 auto theInterfaceType = dynamic_cast<InterfaceType *>(decl->getTyp());
