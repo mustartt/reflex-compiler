@@ -452,9 +452,7 @@ std::vector<Statement *> Parser::parseStmtList() {
 
 SimpleStmt *Parser::parseSimpleStmt() {
     if (check(TokenType::SemiColon)) {
-        auto end = tok;
-        next();
-        return ctx->create<EmptyStmt>(end.getLocInfo());
+        return ctx->create<EmptyStmt>(tok.getLocInfo());
     }
     auto expr = parseExpr();
     if (tok.isAssignment()) {

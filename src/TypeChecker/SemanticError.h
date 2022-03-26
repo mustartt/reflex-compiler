@@ -25,6 +25,11 @@ class InterfaceTypeError : public std::runtime_error {
     explicit InterfaceTypeError(const std::string &arg);
 };
 
+class SemanticError : public std::runtime_error {
+  public:
+    explicit SemanticError(const std::string &arg);
+};
+
 }
 
 #endif //REFLEX_SRC_TYPECHECKER_SEMANTICERROR_H_

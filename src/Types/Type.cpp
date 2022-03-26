@@ -25,6 +25,9 @@ Visibility getVisibilityFromString(const std::string &ident) {
 std::string VoidType::getTypeString() {
     return "void";
 }
+bool VoidType::isBasicType() const {
+    return true;
+}
 
 std::string PrimType::getTypeString() {
     switch (baseTyp) {
@@ -34,6 +37,9 @@ std::string PrimType::getTypeString() {
         case Boolean: return "bool";
         case Null: return "null";
     }
+}
+bool PrimType::isBasicType() const {
+    return true;
 }
 
 bool ArrayType::operator==(const ArrayType &rhs) const {

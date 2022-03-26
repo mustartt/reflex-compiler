@@ -17,10 +17,10 @@ class InvalidOperator : public std::runtime_error {
 };
 
 enum class BinaryOperator {
-  Or, And,
-  Compare, CompareNot, Less, Greater, CompareLessThanEqual, CompareGreaterThanEqual,
-  Add, Sub, LogicalOr,
-  Mult, Div, Mod, LogicalAnd
+  Or = 0, And = 1,
+  Compare = 2, CompareNot = 3, Less = 4, Greater = 5, CompareLessThanEqual = 6, CompareGreaterThanEqual = 7,
+  Add = 8, Sub = 9, LogicalOr = 10,
+  Mult = 11, Div = 12, Mod = 13, LogicalAnd = 14
 };
 
 BinaryOperator createBinaryOperatorFromToken(const Token &token);

@@ -15,4 +15,6 @@ ClassTypeError::ClassTypeError(const std::string &arg)
 InterfaceTypeError::InterfaceTypeError(const std::string &arg)
     : runtime_error("InterfaceTypeError: " + arg) {}
 
+SemanticError::SemanticError(const std::string &arg)
+    : std::runtime_error("Semantic Error: " + arg) {}
 }

@@ -9,6 +9,7 @@
 #include <AstInterfaceDeclAnnotator.h>
 #include <AstClassDeclAnnotator.h>
 #include <AstMemberAnnotator.h>
+#include <AstExpressionAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -28,11 +29,15 @@ int main(int argc, char *argv[]) {
     AstInterfaceDeclAnnotator interfaceAnnotator(&manager, root);
     AstClassDeclAnnotator classAnnotator(&manager, root);
     AstMemberAnnotator memberAnnotator(&manager, &ctx);
+    AstExpressionAnnotator expressionAnnotator(&manager, &ctx, root);
     interfaceAnnotator.annotate();
     classAnnotator.annotate();
     memberAnnotator.annotate();
 
     printer.visit(root);
+    expressionAnnotator.annotate();
+    printer.visit(root);
+
     manager.dump(std::cout);
 
     return 0;

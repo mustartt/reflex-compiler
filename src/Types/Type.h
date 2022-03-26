@@ -19,11 +19,13 @@ class Type {
   public:
     virtual ~Type() = default;
     virtual std::string getTypeString() = 0;
+    [[nodiscard]] virtual bool isBasicType() const { return false; }
 };
 
 class VoidType : public Type {
   public:
     std::string getTypeString() override;
+    [[nodiscard]] bool isBasicType() const override;
 };
 
 class PrimType : public Type {
@@ -39,6 +41,7 @@ class PrimType : public Type {
     explicit PrimType(BaseType baseTyp) : baseTyp(baseTyp) {}
     [[nodiscard]] BaseType getBaseTyp() const { return baseTyp; }
     std::string getTypeString() override;
+    [[nodiscard]] bool isBasicType() const override;
   private:
     BaseType baseTyp;
 };
@@ -92,7 +95,7 @@ class AggregateType : public Type {
     std::string name;
   public:
     explicit AggregateType(std::string name) : name(std::move(name)) {}
-    virtual std::vector<MemberType *> findMemberTyp(const std::string &) = 0;
+    virtual MemberType *findMemberTyp(const std::string &) = 0;
     [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
     [[nodiscard]] virtual bool isClassTyp() const = 0;
     [[nodiscard]] virtual bool validate(std::vector<TypeError> &) const = 0;
@@ -109,8 +112,13 @@ class InterfaceType : public AggregateType {
     void addInterfaceMethod(const std::string &name, MemberType *typ) {
         members[name] = typ;
     }
-    std::vector<MemberType *> findMemberTyp(const std::string &name) override {
-        return {};
+    MemberType *findMemberTyp(const std::string &name) override {
+        if (members.count(name)) return members.at(name);
+        for (auto interface: interfaces) {
+            auto result = interface->findMemberTyp(name);
+            if (result) return result;
+        }
+        return nullptr;
     }
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
@@ -133,8 +141,17 @@ class ClassType : public AggregateType {
     void addMember(const std::string &name, MemberType *typ) {
         members[name] = typ;
     }
-    std::vector<MemberType *> findMemberTyp(const std::string &name) override {
-        return {};
+    MemberType *findMemberTyp(const std::string &name) override {
+        if (members.count(name)) return members.at(name);
+        if (baseclass) {
+            auto result = baseclass->findMemberTyp(name);
+            if (result) return result;
+        }
+        for (auto interface: interfaces) {
+            auto result = interface->findMemberTyp(name);
+            if (result) return result;
+        }
+        return nullptr;
     }
     [[nodiscard]] bool isDerivedFrom(ClassType *base) const;
     [[nodiscard]] bool implements(InterfaceType *base) const;
