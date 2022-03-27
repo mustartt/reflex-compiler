@@ -275,4 +275,31 @@ void AstExpressionAnnotator::visit(AssignmentStmt *visitable) {
     visitable->setTyp(lhsTy);
 }
 
+void AstExpressionAnnotator::visit(IfStmt *visitable) {
+    visitable->setTyp(typeContext->getVoidTy());
+    visitable->getCond()->accept(this);
+    visitable->getPrimaryBlock()->accept(this);
+    if (visitable->getElseBlock()) visitable->getElseBlock()->accept(this);
+}
+
+void AstExpressionAnnotator::visit(ForNormalClause *visitable) {
+    visitable->setTyp(typeContext->getVoidTy());
+    visitable->getInit()->accept(this);
+    if (visitable->getCond())
+        visitable->getCond()->accept(this);
+    visitable->getPost()->accept(this);
+}
+
+void AstExpressionAnnotator::visit(ForStmt *visitable) {
+    visitable->setTyp(typeContext->getVoidTy());
+    visitable->getClause()->accept(this);
+    visitable->getBody()->accept(this);
+}
+
+void AstExpressionAnnotator::visit(WhileStmt *visitable) {
+    visitable->setTyp(typeContext->getVoidTy());
+    visitable->getCond()->accept(this);
+    visitable->getBody()->accept(this);
+}
+
 }

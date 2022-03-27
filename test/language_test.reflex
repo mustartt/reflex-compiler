@@ -15,8 +15,28 @@ func add(a: int, b: int) -> int {
     return a + b;
 }
 
-func sum_arr(arr: int[], n: int) -> int {
-    var first: int = arr[n];
-    first = n;
-    return first;
+func fib(n: int) -> int {
+    if (n < 2) {
+        return n;
+    }
+    return fib(n - 1) + fib(n - 2);
 }
+
+func sum_for(arr: int[], n: int) -> int {
+    var sum: int = 0;
+    for (var i: int = 0; i < n; i += 1) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+func sum_while(arr: int[], n: int) -> int {
+    var sum: int = 0;
+    var index: int = 0;
+    while (index < n) {
+        sum += arr[index];
+        index += 1;
+    }
+    return sum;
+}
+
