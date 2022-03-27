@@ -34,6 +34,9 @@ class ScopeSymbolTable {
             throw SemanticError{"Reference already exists in current scope " + name};
         symbolTable[name] = type;
     }
+    [[nodiscard]] bool isInCurrentScope(const std::string &name) const {
+        return symbolTable.count(name);
+    }
 };
 
 class AstExpressionAnnotator : public AstVisitor {
@@ -49,6 +52,11 @@ class AstExpressionAnnotator : public AstVisitor {
 
     void annotate();
 
+    void visit(ClassDecl *visitable) override;
+    void visit(MemberDecl *visitable) override;
+    void visit(NewExpr *visitable) override;
+    void visit(ArgumentExpr *visitable) override;
+    void visit(CastExpr *visitable) override;
     void visit(SelectorExpr *visitable) override;
     void visit(ExpressionStmt *visitable) override;
     void visit(BreakStmt *visitable) override;

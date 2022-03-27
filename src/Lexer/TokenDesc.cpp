@@ -9,6 +9,9 @@ namespace reflex {
 TokenDesc getTokenDescription() {
     TokenDesc desc;
     desc.emplace_back(TokenType::WhiteSpace, "\\s+");
+    desc.emplace_back(TokenType::SingleComment, "//.*");
+    desc.emplace_back(TokenType::MultiComment, R"(/\*[\s\S]*?\*/)");
+    
     desc.emplace_back(TokenType::NameSeparator, "\\:\\:");
     desc.emplace_back(TokenType::Colon, "\\:");
     desc.emplace_back(TokenType::SemiColon, "\\;");
@@ -45,8 +48,6 @@ TokenDesc getTokenDescription() {
     desc.emplace_back(TokenType::LBrace, R"(\{)");
     desc.emplace_back(TokenType::RBrace, R"(\})");
 
-    desc.emplace_back(TokenType::SingleComment, "//.*");
-    desc.emplace_back(TokenType::MultiComment, R"(/\*[\s\S]*?\*/)");
     desc.emplace_back(TokenType::Identifier, "[_a-zA-Z][_a-zA-Z0-9]*");
     desc.emplace_back(TokenType::NumberLiteral, "([0-9]*[.])?[0-9]+");
     desc.emplace_back(TokenType::StringLiteral, R"("[^"]*")");

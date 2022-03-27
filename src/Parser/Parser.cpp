@@ -23,7 +23,10 @@ Token Parser::next() {
     if (!lexer->hasNext())
         return {TokenType::EndOfFile, "EOF", lexer->getCurrentPosition()};
     tok = lexer->nextToken();
-    if (!check(TokenType::WhiteSpace)) return tok;
+    if (!check(TokenType::WhiteSpace) &&
+        !check(TokenType::SingleComment) &&
+        !check(TokenType::MultiComment))
+        return tok;
     return next();
 }
 

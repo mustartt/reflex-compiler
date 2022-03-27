@@ -76,7 +76,8 @@ void AstPrinter::visit(InterfaceDecl *visitable) {
                         + printAstType(visitable->getTyp()));
     {
         int it = 0;
-        for (auto i = visitable->getInterfaceMembers().begin(); i != visitable->getInterfaceMembers().end(); ++i, ++it) {
+        for (auto i = visitable->getInterfaceMembers().begin(); i != visitable->getInterfaceMembers().end();
+             ++i, ++it) {
             auto isLastNode = it == visitable->getInterfaceMembers().size() - 1;
             Scope _(*this, isLastNode);
             (*i)->accept(this);
@@ -293,7 +294,8 @@ void AstPrinter::visit(ReturnStmt *visitable) {
                         + printAstType(visitable->getTyp()));
     {
         Scope _(*this, true);
-        visitable->getReturnValue()->accept(this);
+        if (visitable->getReturnValue())
+            visitable->getReturnValue()->accept(this);
     }
     depthFlag[depth] = true;
 }

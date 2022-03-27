@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
     memberAnnotator.annotate();
 
     printer.visit(root);
+    std::cout << "===================================================" << std::endl;
     expressionAnnotator.annotate();
     printer.visit(root);
 

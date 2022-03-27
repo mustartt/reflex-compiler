@@ -16,5 +16,3 @@ target_link_libraries(reflex LINK_PUBLIC parser)
 target_link_libraries(reflex LINK_PUBLIC ast_printer)
 target_link_libraries(reflex LINK_PUBLIC types)
 target_link_libraries(reflex LINK_PUBLIC typechecker)
-
-

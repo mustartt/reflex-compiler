@@ -42,7 +42,10 @@ void AstExpressionAnnotator::visit(VariableDecl *visitable) {
             throw SemanticError{"VarDecl initializer type mismatch"};
     }
     auto &table = symbolTable.top();
-    table->addScopeMember(visitable->getName()->getIdent(), visitable->getTyp());
+    auto varname = visitable->getName()->getIdent();
+    if (!table->isInCurrentScope(varname)) {
+        table->addScopeMember(varname, visitable->getTyp());
+    }
 }
 
 void AstExpressionAnnotator::visit(BinaryExpr *visitable) {
@@ -98,7 +101,8 @@ void AstExpressionAnnotator::visit(FunctionDecl *visitable) {
     visitable->getBody()->accept(this);
     auto blockRetTyp = typeStack.top();
     typeStack.pop();
-    auto funcType = dynamic_cast<FunctionType *>(table->getReferencedType(visitable->getName()->getIdent()));
+    auto memberType = table->getReferencedType(visitable->getName()->getIdent());
+    auto funcType = dynamic_cast<FunctionType *>(memberType);
     if (blockRetTyp != visitable->getTyp() &&
         !OperatorSemantics::primitiveTypeImplicitConvertible(blockRetTyp, funcType->getReturnTyp())) {
 //        throw SemanticError{"Mismatched function return type"};
@@ -109,6 +113,12 @@ void AstExpressionAnnotator::visit(FunctionDecl *visitable) {
 void AstExpressionAnnotator::visit(Block *visitable) {
     symbolTable.push(std::make_unique<ScopeSymbolTable>(symbolTable.top().get()));
     auto &table = symbolTable.top();
+
+    if (visitable->getStmts().empty()) {
+        typeStack.push(typeContext->getVoidTy());
+        visitable->setTyp(typeContext->getVoidTy());
+        return;
+    }
 
     std::unordered_set<Type *> retTypes;
     for (auto stmt: visitable->getStmts()) {
@@ -174,6 +184,68 @@ void AstExpressionAnnotator::visit(ExpressionStmt *visitable) {
     auto typ = typeStack.top();
     typeStack.pop();
     visitable->setTyp(typ);
+}
+
+void AstExpressionAnnotator::visit(ClassDecl *visitable) {
+    symbolTable.push(std::make_unique<ScopeSymbolTable>(symbolTable.top().get()));
+    auto &table = symbolTable.top();
+    for (auto decl: visitable->getMembers()) {
+        auto member = decl->getDeclaration();
+        table->addScopeMember(member->getName()->getIdent(), member->getTyp());
+    }
+    for (auto decl: visitable->getMembers()) {
+        decl->accept(this);
+    }
+    symbolTable.pop();
+}
+
+void AstExpressionAnnotator::visit(MemberDecl *visitable) {
+    visitable->getDeclaration()->accept(this);
+}
+
+void AstExpressionAnnotator::visit(NewExpr *visitable) {
+    typeStack.push(visitable->getTyp());
+}
+
+void AstExpressionAnnotator::visit(CastExpr *visitable) {
+    visitable->getFrom()->accept(this);
+    auto fromTyp = typeStack.top();
+    typeStack.pop();
+    auto toTyp = visitable->getTyp();
+    // todo: check type cast compatibility
+    typeStack.push(toTyp);
+}
+
+void AstExpressionAnnotator::visit(ArgumentExpr *visitable) {
+    visitable->getBaseExpr()->accept(this);
+    auto baseTy = visitable->getBaseExpr()->getTyp();
+    if (baseTy->isBasicType())
+        throw SemanticError{"BasicType " + baseTy->getTypeString() + " cannot accept argument"};
+    if (auto func = dynamic_cast<FunctionType *>(baseTy)) {
+        visitable->setTyp(func->getReturnTyp());
+        typeStack.push(func->getReturnTyp());
+        if (visitable->getArguments().size() != func->getParamTyp().size()) {
+            throw SemanticError{
+                "Expected " + std::to_string(func->getParamTyp().size()) + " arguments " +
+                    "but received " + std::to_string(visitable->getArguments().size()) + " arguments"
+            };
+        }
+        for (auto arg: visitable->getArguments()) {
+            arg->accept(this);
+        }
+        // todo: check type compatibility
+        return;
+    }
+    if (auto cls = dynamic_cast<ClassType *>(baseTy)) {
+        // todo: class instantiation, check for constructors
+        typeStack.push(cls);
+        visitable->setTyp(cls);
+        return;
+    }
+    if (auto interface = dynamic_cast<InterfaceType *>(baseTy)) {
+        throw SemanticError{"InterfaceType " + baseTy->getTypeString() + " cannot be instantiated"};
+    }
+    throw SemanticError{"Cannot apply argument to type " + baseTy->getTypeString()};
 }
 
 }

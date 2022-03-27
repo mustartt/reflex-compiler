@@ -1,9 +1,22 @@
 class A {
     public var member_var: int = 10;
-    public func member_func() {}
+
+    public func member_func() -> void {
+        return;
+    }
+}
+
+var global: num = 2.2;
+var a: int = 5;
+var b: int = 6;
+var c: int = a + b;
+
+func add(a: int, b: int) -> int {
+    return a + b;
 }
 
 func test() {
-    var instance: A;
-    instance.member_var;
+    var instance: A = new A();
+    var result: int = add(c, b);
+    var res: int = cast<int>(global);
 }
