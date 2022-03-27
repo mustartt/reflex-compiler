@@ -302,4 +302,44 @@ void AstExpressionAnnotator::visit(WhileStmt *visitable) {
     visitable->getBody()->accept(this);
 }
 
+void AstExpressionAnnotator::visit(ArrayLit *visitable) {
+    std::unordered_set<Type *> lstType;
+    for (auto elem: visitable->getInitializerList()) {
+        elem->accept(this);
+        lstType.insert(typeStack.top());
+        typeStack.pop();
+    }
+
+    ArrayType *arrTy;
+    if (lstType.empty()) {
+        // todo: provides type hints but not implemented
+        auto typeHint = typeStack.top();
+        arrTy = typeContext->getArrayTy(typeHint);
+    } else {
+        if (lstType.size() > 1) throw SemanticError{"ArrayLit contains too many different types"};
+        auto type = *lstType.begin();
+        arrTy = typeContext->getArrayTy(type);
+    }
+    visitable->setTyp(arrTy);
+    typeStack.push(arrTy);
+}
+
+void AstExpressionAnnotator::visit(FunctionLit *visitable) {
+    symbolTable.push(std::make_unique<ScopeSymbolTable>(symbolTable.top().get()));
+    auto &table = symbolTable.top();
+    std::vector<Type *> paramTypes;
+    for (auto paramDecl: visitable->getParameters()) {
+        table->addScopeMember(paramDecl->getName()->getIdent(), paramDecl->getTyp());
+        paramTypes.push_back(paramDecl->getTyp());
+    }
+    visitable->getBody()->accept(this);
+    auto blockRetTyp = typeStack.top();
+    typeStack.pop();
+    auto funcType = typeContext->getFunctionTy(blockRetTyp, paramTypes);
+    visitable->setTyp(funcType);
+    typeStack.push(funcType);
+
+    symbolTable.pop();
+}
+
 }

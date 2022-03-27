@@ -52,6 +52,12 @@ class AstExpressionAnnotator : public AstVisitor {
 
     void annotate();
 
+    void visit(NumberLit *visitable) override;
+    void visit(BoolLit *visitable) override;
+    void visit(NullLit *visitable) override;
+    void visit(ArrayLit *visitable) override;
+    void visit(FunctionLit *visitable) override;
+
     void visit(IfStmt *visitable) override;
     void visit(ForNormalClause *visitable) override;
     void visit(ForStmt *visitable) override;
@@ -71,9 +77,7 @@ class AstExpressionAnnotator : public AstVisitor {
     void visit(ReturnStmt *visitable) override;
     void visit(Block *visitable) override;
     void visit(FunctionDecl *visitable) override;
-    void visit(NumberLit *visitable) override;
-    void visit(BoolLit *visitable) override;
-    void visit(NullLit *visitable) override;
+
     void visit(UnaryExpr *visitable) override;
     void visit(Identifier *visitable) override;
     void visit(BinaryExpr *visitable) override;
