@@ -248,4 +248,31 @@ void AstExpressionAnnotator::visit(ArgumentExpr *visitable) {
     throw SemanticError{"Cannot apply argument to type " + baseTy->getTypeString()};
 }
 
+void AstExpressionAnnotator::visit(IndexExpr *visitable) {
+    visitable->getBaseExpr()->accept(this);
+    auto baseTy = typeStack.top();
+    auto baseArrTy = dynamic_cast<ArrayType *>(baseTy);
+    typeStack.pop();
+    if (!baseArrTy) throw SemanticError{"Cannot index into type " + baseTy->getTypeString()};
+    visitable->getIndex()->accept(this);
+    auto indexTy = dynamic_cast<PrimType *>(typeStack.top());
+    typeStack.pop();
+    // todo: check for type compatibility
+    if (!indexTy || indexTy->getBaseTyp() != PrimType::Integer)
+        throw SemanticError{"Array index must be convertible to an integer"};
+    typeStack.push(baseArrTy->getElementTyp());
+    visitable->setTyp(baseArrTy->getElementTyp());
+}
+
+void AstExpressionAnnotator::visit(AssignmentStmt *visitable) {
+    visitable->getLhs()->accept(this);
+    auto lhsTy = typeStack.top();
+    typeStack.pop();
+    visitable->getRhs()->accept(this);
+    auto rhsTy = typeStack.top();
+    typeStack.pop();
+    if (lhsTy != rhsTy) throw SemanticError{"Assignment type mismatch"};
+    visitable->setTyp(lhsTy);
+}
+
 }

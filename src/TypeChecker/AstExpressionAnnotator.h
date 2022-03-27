@@ -52,6 +52,8 @@ class AstExpressionAnnotator : public AstVisitor {
 
     void annotate();
 
+    void visit(AssignmentStmt *visitable) override;
+    void visit(IndexExpr *visitable) override;
     void visit(ClassDecl *visitable) override;
     void visit(MemberDecl *visitable) override;
     void visit(NewExpr *visitable) override;
