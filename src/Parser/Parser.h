@@ -6,7 +6,7 @@
 #define REFLEX_SRC_PARSER_PARSER_H_
 
 #include <stdexcept>
-#include "../AST/Ast.h"
+#include "../Ast/Ast.h"
 #include "../AST/AstNodes.h"
 #include "../Lexer/Token.h"
 

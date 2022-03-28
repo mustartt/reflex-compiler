@@ -5,7 +5,7 @@
 #ifndef REFLEX_SRC_AST_VISITOR_ASTPRINTER_H_
 #define REFLEX_SRC_AST_VISITOR_ASTPRINTER_H_
 
-#include "../AST/AstVisitor.h"
+#include "../Ast/AstVisitor.h"
 #include <ostream>
 #include <vector>
 #include <stack>

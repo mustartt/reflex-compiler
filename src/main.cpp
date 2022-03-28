@@ -10,6 +10,7 @@
 #include <AstClassDeclAnnotator.h>
 #include <AstMemberAnnotator.h>
 #include <AstExpressionAnnotator.h>
+#include <ClassInterfaceCodeGen.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -33,13 +34,13 @@ int main(int argc, char *argv[]) {
     interfaceAnnotator.annotate();
     classAnnotator.annotate();
     memberAnnotator.annotate();
-
-    printer.visit(root);
-    std::cout << "===================================================" << std::endl;
     expressionAnnotator.annotate();
     printer.visit(root);
 
     manager.dump(std::cout);
+
+    ClassInterfaceCodeGen codegen(&manager);
+    codegen.test();
 
     return 0;
 }

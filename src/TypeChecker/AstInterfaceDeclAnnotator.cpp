@@ -105,7 +105,6 @@ void AstInterfaceDeclAnnotator::getHoistedInterfaceTree() {
     hoistRoot->children.remove_if([](const auto &child) {
       return !child->self; // clean up class decl nodes
     });
-    hoistRoot->debugHoistTree(std::cout, 0);
 }
 
 std::vector<InterfaceNode *> AstInterfaceDeclAnnotator::getInterfaceTypeConstructionOrder() {
