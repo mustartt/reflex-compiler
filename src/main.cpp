@@ -6,11 +6,7 @@
 #include <Parser.h>
 #include <AstPrinter.h>
 #include <TypeContextManager.h>
-#include <AstInterfaceDeclAnnotator.h>
-#include <AstClassDeclAnnotator.h>
-#include <AstMemberAnnotator.h>
-#include <AstExpressionAnnotator.h>
-#include <ClassInterfaceCodeGen.h>
+#include <AstRecordTypeAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -25,22 +21,14 @@ int main(int argc, char *argv[]) {
 
     auto root = parser.parseCompilationUnit();
     AstPrinter printer(std::cout);
-
     TypeContextManager manager;
-    AstInterfaceDeclAnnotator interfaceAnnotator(&manager, root);
-    AstClassDeclAnnotator classAnnotator(&manager, root);
-    AstMemberAnnotator memberAnnotator(&manager, &ctx);
-    AstExpressionAnnotator expressionAnnotator(&manager, &ctx, root);
-    interfaceAnnotator.annotate();
-    classAnnotator.annotate();
-    memberAnnotator.annotate();
-    expressionAnnotator.annotate();
+
+    AstRecordTypeAnnotator annotator{manager};
+    annotator.annotate(root);
     printer.visit(root);
 
+    std::cout << std::string(25, '=') << std::endl;
     manager.dump(std::cout);
-
-    ClassInterfaceCodeGen codegen(&manager);
-    codegen.test();
 
     return 0;
 }

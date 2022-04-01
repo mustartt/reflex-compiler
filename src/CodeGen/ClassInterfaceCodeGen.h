@@ -6,12 +6,8 @@
 #define REFLEX_SRC_CODEGEN_CLASSINTERFACECODEGEN_H_
 
 #include <memory>
-
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+#include <iostream>
+#include <vector>
 
 #include <TypeContextManager.h>
 
@@ -23,10 +19,6 @@ class ClassInterfaceCodeGen {
     explicit ClassInterfaceCodeGen(TypeContextManager *typeContext) : typeContext(typeContext) {}
 
     void test() {
-        llvm::LLVMContext TheContext;
-        llvm::IRBuilder<> Builder(TheContext);
-        std::unique_ptr<llvm::Module> TheModule;
-
 
     }
 };

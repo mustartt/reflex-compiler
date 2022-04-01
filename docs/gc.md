@@ -1,7 +1,7 @@
 # GC Implementation
 
 The compiler implements a mark and sweep garbage collector. All classes default
-inherits from the parent Object. The base Object contains the following content
+inherits from the parentStack Object. The base Object contains the following content
 
 ```
 class Object {

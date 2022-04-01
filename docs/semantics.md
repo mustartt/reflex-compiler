@@ -5,7 +5,7 @@
 An interface is an object reference type. It defines a collection of abstract
 methods that can be implemented by a class. A class can implement multiple
 interfaces; and an interface can derive methods from multiple interfaces.
-Interfaces can be nested and accessed with qualifier `::` from parent type.
+Interfaces can be nested and accessed with qualifier `::` from parentStack type.
 Furthermore, all members of interfaces are public.
 
 #### Interface Syntax

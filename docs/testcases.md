@@ -1,3 +1,6 @@
+## Interface and Class AST annotation
+
+```
 interface IA {
     interface IB {
         interface IC {}
@@ -18,17 +21,7 @@ class A {
     public var cvar: A;
 }
 
-func function(a: A, b: A::B, c: A::B::C) -> A::D {
-    class Nested {}
-    {
-        class BlockNested {}
-    }
-    {
-        class BlockNested2 {}
-    }
-    func(a: int, b: int) -> void {
-        class LambdaClass {}
-    };
-}
+func function(a: A, b: A::B, c: A::B::C) -> A::D {}
 
 var variable: IA;
+```
