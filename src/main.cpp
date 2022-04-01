@@ -7,6 +7,8 @@
 #include <AstPrinter.h>
 #include <TypeContextManager.h>
 #include <AstRecordTypeAnnotator.h>
+#include <AstDeclTypeAnnotator.h>
+#include <ScopeSymbolTypeTable.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -23,12 +25,16 @@ int main(int argc, char *argv[]) {
     AstPrinter printer(std::cout);
     TypeContextManager manager;
 
-    AstRecordTypeAnnotator annotator{manager};
-    annotator.annotate(root);
-    printer.visit(root);
+    AstRecordTypeAnnotator recordTypeAnnotator{manager};
+    auto table = recordTypeAnnotator.annotate(root);
+    AstDeclTypeAnnotator declTypeAnnotator{manager, table};
+    declTypeAnnotator.annotate(root);
 
-    std::cout << std::string(25, '=') << std::endl;
+    printer.visit(root);
+    std::cout << std::string(75, '=') << std::endl;
     manager.dump(std::cout);
+    std::cout << std::string(75, '=') << std::endl;
+    table->printScope(std::cout, 0);
 
     return 0;
 }

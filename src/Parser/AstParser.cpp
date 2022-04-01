@@ -677,7 +677,10 @@ Declaration *Parser::parseClassDecl() {
 IdentExpr *Parser::parseBaseClass() {
     if (!check(TokenType::LParen)) return nullptr;
     next();
-    auto baseclass = parseIdent();
+    IdentExpr* baseclass = parseIdent();
+    if (check(TokenType::NameSeparator)) {
+        baseclass = parseModuleIdent(baseclass);
+    }
     expect(TokenType::RParen);
     return baseclass;
 }

@@ -115,6 +115,9 @@ bool InterfaceType::isDerivedFrom(InterfaceType *base) const {
 }
 const std::vector<InterfaceType *> &InterfaceType::getInterfaces() const { return interfaces; }
 const std::map<std::string, MemberType *> &InterfaceType::getMembers() const { return members; }
+void InterfaceType::setInterfaces(const std::vector<InterfaceType *> &interfaces) {
+    InterfaceType::interfaces = interfaces;
+}
 
 ClassType *ClassType::getBaseclass() const { return baseclass; }
 const std::vector<InterfaceType *> &ClassType::getInterfaces() const { return interfaces; }
@@ -138,6 +141,14 @@ bool ClassType::implements(InterfaceType *base) const {
         curr = baseclass;
     }
     return false;
+}
+
+void ClassType::setBaseclass(ClassType *baseclass) {
+    ClassType::baseclass = baseclass;
+}
+
+void ClassType::setInterfaces(const std::vector<InterfaceType *> &interfaces) {
+    ClassType::interfaces = interfaces;
 }
 
 }

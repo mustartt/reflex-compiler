@@ -89,8 +89,11 @@ void TypeContextManager::dump(std::ostream &os) {
         os << interface->getTypeString();
         if (!interface->getInterfaces().empty()) {
             os << " :";
+            size_t i = 0;
             for (auto derived: interface->getInterfaces()) {
                 os << " " << derived->getName();
+                if (++i != interface->getInterfaces().size())
+                    os << ",";
             }
         }
         os << " {";
@@ -103,12 +106,15 @@ void TypeContextManager::dump(std::ostream &os) {
     for (auto &[name, classTy]: classTyp) {
         os << classTy->getTypeString();
         if (classTy->getBaseclass()) {
-            os << " (" << classTy->getBaseclass()->getTypeString() << ")";
+            os << "(" << classTy->getBaseclass()->getTypeString() << ")";
         }
         if (!classTy->getInterfaces().empty()) {
             os << " :";
+            size_t i = 0;
             for (auto derived: classTy->getInterfaces()) {
                 os << " " << derived->getName();
+                if (++i != classTy->getInterfaces().size())
+                    os << ",";
             }
         }
         os << " {";

@@ -76,6 +76,18 @@ bool ScopeSymbolTypeTable::isInCurrentScope(const std::string &identifier) const
     return symbolTable.count(identifier);
 }
 
+ScopeSymbolTypeTable *ScopeSymbolTypeTable::getNestedScope(const std::string &identifier) const {
+    if (!namedScope.count(identifier))
+        throw SemanticError{"Unknown nested scope " + identifier};
+    return namedScope.at(identifier).get();
+}
+
+Type *ScopeSymbolTypeTable::getCurrentScopeReference(const std::string &identifier) const {
+    if (!symbolTable.count(identifier))
+        throw SemanticError{"Unknown reference " + identifier + " in current scope"};
+    return symbolTable.at(identifier);
+}
+
 void ScopeSymbolTypeTable::printScope(std::ostream &os, size_t indent) {
     printIndent(os, indent);
     os << "Scope: (" << name << ") {" << std::endl;

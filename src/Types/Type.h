@@ -120,6 +120,9 @@ class InterfaceType : public AggregateType {
         }
         return nullptr;
     }
+
+    void setInterfaces(const std::vector<InterfaceType *> &interfaces);
+
     [[nodiscard]] bool isInterfaceTyp() const override { return true; }
     [[nodiscard]] bool isClassTyp() const override { return false; }
     [[nodiscard]] bool isDerivedFrom(InterfaceType *base) const;
@@ -153,6 +156,10 @@ class ClassType : public AggregateType {
         }
         return nullptr;
     }
+
+    void setBaseclass(ClassType *baseclass);
+    void setInterfaces(const std::vector<InterfaceType *> &interfaces);
+
     [[nodiscard]] bool isDerivedFrom(ClassType *base) const;
     [[nodiscard]] bool implements(InterfaceType *base) const;
     [[nodiscard]] bool isInterfaceTyp() const override { return false; }

@@ -5,7 +5,7 @@
 #ifndef REFLEX_SRC_TYPECHECKER_SCOPESYMBOLTYPETABLE_H_
 #define REFLEX_SRC_TYPECHECKER_SCOPESYMBOLTYPETABLE_H_
 
-#include <list>
+#include <deque>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -13,7 +13,7 @@
 
 namespace reflex {
 
-using QuantifierList = std::list<std::string>;
+using QuantifierList = std::deque<std::string>;
 
 class Type;
 class ScopeSymbolTypeTable {
@@ -33,9 +33,13 @@ class ScopeSymbolTypeTable {
 
     void addScopeMember(const std::string &identifier, Type *type);
     void addNamedScope(const std::string &identifier, std::unique_ptr<ScopeSymbolTypeTable> scope);
+
     Type *findReferencedType(const QuantifierList &list);
+
     [[nodiscard]] std::string getScopePrefix() const;
     [[nodiscard]] bool isInCurrentScope(const std::string &identifier) const;
+    [[nodiscard]] ScopeSymbolTypeTable* getNestedScope(const std::string& identifier) const;
+    [[nodiscard]] Type* getCurrentScopeReference(const std::string& identifier) const;
 
     void printScope(std::ostream &os, size_t indent);
   private:

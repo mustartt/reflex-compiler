@@ -9,7 +9,7 @@ add_library(typechecker
         Utils/TypeCheckerUtils.cpp
         Utils/TypeCheckerUtils.h
         AstRecordTypeAnnotator.cpp
-        AstRecordTypeAnnotator.h ScopeSymbolTypeTable.cpp ScopeSymbolTypeTable.h)
+        AstRecordTypeAnnotator.h ScopeSymbolTypeTable.cpp ScopeSymbolTypeTable.h AstDeclTypeAnnotator.cpp AstDeclTypeAnnotator.h)
 
 target_link_libraries(typechecker PUBLIC ast)
 target_link_libraries(typechecker PUBLIC types)

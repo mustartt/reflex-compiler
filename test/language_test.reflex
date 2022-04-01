@@ -1,17 +1,17 @@
 interface IA {
-    interface IB {
-        interface IC {}
+    interface IB : IA {
+        interface IC : IA, IB {}
     }
-    interface ID {}
+    interface ID : IB::IC {}
     
     func imethod(a: IA, b: IB, c: IB::IC) -> ID;
 }
 
-class A {
-    public class B {
-        public class C {}
+class A : IA, IA::IB, IA::IB::ID {
+    public class B(A) {
+        public class C(A) : IA::ID {}
     }
-    pubilc class D {}
+    public class D(B::C) {}
     
     public func cmethod(a: A, b: B, c: B::C) -> D {}
     
@@ -21,14 +21,16 @@ class A {
 func function(a: A, b: A::B, c: A::B::C) -> A::D {
     class Nested {}
     {
-        class BlockNested {}
+        class BlockNested(A) {
+            protected var a: int;
+        }
     }
     {
-        class BlockNested2 {}
+        class BlockNested2 : IA::ID {}
     }
-    func(a: int, b: int) -> void {
-        class LambdaClass {}
+    var test: func(int,int)->void = func(a: int, b: int) -> void {
+        class LambdaClass : IA::IB {}
     };
 }
 
-var variable: IA;
+var variable: IA::IB::IC;

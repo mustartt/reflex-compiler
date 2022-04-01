@@ -6,22 +6,23 @@
 #define REFLEX_SRC_TYPES_TYPEPARSER_H_
 
 #include "Type.h"
-#include "TypeContextManager.h"
-#include "../AST/AstNodes.h"
 
 namespace reflex {
 
+class TypeContextManager;
+class ScopeSymbolTypeTable;
 class TypeParser {
-    TypeContextManager *typeContext;
+    TypeContextManager &typeContext;
   public:
-    explicit TypeParser(TypeContextManager *typeContext) : typeContext(typeContext) {}
-    Type *parseTypeExpr(TypeExpr *decl);
+    explicit TypeParser(TypeContextManager &typeContext) : typeContext(typeContext) {}
+
+    Type *parseTypeExpr(TypeExpr *decl, ScopeSymbolTypeTable *scope);
   private:
-    AggregateType *parseAggregateExpr(IdentifierTypeExpr *decl);
-    VoidType *parseVoidTypeExpr(IdentifierTypeExpr *decl);
-    PrimType *parsePrimTypeExpr(IdentifierTypeExpr *decl);
-    ArrayType *parseArrTypeExpr(ArrayTypeExpr *decl);
-    FunctionType *parseFuncTypeExpr(FunctionTypeExpr *decl);
+    AggregateType *parseAggregateExpr(IdentifierTypeExpr *decl, ScopeSymbolTypeTable *scope);
+    VoidType *parseVoidTypeExpr(IdentifierTypeExpr *decl, ScopeSymbolTypeTable *scope);
+    PrimType *parsePrimTypeExpr(IdentifierTypeExpr *decl, ScopeSymbolTypeTable *scope);
+    ArrayType *parseArrTypeExpr(ArrayTypeExpr *decl, ScopeSymbolTypeTable *scope);
+    FunctionType *parseFuncTypeExpr(FunctionTypeExpr *decl, ScopeSymbolTypeTable *scope);
 };
 
 }
