@@ -9,6 +9,7 @@
 #include <AstRecordTypeAnnotator.h>
 #include <AstDeclTypeAnnotator.h>
 #include <ScopeSymbolTypeTable.h>
+#include <AstExpressionAnnotator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -27,14 +28,21 @@ int main(int argc, char *argv[]) {
 
     AstRecordTypeAnnotator recordTypeAnnotator{manager};
     auto table = recordTypeAnnotator.annotate(root);
+    table->resetPrefixCounter();
+
     AstDeclTypeAnnotator declTypeAnnotator{manager, table};
     declTypeAnnotator.annotate(root);
+    table->resetPrefixCounter();
 
-    printer.visit(root);
-    std::cout << std::string(75, '=') << std::endl;
+    AstExpressionAnnotator expressionAnnotator{manager, table};
+    expressionAnnotator.annotate(root);
+    table->resetPrefixCounter();
+
     manager.dump(std::cout);
     std::cout << std::string(75, '=') << std::endl;
     table->printScope(std::cout, 0);
+    std::cout << std::string(75, '=') << std::endl;
+    printer.visit(root);
 
     return 0;
 }

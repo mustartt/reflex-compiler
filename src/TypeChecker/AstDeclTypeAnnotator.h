@@ -20,7 +20,6 @@ class AstDeclTypeAnnotator : public AstVisitor {
     std::unique_ptr<ScopeSymbolTypeTable> &root;
     TypeParser typeParser;
     std::stack<ScopeSymbolTypeTable *> parentStack{};
-    size_t prefixCounter = 0;
   public:
     AstDeclTypeAnnotator(TypeContextManager &typeContext, std::unique_ptr<ScopeSymbolTypeTable> &root);
 

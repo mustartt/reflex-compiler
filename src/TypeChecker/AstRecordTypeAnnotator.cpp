@@ -20,19 +20,6 @@ void AstRecordTypeAnnotator::visit(ArrayLit *visitable) {
     }
 }
 
-void AstRecordTypeAnnotator::visit(FunctionLit *visitable) {
-    auto scopename = "_l" + std::to_string(prefixCounter);
-    auto parent = parentStack.top();
-    auto scope = std::make_unique<ScopeSymbolTypeTable>(parent, scopename);
-
-    parentStack.push(scope.get());
-    if (visitable->getBody()) visitable->getBody()->accept(this);
-    parentStack.pop();
-
-    parent->addNamedScope(scopename, std::move(scope));
-    ++prefixCounter;
-}
-
 void AstRecordTypeAnnotator::visit(UnaryExpr *visitable) {
     visitable->getExpr()->accept(this);
 }
@@ -67,7 +54,8 @@ void AstRecordTypeAnnotator::visit(VariableDecl *visitable) {
 }
 
 void AstRecordTypeAnnotator::visit(ReturnStmt *visitable) {
-    visitable->getReturnValue()->accept(this);
+    if (visitable->getReturnValue())
+        visitable->getReturnValue()->accept(this);
 }
 
 void AstRecordTypeAnnotator::visit(IfStmt *visitable) {
@@ -110,8 +98,8 @@ void AstRecordTypeAnnotator::visit(ExpressionStmt *visitable) {
 }
 
 void AstRecordTypeAnnotator::visit(Block *visitable) {
-    auto scopename = "_b" + std::to_string(prefixCounter);
     auto parent = parentStack.top();
+    auto scopename = "_b" + std::to_string(parent->getNextBlockCount());
     auto scope = std::make_unique<ScopeSymbolTypeTable>(parent, scopename);
 
     parentStack.push(scope.get());
@@ -121,8 +109,18 @@ void AstRecordTypeAnnotator::visit(Block *visitable) {
     parentStack.pop();
 
     parent->addNamedScope(scopename, std::move(scope));
-    ++prefixCounter;
+}
 
+void AstRecordTypeAnnotator::visit(FunctionLit *visitable) {
+    auto parent = parentStack.top();
+    auto scopename = "_l" + std::to_string(parent->getNextLambdaCount());
+    auto scope = std::make_unique<ScopeSymbolTypeTable>(parent, scopename);
+
+    parentStack.push(scope.get());
+    if (visitable->getBody()) visitable->getBody()->accept(this);
+    parentStack.pop();
+
+    parent->addNamedScope(scopename, std::move(scope));
 }
 
 void AstRecordTypeAnnotator::visit(FunctionDecl *visitable) {

@@ -1,39 +1,41 @@
-interface IA {
-    interface IB : IA {
-        interface IC : IA, IB {}
-    }
-    interface ID : IB::IC {}
+class A {
+    public var member_var: int = 10;
 
-    func imethod(a: IA, b: IB, c: IB::IC) -> ID;
+    public func member_func() -> void {
+        return;
+    }
 }
 
-class A : IA, IA::IB, IA::ID {
-    public class B(A) {
-        public class C(A) : IA::ID {}
-    }
-    public class D(B::C) {}
+var global: num = 2.2;
+var a: int = 5;
+var b: int = 6;
+var c: int = a + b;
 
-    public func cmethod(a: A, b: B, c: B::C) -> D {}
-
-    public var cvar: A;
+func add(a: int, b: int) -> int {
+    return a + b;
 }
 
-func function(a: A, b: A::B, c: A::B::C) -> A::D {
-    class Nested {}
-    {
-        class BlockNested(A) {
-            protected var a: int;
-        }
+func fib(n: int) -> int {
+    if (n < 2) {
+        return n;
     }
-    {
-        class BlockNested2 : IA::ID {}
-    }
-    var test: func(int,int)->void = func(a: int, b: int) -> void {
-        class LambdaClass : IA::IB {}
-    };
+    return fib(n - 1) + fib(n - 2);
 }
 
-var variable: IA::IB::IC = 0;
-var variable2: int = 4.5;
-var variable3: A = null;
+func sum_for(arr: int[], n: int) -> int {
+    var sum: int = 0;
+    for (var i: int = 0; i < n; i += 1) {
+        sum += arr[i];
+    }
+    return sum;
+}
 
+func sum_while(arr: int[], n: int) -> int {
+    var sum: int = 0;
+    var index: int = 0;
+    while (index < n) {
+        sum += arr[index];
+        index += 1;
+    }
+    return sum;
+}

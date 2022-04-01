@@ -21,26 +21,6 @@ void AstDeclTypeAnnotator::visit(ArrayLit *visitable) {
     }
 }
 
-void AstDeclTypeAnnotator::visit(FunctionLit *visitable) {
-    auto scopename = "_l" + std::to_string(prefixCounter);
-    auto parentScope = parentStack.top();
-    auto scope = parentStack.top()->getNestedScope(scopename);
-    parentStack.push(scope);
-    std::vector<Type *> paramTyps;
-    for (auto param: visitable->getParameters()) {
-        param->accept(this);
-        paramTyps.push_back(param->getTyp());
-    }
-    Type *retTyp = typeParser.parseTypeExpr(visitable->getReturnTyp(), parentScope);
-    if (!retTyp) throw SemanticError{"Unable to parse function lambda " + scope->getScopePrefix() + " return type"};
-    auto fnTyp = typeContext.getFunctionTy(retTyp, paramTyps);
-    visitable->setTyp(fnTyp);
-
-    visitable->getBody()->accept(this);
-    parentStack.pop();
-    ++prefixCounter;
-}
-
 void AstDeclTypeAnnotator::visit(UnaryExpr *visitable) {
     visitable->getExpr()->accept(this);
 }
@@ -54,6 +34,7 @@ void AstDeclTypeAnnotator::visit(NewExpr *visitable) {
     auto instanceTy = typeParser.parseTypeExpr(visitable->getInstanceTyp(), parentStack.top());
     if (!instanceTy)
         throw SemanticError{"Unable to parse instance type to be instantiated"};
+    visitable->setTyp(instanceTy);
 }
 
 void AstDeclTypeAnnotator::visit(CastExpr *visitable) {
@@ -89,7 +70,8 @@ void AstDeclTypeAnnotator::visit(VariableDecl *visitable) {
 }
 
 void AstDeclTypeAnnotator::visit(ReturnStmt *visitable) {
-    visitable->getReturnValue()->accept(this);
+    if (visitable->getReturnValue())
+        visitable->getReturnValue()->accept(this);
 }
 
 void AstDeclTypeAnnotator::visit(BreakStmt *visitable) {
@@ -107,6 +89,7 @@ void AstDeclTypeAnnotator::visit(IfStmt *visitable) {
 }
 
 void AstDeclTypeAnnotator::visit(ForRangeClause *visitable) {
+    visitable->getVariable()->accept(this);
     visitable->getIterExpr()->accept(this);
 }
 
@@ -140,7 +123,8 @@ void AstDeclTypeAnnotator::visit(ExpressionStmt *visitable) {
 }
 
 void AstDeclTypeAnnotator::visit(Block *visitable) {
-    auto scopename = "_b" + std::to_string(prefixCounter);
+    auto parent = parentStack.top();
+    auto scopename = "_b" + std::to_string(parent->getNextBlockCount());
     auto scope = parentStack.top()->getNestedScope(scopename);
 
     parentStack.push(scope);
@@ -148,8 +132,25 @@ void AstDeclTypeAnnotator::visit(Block *visitable) {
         stmt->accept(this);
     }
     parentStack.pop();
+}
 
-    ++prefixCounter;
+void AstDeclTypeAnnotator::visit(FunctionLit *visitable) {
+    auto parent = parentStack.top();
+    auto scopename = "_l" + std::to_string(parent->getNextLambdaCount());
+    auto scope = parentStack.top()->getNestedScope(scopename);
+    parentStack.push(scope);
+    std::vector<Type *> paramTyps;
+    for (auto param: visitable->getParameters()) {
+        param->accept(this);
+        paramTyps.push_back(param->getTyp());
+    }
+    Type *retTyp = typeParser.parseTypeExpr(visitable->getReturnTyp(), parent);
+    if (!retTyp) throw SemanticError{"Unable to parse function lambda " + scope->getScopePrefix() + " return type"};
+    auto fnTyp = typeContext.getFunctionTy(retTyp, paramTyps);
+    visitable->setTyp(fnTyp);
+
+    visitable->getBody()->accept(this);
+    parentStack.pop();
 }
 
 void AstDeclTypeAnnotator::visit(MemberDecl *visitable) {

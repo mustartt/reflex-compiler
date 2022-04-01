@@ -21,6 +21,8 @@ class ScopeSymbolTypeTable {
     std::string name{};
     std::unordered_map<std::string, Type *> symbolTable{};
     std::unordered_map<std::string, std::unique_ptr<ScopeSymbolTypeTable>> namedScope{};
+    size_t blockCount = 0;
+    size_t lambdaCount = 0;
   public:
     ScopeSymbolTypeTable() = default;
     ScopeSymbolTypeTable(ScopeSymbolTypeTable *parentScope, std::string name);
@@ -34,7 +36,18 @@ class ScopeSymbolTypeTable {
     void addScopeMember(const std::string &identifier, Type *type);
     void addNamedScope(const std::string &identifier, std::unique_ptr<ScopeSymbolTypeTable> scope);
 
+    size_t getNextBlockCount() { return blockCount++; }
+    size_t getNextLambdaCount() { return lambdaCount++; }
+    void resetPrefixCounter() {
+        blockCount = 0;
+        lambdaCount = 0;
+        for (auto &[_, scope]: namedScope) {
+            scope->resetPrefixCounter();
+        }
+    }
+
     Type *findReferencedType(const QuantifierList &list);
+    Type *lookupIdentifierType(const std::string &identifier);
 
     [[nodiscard]] std::string getScopePrefix() const;
     [[nodiscard]] bool isInCurrentScope(const std::string &identifier) const;

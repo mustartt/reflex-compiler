@@ -70,7 +70,16 @@ Type *ScopeSymbolTypeTable::findReferencedType(const QuantifierList &list) {
             }
         }
     }
-    throw SemanticError{"Unable to bind identifier in parent scope " + list.front()};
+    throw SemanticError{"Unable to bind identifier " + list.front() + " in parent scope " + name};
+}
+
+Type *ScopeSymbolTypeTable::lookupIdentifierType(const std::string &identifier) {
+    for (auto scope = this; scope; scope = scope->parentScope) {
+        if (scope->symbolTable.count(identifier)) {
+            return scope->symbolTable[identifier];
+        }
+    }
+    throw SemanticError{"Unable to find identifier " + identifier + " type"};
 }
 
 std::string ScopeSymbolTypeTable::getScopePrefix() const {
