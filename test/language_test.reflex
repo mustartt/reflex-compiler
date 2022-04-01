@@ -3,18 +3,18 @@ interface IA {
         interface IC : IA, IB {}
     }
     interface ID : IB::IC {}
-    
+
     func imethod(a: IA, b: IB, c: IB::IC) -> ID;
 }
 
-class A : IA, IA::IB, IA::IB::ID {
+class A : IA, IA::IB, IA::ID {
     public class B(A) {
         public class C(A) : IA::ID {}
     }
     public class D(B::C) {}
-    
+
     public func cmethod(a: A, b: B, c: B::C) -> D {}
-    
+
     public var cvar: A;
 }
 
@@ -33,4 +33,7 @@ func function(a: A, b: A::B, c: A::B::C) -> A::D {
     };
 }
 
-var variable: IA::IB::IC;
+var variable: IA::IB::IC = 0;
+var variable2: int = 4.5;
+var variable3: A = null;
+

@@ -45,7 +45,7 @@ FunctionType *TypeContextManager::getFunctionTy(Type *returnType, const std::vec
     return funcTyp.back().get();
 }
 
-MemberType *TypeContextManager::createMemberTy(Visibility visibility, Type *type) {
+MemberType *TypeContextManager::createOrGetMemberTy(Visibility visibility, Type *type) {
     MemberType typ(visibility, type);
     auto res = std::find_if(memberTyp.begin(), memberTyp.end(),
                             [=](const auto &existing) {

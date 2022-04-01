@@ -38,8 +38,8 @@ class ScopeSymbolTypeTable {
 
     [[nodiscard]] std::string getScopePrefix() const;
     [[nodiscard]] bool isInCurrentScope(const std::string &identifier) const;
-    [[nodiscard]] ScopeSymbolTypeTable* getNestedScope(const std::string& identifier) const;
-    [[nodiscard]] Type* getCurrentScopeReference(const std::string& identifier) const;
+    [[nodiscard]] ScopeSymbolTypeTable *getNestedScope(const std::string &identifier) const;
+    [[nodiscard]] Type *getCurrentScopeReference(const std::string &identifier) const;
 
     void printScope(std::ostream &os, size_t indent);
   private:

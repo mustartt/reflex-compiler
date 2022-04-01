@@ -52,17 +52,25 @@ void ScopeSymbolTypeTable::addNamedScope(const std::string &identifier, std::uni
 Type *ScopeSymbolTypeTable::findReferencedType(const QuantifierList &list) {
     if (list.empty()) throw SemanticError{"Invalid quantified identifier"};
 
-    auto rest = list;
-    rest.pop_front();
-
-    if (rest.empty() && symbolTable.count(list.front()))
-        return symbolTable[list.front()];
-    if (!rest.empty() && namedScope.count(list.front()))
-        return namedScope[list.front()]->findReferencedType(rest);
-
-    if (isGlobalScope())
-        throw SemanticError{"Unable to find quantified identifier"};
-    return parentScope->findReferencedType(list);
+    // attempts to bind to an identifier
+    for (auto scope = this; scope; scope = scope->parentScope) {
+        if (scope->namedScope.count(list.front())) {
+            auto found = scope;
+            auto rest = list;
+            while (true) {
+                if (rest.size() == 1) {
+                    if (!found->symbolTable.count(rest.front()))
+                        throw SemanticError{"Unable to bind identifier " + rest.front() + " in " + scope->name};
+                    return found->getCurrentScopeReference(rest.front());
+                }
+                if (!found->namedScope.count(rest.front()))
+                    throw SemanticError{"Unable to bind identifier " + rest.front() + " under " + scope->name};
+                found = found->namedScope[rest.front()].get();
+                rest.pop_front();
+            }
+        }
+    }
+    throw SemanticError{"Unable to bind identifier in parent scope " + list.front()};
 }
 
 std::string ScopeSymbolTypeTable::getScopePrefix() const {

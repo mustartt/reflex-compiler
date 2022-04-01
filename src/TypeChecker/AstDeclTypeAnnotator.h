@@ -26,16 +26,10 @@ class AstDeclTypeAnnotator : public AstVisitor {
 
     void annotate(CompilationUnit *unit);
 
-    void visit(TypeExpr *visitable) override;
-    void visit(Identifier *visitable) override;
-    void visit(ModuleSelector *visitable) override;
     void visit(NumberLit *visitable) override;
     void visit(StringLit *visitable) override;
     void visit(BoolLit *visitable) override;
     void visit(NullLit *visitable) override;
-    void visit(IdentifierTypeExpr *visitable) override;
-    void visit(ArrayTypeExpr *visitable) override;
-    void visit(FunctionTypeExpr *visitable) override;
     void visit(ArrayLit *visitable) override;
     void visit(ParamDecl *visitable) override;
     void visit(FunctionLit *visitable) override;

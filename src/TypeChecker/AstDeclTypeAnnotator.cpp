@@ -15,28 +15,12 @@ AstDeclTypeAnnotator::AstDeclTypeAnnotator(TypeContextManager &typeContext,
                                            std::unique_ptr<ScopeSymbolTypeTable> &root)
     : typeContext(typeContext), root(root), typeParser(typeContext) {}
 
-void AstDeclTypeAnnotator::visit(TypeExpr *visitable) {
-}
-void AstDeclTypeAnnotator::visit(Identifier *visitable) {
-}
-void AstDeclTypeAnnotator::visit(ModuleSelector *visitable) {
-}
-void AstDeclTypeAnnotator::visit(NumberLit *visitable) {
-}
-void AstDeclTypeAnnotator::visit(StringLit *visitable) {
-}
-void AstDeclTypeAnnotator::visit(BoolLit *visitable) {
-}
-void AstDeclTypeAnnotator::visit(NullLit *visitable) {
-}
-void AstDeclTypeAnnotator::visit(IdentifierTypeExpr *visitable) {
-}
-void AstDeclTypeAnnotator::visit(ArrayTypeExpr *visitable) {
-}
-void AstDeclTypeAnnotator::visit(FunctionTypeExpr *visitable) {
-}
 void AstDeclTypeAnnotator::visit(ArrayLit *visitable) {
+    for (auto lit: visitable->getInitializerList()) {
+        lit->accept(this);
+    }
 }
+
 void AstDeclTypeAnnotator::visit(FunctionLit *visitable) {
     auto scopename = "_l" + std::to_string(prefixCounter);
     auto parentScope = parentStack.top();
@@ -56,25 +40,47 @@ void AstDeclTypeAnnotator::visit(FunctionLit *visitable) {
     parentStack.pop();
     ++prefixCounter;
 }
+
 void AstDeclTypeAnnotator::visit(UnaryExpr *visitable) {
+    visitable->getExpr()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(BinaryExpr *visitable) {
+    visitable->getLhs()->accept(this);
+    visitable->getRhs()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(NewExpr *visitable) {
+    auto instanceTy = typeParser.parseTypeExpr(visitable->getInstanceTyp(), parentStack.top());
+    if (!instanceTy)
+        throw SemanticError{"Unable to parse instance type to be instantiated"};
 }
+
 void AstDeclTypeAnnotator::visit(CastExpr *visitable) {
+    auto ty = typeParser.parseTypeExpr(visitable->getTargetTyp(), parentStack.top());
+    if (!ty) throw SemanticError{"Unable to parse cast target type"};
+    visitable->setTyp(ty);
 }
+
 void AstDeclTypeAnnotator::visit(SelectorExpr *visitable) {
+    visitable->getBaseExpr()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(IndexExpr *visitable) {
+    visitable->getBaseExpr()->accept(this);
+    visitable->getIndex()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(ArgumentExpr *visitable) {
+    visitable->getBaseExpr()->accept(this);
+    for (auto arg: visitable->getArguments()) {
+        arg->accept(this);
+    }
 }
 
 void AstDeclTypeAnnotator::visit(VariableDecl *visitable) {
     auto scope = parentStack.top();
     if (visitable->getInitializer()) visitable->getInitializer()->accept(this);
-    if (!visitable->getVariableType()) return;
     auto name = visitable->getName()->getIdent();
     auto type = typeParser.parseTypeExpr(visitable->getVariableType(), parentStack.top());
     visitable->setTyp(type);
@@ -83,28 +89,54 @@ void AstDeclTypeAnnotator::visit(VariableDecl *visitable) {
 }
 
 void AstDeclTypeAnnotator::visit(ReturnStmt *visitable) {
+    visitable->getReturnValue()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(BreakStmt *visitable) {
 }
+
 void AstDeclTypeAnnotator::visit(ContinueStmt *visitable) {
-}
-void AstDeclTypeAnnotator::visit(IfStmt *visitable) {
-}
-void AstDeclTypeAnnotator::visit(ForRangeClause *visitable) {
-}
-void AstDeclTypeAnnotator::visit(ForNormalClause *visitable) {
-}
-void AstDeclTypeAnnotator::visit(ForStmt *visitable) {
-}
-void AstDeclTypeAnnotator::visit(WhileStmt *visitable) {
 }
 void AstDeclTypeAnnotator::visit(EmptyStmt *visitable) {
 }
+
+void AstDeclTypeAnnotator::visit(IfStmt *visitable) {
+    visitable->getCond()->accept(this);
+    visitable->getPrimaryBlock()->accept(this);
+    if (visitable->getElseBlock()) visitable->getElseBlock()->accept(this);
+}
+
+void AstDeclTypeAnnotator::visit(ForRangeClause *visitable) {
+    visitable->getIterExpr()->accept(this);
+}
+
+void AstDeclTypeAnnotator::visit(ForNormalClause *visitable) {
+    visitable->getInit()->accept(this);
+    visitable->getCond()->accept(this);
+    visitable->getPost()->accept(this);
+}
+
+void AstDeclTypeAnnotator::visit(ForStmt *visitable) {
+    visitable->getClause()->accept(this);
+    visitable->getBody()->accept(this);
+}
+
+void AstDeclTypeAnnotator::visit(WhileStmt *visitable) {
+    visitable->getCond()->accept(this);
+    visitable->getBody()->accept(this);
+}
+
 void AstDeclTypeAnnotator::visit(AssignmentStmt *visitable) {
+    visitable->getLhs()->accept(this);
+    visitable->getRhs()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(IncDecStmt *visitable) {
+    visitable->getExpr()->accept(this);
 }
+
 void AstDeclTypeAnnotator::visit(ExpressionStmt *visitable) {
+    visitable->getExpr()->accept(this);
 }
 
 void AstDeclTypeAnnotator::visit(Block *visitable) {
@@ -122,6 +154,9 @@ void AstDeclTypeAnnotator::visit(Block *visitable) {
 
 void AstDeclTypeAnnotator::visit(MemberDecl *visitable) {
     visitable->getDeclaration()->accept(this);
+    auto modifier = getVisibilityFromString(visitable->getModifier()->getIdent());
+    auto type = visitable->getDeclaration()->getTyp();
+    visitable->setTyp(typeContext.createOrGetMemberTy(modifier, type));
 }
 
 void AstDeclTypeAnnotator::visit(ParamDecl *visitable) {
@@ -151,6 +186,8 @@ void AstDeclTypeAnnotator::visit(FunctionDecl *visitable) {
     visitable->setTyp(fnTyp);
     scope->addScopeMember(funcname, fnTyp);
     parentScope->addScopeMember(funcname, fnTyp);
+
+    if (visitable->getBody()) visitable->getBody()->accept(this);
 
     parentStack.pop();
 }
@@ -193,7 +230,7 @@ void AstDeclTypeAnnotator::visit(ClassDecl *visitable) {
             auto membername = member->getName()->getIdent();
             auto type = scope->getCurrentScopeReference(membername);
             auto modifier = getVisibilityFromString(member->getModifier()->getIdent());
-            classTy->addMember(membername, typeContext.createMemberTy(modifier, type));
+            classTy->addMember(membername, typeContext.createOrGetMemberTy(modifier, type));
         }
     }
 
@@ -218,7 +255,7 @@ void AstDeclTypeAnnotator::visit(InterfaceDecl *visitable) {
         auto derivedTy = dynamic_cast<InterfaceType *>(scope->findReferencedType(interfaceQualifierLst));
         if (!derivedTy)
             throw SemanticError{interfacename + " must extend from interface type not " + interfaceQualifier};
-        interfaces.push_back(interfaceTy);
+        interfaces.push_back(derivedTy);
     }
     interfaceTy->setInterfaces(interfaces);
 
@@ -227,7 +264,7 @@ void AstDeclTypeAnnotator::visit(InterfaceDecl *visitable) {
             auto membername = member->getName()->getIdent();
             auto type = scope->getCurrentScopeReference(membername);
             auto modifier = getVisibilityFromString(member->getModifier()->getIdent());
-            interfaceTy->addInterfaceMethod(membername, typeContext.createMemberTy(modifier, type));
+            interfaceTy->addInterfaceMethod(membername, typeContext.createOrGetMemberTy(modifier, type));
         }
     }
 
@@ -241,6 +278,31 @@ void AstDeclTypeAnnotator::visit(CompilationUnit *visitable) {
         decl->accept(this);
     }
     parentStack.pop();
+}
+
+void AstDeclTypeAnnotator::visit(NullLit *visitable) {
+    visitable->setTyp(typeContext.getPrimitiveTy(PrimType::Null));
+}
+
+void AstDeclTypeAnnotator::visit(BoolLit *visitable) {
+    visitable->setTyp(typeContext.getPrimitiveTy(PrimType::Boolean));
+}
+
+bool isFloatNumber(const std::string &str) {
+    return std::find(str.begin(), str.end(), '.') != str.end();
+}
+
+void AstDeclTypeAnnotator::visit(NumberLit *visitable) {
+    auto value = visitable->getValue();
+    if (isFloatNumber(value)) {
+        visitable->setTyp(typeContext.getPrimitiveTy(PrimType::Number));
+    } else {
+        visitable->setTyp(typeContext.getPrimitiveTy(PrimType::Integer));
+    }
+}
+
+void AstDeclTypeAnnotator::visit(StringLit *visitable) {
+    // todo: string type
 }
 
 void AstDeclTypeAnnotator::annotate(CompilationUnit *unit) {
