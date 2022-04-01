@@ -97,8 +97,9 @@ void TypeContextManager::dump(std::ostream &os) {
             }
         }
         os << " {";
-        if (!interface->getMembers().empty()) os << std::endl;
-        for (auto &[member, type]: interface->getMembers()) {
+        auto interfaceMembers = interface->getAllInheritedMember();
+        if (!interfaceMembers.empty()) os << std::endl;
+        for (auto &[member, type]: interfaceMembers) {
             os << "  " << member << ": " << type->getTypeString() << std::endl;
         }
         os << "}" << std::endl;
@@ -118,8 +119,9 @@ void TypeContextManager::dump(std::ostream &os) {
             }
         }
         os << " {";
-        if (!classTy->getMembers().empty()) os << std::endl;
-        for (auto &[member, type]: classTy->getMembers()) {
+        auto classMembers = classTy->getAllInheritedMember();
+        if (!classMembers.empty()) os << std::endl;
+        for (auto &[member, type]: classMembers) {
             os << "  " << member << ": " << type->getTypeString() << std::endl;
         }
         os << "}" << std::endl;

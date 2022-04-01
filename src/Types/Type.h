@@ -85,7 +85,9 @@ class MemberType : public Type {
     MemberType(Visibility visibility, Type *memberTyp)
         : visibility(visibility), memberTyp(memberTyp) {}
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
+
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
+
     std::string getTypeString() override;
     [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FunctionType *>(memberTyp); }
     bool operator==(const MemberType &rhs) const;
@@ -95,7 +97,10 @@ class AggregateType : public Type {
     std::string name;
   public:
     explicit AggregateType(std::string name) : name(std::move(name)) {}
+
     virtual MemberType *findMemberTyp(const std::string &) = 0;
+    [[nodiscard]] virtual std::map<std::string, MemberType *> getAllInheritedMember() const = 0;
+
     [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
     [[nodiscard]] virtual bool isClassTyp() const = 0;
     [[nodiscard]] virtual bool validate(std::vector<TypeError> &) const = 0;
@@ -112,14 +117,8 @@ class InterfaceType : public AggregateType {
     void addInterfaceMethod(const std::string &name, MemberType *typ) {
         members[name] = typ;
     }
-    MemberType *findMemberTyp(const std::string &name) override {
-        if (members.count(name)) return members.at(name);
-        for (auto interface: interfaces) {
-            auto result = interface->findMemberTyp(name);
-            if (result) return result;
-        }
-        return nullptr;
-    }
+    MemberType *findMemberTyp(const std::string &name) override;
+    [[nodiscard]] std::map<std::string, MemberType *> getAllInheritedMember() const override;
 
     void setInterfaces(const std::vector<InterfaceType *> &interfaces);
 
@@ -127,6 +126,7 @@ class InterfaceType : public AggregateType {
     [[nodiscard]] bool isClassTyp() const override { return false; }
     [[nodiscard]] bool isDerivedFrom(InterfaceType *base) const;
     [[nodiscard]] const std::vector<InterfaceType *> &getInterfaces() const;
+
     [[nodiscard]] const std::map<std::string, MemberType *> &getMembers() const;
 
     std::string getTypeString() override;
@@ -144,18 +144,8 @@ class ClassType : public AggregateType {
     void addMember(const std::string &name, MemberType *typ) {
         members[name] = typ;
     }
-    MemberType *findMemberTyp(const std::string &name) override {
-        if (members.count(name)) return members.at(name);
-        if (baseclass) {
-            auto result = baseclass->findMemberTyp(name);
-            if (result) return result;
-        }
-        for (auto interface: interfaces) {
-            auto result = interface->findMemberTyp(name);
-            if (result) return result;
-        }
-        return nullptr;
-    }
+    MemberType *findMemberTyp(const std::string &name) override;
+    [[nodiscard]] std::map<std::string, MemberType *> getAllInheritedMember() const override;
 
     void setBaseclass(ClassType *baseclass);
     void setInterfaces(const std::vector<InterfaceType *> &interfaces);
@@ -170,7 +160,6 @@ class ClassType : public AggregateType {
     std::string getTypeString() override;
     bool operator==(const ClassType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override { return true; }
-    [[nodiscard]] bool isAbstract() { return false; }
 };
 
 }

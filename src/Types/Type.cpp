@@ -119,6 +119,29 @@ void InterfaceType::setInterfaces(const std::vector<InterfaceType *> &interfaces
     InterfaceType::interfaces = interfaces;
 }
 
+std::map<std::string, MemberType *> InterfaceType::getAllInheritedMember() const {
+    std::map<std::string, MemberType *> inheritedMembers;
+    for (auto &[name, memberTy]: members) {
+        inheritedMembers[name] = memberTy;
+    }
+    for (auto interface: interfaces) {
+        auto inherited = interface->getAllInheritedMember();
+        for (auto &[name, memberTy]: inherited) {
+            inheritedMembers[name] = memberTy;
+        }
+    }
+    return inheritedMembers;
+}
+
+MemberType *InterfaceType::findMemberTyp(const std::string &name) {
+    if (members.count(name)) return members.at(name);
+    for (auto interface: interfaces) {
+        auto result = interface->findMemberTyp(name);
+        if (result) return result;
+    }
+    return nullptr;
+}
+
 ClassType *ClassType::getBaseclass() const { return baseclass; }
 const std::vector<InterfaceType *> &ClassType::getInterfaces() const { return interfaces; }
 const std::map<std::string, MemberType *> &ClassType::getMembers() const { return members; }
@@ -149,6 +172,32 @@ void ClassType::setBaseclass(ClassType *baseclass) {
 
 void ClassType::setInterfaces(const std::vector<InterfaceType *> &interfaces) {
     ClassType::interfaces = interfaces;
+}
+MemberType *ClassType::findMemberTyp(const std::string &name) {
+    if (members.count(name)) return members.at(name);
+    if (baseclass) {
+        auto result = baseclass->findMemberTyp(name);
+        if (result) return result;
+    }
+    for (auto interface: interfaces) {
+        auto result = interface->findMemberTyp(name);
+        if (result) return result;
+    }
+    return nullptr;
+}
+
+std::map<std::string, MemberType *> ClassType::getAllInheritedMember() const {
+    std::map<std::string, MemberType *> inheritedMembers;
+    if (baseclass) {
+        auto inherited = baseclass->getAllInheritedMember();
+        for (auto &[name, memberTy]: inherited) {
+            inheritedMembers[name] = memberTy;
+        }
+    }
+    for (auto &[name, memberTy]: members) {
+        inheritedMembers[name] = memberTy;
+    }
+    return inheritedMembers;
 }
 
 }
