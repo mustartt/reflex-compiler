@@ -99,7 +99,7 @@ class AggregateType : public Type {
     explicit AggregateType(std::string name) : name(std::move(name)) {}
 
     virtual MemberType *findMemberTyp(const std::string &) = 0;
-    [[nodiscard]] virtual std::map<std::string, MemberType *> getAllInheritedMember() const = 0;
+    [[nodiscard]] virtual std::vector<std::pair<std::string, MemberType *>> getAllInheritedMember() const = 0;
 
     [[nodiscard]] virtual bool isInterfaceTyp() const = 0;
     [[nodiscard]] virtual bool isClassTyp() const = 0;
@@ -118,7 +118,7 @@ class InterfaceType : public AggregateType {
         members[name] = typ;
     }
     MemberType *findMemberTyp(const std::string &name) override;
-    [[nodiscard]] std::map<std::string, MemberType *> getAllInheritedMember() const override;
+    [[nodiscard]] std::vector<std::pair<std::string, MemberType *>> getAllInheritedMember() const override;
 
     void setInterfaces(const std::vector<InterfaceType *> &interfaces);
 
@@ -145,7 +145,7 @@ class ClassType : public AggregateType {
         members[name] = typ;
     }
     MemberType *findMemberTyp(const std::string &name) override;
-    [[nodiscard]] std::map<std::string, MemberType *> getAllInheritedMember() const override;
+    [[nodiscard]] std::vector<std::pair<std::string, MemberType *>> getAllInheritedMember() const override;
 
     void setBaseclass(ClassType *baseclass);
     void setInterfaces(const std::vector<InterfaceType *> &interfaces);

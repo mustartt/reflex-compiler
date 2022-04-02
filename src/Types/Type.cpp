@@ -119,16 +119,16 @@ void InterfaceType::setInterfaces(const std::vector<InterfaceType *> &interfaces
     InterfaceType::interfaces = interfaces;
 }
 
-std::map<std::string, MemberType *> InterfaceType::getAllInheritedMember() const {
-    std::map<std::string, MemberType *> inheritedMembers;
-    for (auto &[name, memberTy]: members) {
-        inheritedMembers[name] = memberTy;
-    }
+std::vector<std::pair<std::string, MemberType *>> InterfaceType::getAllInheritedMember() const {
+    std::vector<std::pair<std::string, MemberType *>> inheritedMembers;
     for (auto interface: interfaces) {
         auto inherited = interface->getAllInheritedMember();
-        for (auto &[name, memberTy]: inherited) {
-            inheritedMembers[name] = memberTy;
+        for (auto &member: inherited) {
+            inheritedMembers.emplace_back(member);
         }
+    }
+    for (auto &member: members) {
+        inheritedMembers.emplace_back(member);
     }
     return inheritedMembers;
 }
@@ -186,16 +186,16 @@ MemberType *ClassType::findMemberTyp(const std::string &name) {
     return nullptr;
 }
 
-std::map<std::string, MemberType *> ClassType::getAllInheritedMember() const {
-    std::map<std::string, MemberType *> inheritedMembers;
+std::vector<std::pair<std::string, MemberType *>> ClassType::getAllInheritedMember() const {
+    std::vector<std::pair<std::string, MemberType *>> inheritedMembers;
     if (baseclass) {
         auto inherited = baseclass->getAllInheritedMember();
-        for (auto &[name, memberTy]: inherited) {
-            inheritedMembers[name] = memberTy;
+        for (auto &member: inherited) {
+            inheritedMembers.emplace_back(member);
         }
     }
-    for (auto &[name, memberTy]: members) {
-        inheritedMembers[name] = memberTy;
+    for (auto &member: members) {
+        inheritedMembers.emplace_back(member);
     }
     return inheritedMembers;
 }

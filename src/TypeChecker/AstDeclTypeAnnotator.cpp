@@ -226,6 +226,9 @@ void AstDeclTypeAnnotator::visit(ClassDecl *visitable) {
     }
     classTy->setInterfaces(interfaces);
 
+    scope->addScopeMember("this", classTy);
+    if (classTy->getBaseclass()) scope->addScopeMember("super", classTy->getBaseclass());
+
     for (auto member: visitable->getMembers()) {
         if (!isInterfaceOrClassDecl(member->getDeclaration())) {
             auto membername = member->getName()->getIdent();

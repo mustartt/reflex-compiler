@@ -1,7 +1,23 @@
-interface IA {
-    func method1() -> void;
+class Object {
+    public var alive: bool = true;
+    public func __gc_mark() -> void {}
 }
 
-interface IB : IA {
-    func method2() -> void;
+class BaseClass(Object) {
+    public var m_foo: int = 0;
+    public func method1() -> void {}
+}
+
+class DerivedClass(BaseClass) {
+    public var m_bar: num = 0;
+
+    // @Overrides
+    public func method1() -> void {
+        super.method1();
+        this.m_bar = 10;
+        method1();
+    }
+    public func method2(a: int, b: int) -> int {
+        return a + b;
+    }
 }
