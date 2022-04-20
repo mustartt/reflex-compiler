@@ -10,6 +10,7 @@
 #include <AstDeclTypeAnnotator.h>
 #include <ScopeSymbolTypeTable.h>
 #include <AstExpressionAnnotator.h>
+#include <CodeGenerator.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -43,6 +44,10 @@ int main(int argc, char *argv[]) {
     table->printScope(std::cout, 0);
     std::cout << std::string(75, '=') << std::endl;
     printer.visit(root);
+    std::cout << std::string(75, '=') << std::endl;
+
+    CodeGenerator CG;
+    CG.generate(root->getDecls()[0]->getTyp());
 
     return 0;
 }

@@ -157,7 +157,14 @@ void AstDeclTypeAnnotator::visit(MemberDecl *visitable) {
     visitable->getDeclaration()->accept(this);
     auto modifier = getVisibilityFromString(visitable->getModifier()->getIdent());
     auto type = visitable->getDeclaration()->getTyp();
-    visitable->setTyp(typeContext.createOrGetMemberTy(modifier, type));
+    visitable->setTyp(
+        typeContext.createOrGetMemberTy(
+            modifier, type,
+            dynamic_cast<AggregateType *>(
+                parentStack.top()->getCurrentScopeReference("this")
+            )
+        )
+    );
 }
 
 void AstDeclTypeAnnotator::visit(ParamDecl *visitable) {
@@ -200,10 +207,6 @@ void AstDeclTypeAnnotator::visit(ClassDecl *visitable) {
     auto scope = parentStack.top()->getNestedScope(classname);
     parentStack.push(scope);
 
-    for (auto member: visitable->getMembers()) {
-        member->accept(this);
-    }
-
     if (visitable->getBaseclass()) {
         auto baseclassQualifier = visitable->getBaseclass()->getIdent();
         auto baseclassQualifierLst = ScopeSymbolTypeTable::getQuantifierList(baseclassQualifier);
@@ -230,11 +233,12 @@ void AstDeclTypeAnnotator::visit(ClassDecl *visitable) {
     if (classTy->getBaseclass()) scope->addScopeMember("super", classTy->getBaseclass());
 
     for (auto member: visitable->getMembers()) {
+        member->accept(this);
         if (!isInterfaceOrClassDecl(member->getDeclaration())) {
             auto membername = member->getName()->getIdent();
             auto type = scope->getCurrentScopeReference(membername);
             auto modifier = getVisibilityFromString(member->getModifier()->getIdent());
-            classTy->addMember(membername, typeContext.createOrGetMemberTy(modifier, type));
+            classTy->addMember(membername, typeContext.createOrGetMemberTy(modifier, type, classTy));
         }
     }
 
@@ -248,10 +252,6 @@ void AstDeclTypeAnnotator::visit(InterfaceDecl *visitable) {
     auto scope = parentStack.top()->getNestedScope(interfacename);
     parentStack.push(scope);
 
-    for (auto member: visitable->getInterfaceMembers()) {
-        member->accept(this);
-    }
-
     std::vector<InterfaceType *> interfaces;
     for (auto interfaceExpr: visitable->getInterfaces()) {
         auto interfaceQualifier = interfaceExpr->getIdent();
@@ -262,13 +262,15 @@ void AstDeclTypeAnnotator::visit(InterfaceDecl *visitable) {
         interfaces.push_back(derivedTy);
     }
     interfaceTy->setInterfaces(interfaces);
+    scope->addScopeMember("this", interfaceTy);
 
     for (auto member: visitable->getInterfaceMembers()) {
+        member->accept(this);
         if (!isInterfaceOrClassDecl(member->getDeclaration())) {
             auto membername = member->getName()->getIdent();
             auto type = scope->getCurrentScopeReference(membername);
             auto modifier = getVisibilityFromString(member->getModifier()->getIdent());
-            interfaceTy->addInterfaceMethod(membername, typeContext.createOrGetMemberTy(modifier, type));
+            interfaceTy->addInterfaceMethod(membername, typeContext.createOrGetMemberTy(modifier, type, interfaceTy));
         }
     }
 

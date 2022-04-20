@@ -19,7 +19,13 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 
 add_library(codegen
         RecordTypeCodeGen.h
-        RecordTypeCodeGen.cpp)
+        RecordTypeCodeGen.cpp
+        FunctionGenerator.cpp
+        FunctionGenerator.h
+        CodeGenerator.cpp
+        CodeGenerator.h
+        LLVMTypeGenerator.cpp
+        LLVMTypeGenerator.h)
 
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 target_link_libraries(codegen ${llvm_libs} ast types)

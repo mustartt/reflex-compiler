@@ -1,23 +1,14 @@
 class Object {
-    public var alive: bool = true;
-    public func __gc_mark() -> void {}
+    public var alive: bool = false;
+    public func __gc_mark() -> void {
+        alive = true;
+    }
 }
 
-class BaseClass(Object) {
-    public var m_foo: int = 0;
-    public func method1() -> void {}
+interface Action {
+    func perform() -> void;
 }
 
-class DerivedClass(BaseClass) {
-    public var m_bar: num = 0;
-
-    // @Overrides
-    public func method1() -> void {
-        super.method1();
-        this.m_bar = 10;
-        method1();
-    }
-    public func method2(a: int, b: int) -> int {
-        return a + b;
-    }
+func performAction(action: Action) -> void {
+    action.perform();
 }

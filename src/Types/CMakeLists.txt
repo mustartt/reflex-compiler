@@ -10,7 +10,7 @@ add_library(types
         TypeParser.cpp
         TypeParser.h)
 
-target_link_libraries(types LINK_PUBLIC ast)
+target_link_libraries(types LINK_PUBLIC ast codegen)
 
 set_target_properties(types PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(types PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -2,8 +2,11 @@
 // Created by henry on 2022-03-24.
 //
 
+#include <iostream>
 #include <sstream>
 #include "Type.h"
+#include "LLVMTypeGenerator.h"
+#include "llvm/Support/Casting.h"
 
 namespace reflex {
 
@@ -29,6 +32,10 @@ bool VoidType::isBasicType() const {
     return true;
 }
 
+llvm::Type *VoidType::createLLVMType(LLVMTypeGenerator &TG) {
+    return TG.getVoidType();
+}
+
 std::string PrimType::getTypeString() {
     switch (baseTyp) {
         case Integer: return "int";
@@ -38,8 +45,13 @@ std::string PrimType::getTypeString() {
         case Null: return "null";
     }
 }
+
 bool PrimType::isBasicType() const {
     return true;
+}
+
+llvm::Type *PrimType::createLLVMType(LLVMTypeGenerator &TG) {
+    return TG.getLLVMBasicType(this);
 }
 
 bool ArrayType::operator==(const ArrayType &rhs) const {
@@ -48,6 +60,10 @@ bool ArrayType::operator==(const ArrayType &rhs) const {
 
 std::string ArrayType::getTypeString() {
     return elementTyp->getTypeString() + " []";
+}
+
+llvm::Type *ArrayType::createLLVMType(LLVMTypeGenerator &TG) {
+    return TG.getArrayType(elementTyp->createLLVMType(TG));
 }
 
 std::string FunctionType::getTypeString() {
@@ -68,6 +84,15 @@ bool FunctionType::operator==(const FunctionType &rhs) const {
         && paramTyp == rhs.paramTyp;
 }
 
+llvm::Type *FunctionType::createLLVMType(LLVMTypeGenerator &TG) {
+    std::vector<llvm::Type *> paramTypes;
+    std::transform(paramTyp.begin(), paramTyp.end(),
+                   paramTypes.end(), [&TG](Type *type) {
+          return type->createLLVMType(TG);
+        });
+    return LLVMTypeGenerator::getFunctionType(paramTypes, returnTyp->createLLVMType(TG));
+}
+
 std::string MemberType::getTypeString() {
     return getVisibilityString(visibility) + " "
         + memberTyp->getTypeString();
@@ -75,7 +100,22 @@ std::string MemberType::getTypeString() {
 
 bool MemberType::operator==(const MemberType &rhs) const {
     return visibility == rhs.visibility
-        && memberTyp == rhs.memberTyp;
+        && memberTyp == rhs.memberTyp
+        && parent == rhs.parent;
+}
+
+llvm::Type *MemberType::createLLVMType(LLVMTypeGenerator &TG) {
+    auto method = dynamic_cast<FunctionType *>(memberTyp);
+    if (!method) return memberTyp->createLLVMType(TG);
+    std::vector<llvm::Type *> paramTypes{parent->createLLVMType(TG)};
+    std::transform(method->getParamTyp().begin(), method->getParamTyp().end(),
+                   paramTypes.end(), [&TG](Type *type) {
+          return type->createLLVMType(TG);
+        });
+    return LLVMTypeGenerator::getFunctionType(
+        paramTypes,
+        method->getReturnTyp()->createLLVMType(TG)
+    );
 }
 
 std::string InterfaceType::getTypeString() {
@@ -113,6 +153,7 @@ bool InterfaceType::isDerivedFrom(InterfaceType *base) const {
     }
     return false;
 }
+
 const std::vector<InterfaceType *> &InterfaceType::getInterfaces() const { return interfaces; }
 const std::map<std::string, MemberType *> &InterfaceType::getMembers() const { return members; }
 void InterfaceType::setInterfaces(const std::vector<InterfaceType *> &interfaces) {
@@ -140,6 +181,10 @@ MemberType *InterfaceType::findMemberTyp(const std::string &name) {
         if (result) return result;
     }
     return nullptr;
+}
+
+llvm::Type *InterfaceType::createLLVMType(LLVMTypeGenerator &TG) {
+    return TG.getInterfaceType(this);
 }
 
 ClassType *ClassType::getBaseclass() const { return baseclass; }
@@ -195,9 +240,30 @@ std::vector<std::pair<std::string, MemberType *>> ClassType::getAllInheritedMemb
         }
     }
     for (auto &member: members) {
+        std::cout << "a" << std::endl;
         inheritedMembers.emplace_back(member);
     }
     return inheritedMembers;
+}
+
+llvm::Type *ClassType::createLLVMType(LLVMTypeGenerator &TG) {
+    auto type = TG.getClassType(this);
+    if (type) return type.value();
+
+    TG.predeclareClassType(this);
+    std::vector<llvm::Type *> dataLayout;
+    std::vector<llvm::FunctionType *> methodLayout;
+    auto layout = getAllInheritedMember();
+    for (auto &[name, member]: layout) {
+        if (!dynamic_cast<FunctionType *>(member->getMemberTyp())) {
+            dataLayout.push_back(member->createLLVMType(TG));
+        } else {
+            llvm::Type *memberMethodType = member->createLLVMType(TG);
+            methodLayout.push_back(llvm::dyn_cast<llvm::FunctionType>(memberMethodType));
+        }
+    }
+    auto vtabLayoutType = TG.getClassVtabLayoutType(this, methodLayout);
+    return TG.getClassType(this, vtabLayoutType, dataLayout);
 }
 
 }

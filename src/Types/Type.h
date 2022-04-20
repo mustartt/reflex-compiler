@@ -13,19 +13,25 @@
 #include <ostream>
 #include <unordered_set>
 
+#include "llvm/IR/Type.h"
+
 namespace reflex {
+
+class LLVMTypeGenerator;
 
 class Type {
   public:
     virtual ~Type() = default;
     virtual std::string getTypeString() = 0;
     [[nodiscard]] virtual bool isBasicType() const { return false; }
+    virtual llvm::Type *createLLVMType(LLVMTypeGenerator &TG) = 0;
 };
 
 class VoidType : public Type {
   public:
     std::string getTypeString() override;
     [[nodiscard]] bool isBasicType() const override;
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 class PrimType : public Type {
@@ -42,6 +48,7 @@ class PrimType : public Type {
     [[nodiscard]] BaseType getBaseTyp() const { return baseTyp; }
     std::string getTypeString() override;
     [[nodiscard]] bool isBasicType() const override;
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
   private:
     BaseType baseTyp;
 };
@@ -53,6 +60,7 @@ class ArrayType : public Type {
     [[nodiscard]] Type *getElementTyp() const { return elementTyp; }
     std::string getTypeString() override;
     bool operator==(const ArrayType &rhs) const;
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 class FunctionType : public Type {
@@ -66,6 +74,7 @@ class FunctionType : public Type {
     [[nodiscard]] const std::vector<Type *> &getParamTyp() const { return paramTyp; }
     std::string getTypeString() override;
     bool operator==(const FunctionType &rhs) const;
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 enum class Visibility {
@@ -78,19 +87,22 @@ class TypeError {};
 
 class ClassType;
 
+class AggregateType;
 class MemberType : public Type {
     Visibility visibility;
     Type *memberTyp;
+    AggregateType *parent;
   public:
-    MemberType(Visibility visibility, Type *memberTyp)
-        : visibility(visibility), memberTyp(memberTyp) {}
+    MemberType(Visibility visibility, Type *memberTyp, AggregateType *parent)
+        : visibility(visibility), memberTyp(memberTyp), parent(parent) {}
     [[nodiscard]] Visibility getVisibility() const { return visibility; }
-
+    [[nodiscard]] AggregateType *getParent() const { return parent; }
     [[nodiscard]] Type *getMemberTyp() const { return memberTyp; }
 
     std::string getTypeString() override;
     [[nodiscard]] bool isFunctionTyp() const { return dynamic_cast<FunctionType *>(memberTyp); }
     bool operator==(const MemberType &rhs) const;
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 class AggregateType : public Type {
@@ -132,6 +144,7 @@ class InterfaceType : public AggregateType {
     std::string getTypeString() override;
     bool operator==(const InterfaceType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override { return true; }
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 class ClassType : public AggregateType {
@@ -160,6 +173,7 @@ class ClassType : public AggregateType {
     std::string getTypeString() override;
     bool operator==(const ClassType &rhs) const;
     bool validate(std::vector<TypeError> &vector) const override { return true; }
+    llvm::Type *createLLVMType(LLVMTypeGenerator &TG) override;
 };
 
 }
