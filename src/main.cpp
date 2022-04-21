@@ -46,8 +46,5 @@ int main(int argc, char *argv[]) {
     printer.visit(root);
     std::cout << std::string(75, '=') << std::endl;
 
-    CodeGenerator CG;
-    CG.generate(root->getDecls()[0]->getTyp());
-
     return 0;
 }

@@ -4,7 +4,7 @@
 
 #include "Parser.h"
 
-#include "../AST/AstContextManager.h"
+#include <AstContextManager.h>
 
 namespace reflex {
 

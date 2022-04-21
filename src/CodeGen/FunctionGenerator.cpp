@@ -3,3 +3,7 @@
 //
 
 #include "FunctionGenerator.h"
+
+namespace reflex {
+
+}

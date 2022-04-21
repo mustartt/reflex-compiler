@@ -83,7 +83,9 @@ llvm::StructType *LLVMTypeGenerator::getClassVtabLayoutType(ClassType *classType
                                                             const std::vector<llvm::FunctionType *> &methods) {
     auto name = "vtable." + classType->getName();
     std::vector<llvm::Type *> vtabLayout{getOpaquePtrType(), getOpaquePtrType(), getOpaquePtrType()};
-    vtabLayout.insert(vtabLayout.end(), methods.begin(), methods.end());
+    for (auto methodType: methods) {
+        vtabLayout.push_back(getPointerType(methodType));
+    }
     auto layout = llvm::StructType::create(ctx, vtabLayout, name);
     namedSymbolTable[name] = layout;
     return layout;

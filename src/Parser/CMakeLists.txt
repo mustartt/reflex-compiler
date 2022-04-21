@@ -8,8 +8,7 @@ add_library(parser
         AstParser.cpp
         )
 
-target_link_libraries(parser LINK_PUBLIC lexer)
-target_link_libraries(parser LINK_PUBLIC ast)
+target_link_libraries(parser LINK_PUBLIC ast lexer)
 
 set_target_properties(parser PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

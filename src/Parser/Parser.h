@@ -6,9 +6,9 @@
 #define REFLEX_SRC_PARSER_PARSER_H_
 
 #include <stdexcept>
-#include "../Ast/Ast.h"
-#include "../AST/AstNodes.h"
-#include "../Lexer/Token.h"
+#include <Ast.h>
+#include <AstNodes.h>
+#include <Token.h>
 
 namespace reflex {
 
@@ -95,7 +95,7 @@ class Parser {
 
     FunctionDecl *parseFunctionDecl();
 
-    IdentExpr* parseDerivedInterface();
+    IdentExpr *parseDerivedInterface();
     std::vector<IdentExpr *> parseInterfaceList();
     IdentExpr *parseBaseClass();
     Declaration *parseClassDecl();

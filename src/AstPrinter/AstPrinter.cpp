@@ -3,7 +3,7 @@
 //
 
 #include "AstPrinter.h"
-#include "../AST/AstNodes.h"
+#include "AstNodes.h"
 #include "Type.h"
 
 namespace reflex {

@@ -6,6 +6,7 @@
 #define REFLEX_SRC_CODEGEN_CODEGENERATOR_H_
 
 #include <vector>
+#include <iostream>
 
 #include <AstNodes.h>
 #include <llvm/IR/Module.h>
@@ -15,6 +16,7 @@
 #include <TypeContextManager.h>
 
 #include "LLVMTypeGenerator.h"
+#include "FunctionGenerator.h"
 
 namespace reflex {
 
@@ -22,13 +24,7 @@ class CodeGenerator {
   public:
     CodeGenerator() : ctx(), module("test_module", ctx) {}
 
-    void generate(Type *type) {
-        LLVMTypeGenerator TG(ctx);
-        llvm::Type *ty = type->createLLVMType(TG);
 
-        llvm::StructType::getTypeByName(ctx, "class.Object")->print(llvm::outs());
-        llvm::StructType::getTypeByName(ctx, "vtable.Object")->print(llvm::outs());
-    }
 
   private:
     llvm::LLVMContext ctx;

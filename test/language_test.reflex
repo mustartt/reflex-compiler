@@ -1,14 +1,13 @@
-class Object {
-    public var alive: bool = false;
-    public func __gc_mark() -> void {
-        alive = true;
-    }
+class Base {
+    public var base: int;
+    public func method() -> void {}
 }
 
-interface Action {
-    func perform() -> void;
+interface A {
+    func method()
 }
 
-func performAction(action: Action) -> void {
-    action.perform();
+class Derived {
+    public var derived: num;
+    public func method() -> void {} // overrides
 }

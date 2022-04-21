@@ -13,8 +13,7 @@ add_library(ast
         AstVisitor.cpp
         )
 
-target_link_libraries(ast PUBLIC types)
-target_link_libraries(ast PUBLIC lexer)
+target_link_libraries(ast PUBLIC types lexer codegen)
 
 set_target_properties(ast PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(ast PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

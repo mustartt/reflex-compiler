@@ -86,10 +86,9 @@ bool FunctionType::operator==(const FunctionType &rhs) const {
 
 llvm::Type *FunctionType::createLLVMType(LLVMTypeGenerator &TG) {
     std::vector<llvm::Type *> paramTypes;
-    std::transform(paramTyp.begin(), paramTyp.end(),
-                   paramTypes.end(), [&TG](Type *type) {
-          return type->createLLVMType(TG);
-        });
+    for (auto param: paramTyp) {
+        paramTypes.push_back(param->createLLVMType(TG));
+    }
     return LLVMTypeGenerator::getFunctionType(paramTypes, returnTyp->createLLVMType(TG));
 }
 
@@ -107,7 +106,7 @@ bool MemberType::operator==(const MemberType &rhs) const {
 llvm::Type *MemberType::createLLVMType(LLVMTypeGenerator &TG) {
     auto method = dynamic_cast<FunctionType *>(memberTyp);
     if (!method) return memberTyp->createLLVMType(TG);
-    std::vector<llvm::Type *> paramTypes{parent->createLLVMType(TG)};
+    std::vector<llvm::Type *> paramTypes{LLVMTypeGenerator::getPointerType(parent->createLLVMType(TG))};
     std::transform(method->getParamTyp().begin(), method->getParamTyp().end(),
                    paramTypes.end(), [&TG](Type *type) {
           return type->createLLVMType(TG);
@@ -240,7 +239,6 @@ std::vector<std::pair<std::string, MemberType *>> ClassType::getAllInheritedMemb
         }
     }
     for (auto &member: members) {
-        std::cout << "a" << std::endl;
         inheritedMembers.emplace_back(member);
     }
     return inheritedMembers;
