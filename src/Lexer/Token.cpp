@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-#include "SourceManager.h"
+#include "Source.h"
 
 namespace reflex {
 
