@@ -67,6 +67,7 @@ class SourceFile {
 
     /// @param line line number representing the line number [1, n]
     [[nodiscard]] const std::string &line(size_t line) const;
+    [[nodiscard]] size_t totalLine() const { return source.size(); }
 
     const SourceLocation &createSourceLocation(size_t startline, size_t startcol,
                                                size_t endline, size_t endcol);

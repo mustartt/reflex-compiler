@@ -14,7 +14,16 @@ SourceError::SourceError(const std::string &msg)
 
 SourceLocation::SourceLocation(SourceFile &parent, size_t startline, size_t startcol, size_t endline, size_t endcol)
     : parent(parent), startline(startline), startcol(startcol),
-      endline(endline), endcol(endcol) {}
+      endline(endline), endcol(endcol) {
+    // source validation
+    if (0 == startline || startline > parent.totalLine() ||
+        0 == endline || endline > parent.totalLine() ||
+        0 == startcol || startcol > parent.line(startline).size() ||
+        0 == startcol || startcol > parent.line(startline).size()) {
+
+        throw InvalidSourceLocationError{"Failed to create SourceLocation at " + getStringRepr()};
+    }
+}
 
 void SourceLocation::printSourceRegion(std::ostream &os, bool underline) const {
     for (size_t line = startline; line <= endline; ++line) {
