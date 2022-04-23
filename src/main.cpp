@@ -18,8 +18,14 @@ int main(int argc, char *argv[]) {
 
     SourceManager srcManager;
     auto &file = srcManager.open("language_test.reflex");
-    auto &loc = file.createSourceLocation(10, 15, 13, 1);
-    loc.printSourceRegion(std::cout, true);
+    auto &loc1 = SourceManager::createSourceLocation(file, 10, 1, 10, 13);
+    auto &loc2 = SourceManager::createSourceLocation(file, 13, 1, 13, 1);
+    auto &loc3 = SourceManager::mergeSourceLocation(loc2, loc1);
+
+    loc1.printSourceRegion(std::cout, true);
+    loc2.printSourceRegion(std::cout, true);
+    std::cout << std::endl;
+    loc3.printSourceRegion(std::cout, true);
 
 //    std::ifstream file("language_test.reflex");
 //    std::string content((std::istreambuf_iterator<char>(file)),

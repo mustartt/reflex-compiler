@@ -13,112 +13,84 @@
 #include <ostream>
 #include <fstream>
 #include <memory>
+#include <unordered_set>
+#include <functional>
 
 namespace reflex {
 
 class InvalidSourceLocationError : public std::runtime_error {
   public:
-    explicit InvalidSourceLocationError(const std::string &msg)
-        : std::runtime_error("Invalid Source Location: " + msg) {}
+    explicit InvalidSourceLocationError(const std::string &msg);
 };
 
 class SourceError : public std::runtime_error {
   public:
-    explicit SourceError(const std::string &msg)
-        : std::runtime_error("Source Error: " + msg) {}
+    explicit SourceError(const std::string &msg);
 };
 
-class SourceLocation;
-
-class SourceManager {
-  public:
-
-    class SourceFile {
-      public:
-        SourceFile(std::string filename, std::istream &is) : filename{std::move(filename)} {
-            std::string line;
-            while (getline(is, line)) {
-                source.emplace_back(std::move(line));
-            }
-        }
-
-        [[nodiscard]] std::string content() const {
-            std::string file;
-            for (const auto &line: source) {
-                file.append(line);
-            }
-            return file;
-        }
-
-        /// @param line line number representing the line number [1, n]
-        [[nodiscard]] const std::string &line(size_t line) const {
-            if (line == 0 || line > source.size())
-                throw InvalidSourceLocationError{
-                    "line " + std::to_string(line) +
-                        " out of bound, expected 1 to " + std::to_string(source.size())
-                };
-            return source[line - 1];
-        }
-
-        SourceLocation &createSourceLocation(size_t startline, size_t startcol,
-                                             size_t endline, size_t endcol) {
-            locationContext.push_back(std::make_unique<SourceLocation>(
-                *this, startline, startcol, endline, endcol)
-            );
-            return *locationContext.back().get();
-        }
-      private:
-        std::string filename;
-        std::vector<std::string> source;
-        std::vector<std::unique_ptr<SourceLocation>> locationContext;
-    };
-
-    SourceFile &open(const std::string &filename) {
-        std::ifstream file{filename};
-        if (!file) throw SourceError{"Cannot open " + filename};
-        if (fileContext.contains(filename)) throw SourceError{"File " + filename + " already opened"};
-        fileContext.try_emplace(filename, filename, file);
-        return fileContext.at(filename);
-    }
-
-  private:
-    std::map<std::string, SourceFile> fileContext;
-};
-
+class SourceFile;
 class SourceLocation {
   public:
-    SourceLocation(SourceManager::SourceFile &parent,
+    SourceLocation(SourceFile &parent,
                    size_t startline, size_t startcol,
-                   size_t endline, size_t endcol)
-        : parent(parent), startline(startline), startcol(startcol),
-          endline(endline), endcol(endcol) {}
+                   size_t endline, size_t endcol);
     SourceLocation(const SourceLocation &) = delete;
     SourceLocation(SourceLocation &&) = default;
 
-    void printSourceRegion(std::ostream &os, bool underline = false) const {
-        for (size_t line = startline; line <= endline; ++line) {
-            os << parent.line(line) << std::endl;
-            if (underline) {
-                for (size_t col = 1;
-                     col <= parent.line(line).size(); ++col) {
-                    if ((line == startline && col < startcol) ||
-                        (line == endline && col > endcol)) {
-                        os << ' ';
-                    } else {
-                        os << '~';
-                    }
-                }
-            }
-            os << std::endl;
-        }
-    }
+    void printSourceRegion(std::ostream &os, bool underline = false) const;
+    [[nodiscard]] std::string getLocationString() const;
+    [[nodiscard]] std::string getStringRepr() const;
+
+    [[nodiscard]] std::pair<size_t, size_t> getStartLocation() const;
+    [[nodiscard]] std::pair<size_t, size_t> getEndLocation() const;
+    [[nodiscard]] SourceFile &getSource() const { return parent; }
+    bool operator==(const SourceLocation &rhs) const;
+
   private:
-    SourceManager::SourceFile &parent;
+    SourceFile &parent;
 
     size_t startline;
     size_t startcol;
     size_t endline;
     size_t endcol;
+};
+
+struct SourceLocationHash {
+  std::size_t operator()(const SourceLocation &loc) const noexcept;
+};
+
+class SourceFile {
+  public:
+    SourceFile(std::string filename, std::istream &is);
+
+    [[nodiscard]] std::string content() const;
+
+    /// @param line line number representing the line number [1, n]
+    [[nodiscard]] const std::string &line(size_t line) const;
+
+    const SourceLocation &createSourceLocation(size_t startline, size_t startcol,
+                                               size_t endline, size_t endcol);
+    const SourceLocation &mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    bool operator==(const SourceFile &rhs) const;
+
+    [[nodiscard]] const std::string &getFilename() const;
+
+  private:
+    std::string filename;
+    std::vector<std::string> source;
+    std::unordered_set<SourceLocation, SourceLocationHash> locationContext;
+};
+
+class SourceManager {
+  public:
+    SourceFile &open(const std::string &filename);
+
+    static const SourceLocation &mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    static const SourceLocation &createSourceLocation(SourceFile &source,
+                                                      size_t startline, size_t startcol,
+                                                      size_t endline, size_t endcol);
+  private:
+    std::map<std::string, SourceFile> fileContext;
 };
 
 }
