@@ -7,9 +7,9 @@
 
 #include <stdexcept>
 #include <string>
-#include "../Source/Token.h"
+#include "Token.h"
 
-namespace reflex {
+namespace reflex::Operator {
 
 class InvalidOperator : public std::runtime_error {
   public:

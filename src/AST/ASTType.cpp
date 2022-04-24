@@ -4,11 +4,9 @@
 
 #include "ASTType.h"
 
-#include <utility>
-
 namespace reflex {
 
-ASTTypeExpr::ASTTypeExpr(const SourceLocation *loc) : loc(loc) {}
+ASTTypeExpr::ASTTypeExpr(const SourceLocation *loc) : ASTNode(loc) {}
 
 ReferenceTypenameExpr::ReferenceTypenameExpr(const SourceLocation *loc) : ASTTypeExpr(loc) {}
 

@@ -9,16 +9,68 @@
 
 namespace reflex {
 
-class Literal : public Expression {};
+class BadLiteralError : public std::runtime_error {
+  public:
+    explicit BadLiteralError(const std::string &arg);
+};
 
-class BasicLiteral : public Literal {};
-class NumberLiteral : public BasicLiteral {};
-class StringLiteral : public BasicLiteral {};
-class BooleanLiteral : public BasicLiteral {};
-class NullLiteral : public BasicLiteral {};
+class ParamDecl;
+class BlockStmt;
 
-class ArrayLiteral : public Literal {};
-class FunctionLiteral : public Literal {};
+class Literal : public Expression {
+  public:
+    explicit Literal(const SourceLocation *loc);
+};
+
+class BasicLiteral : public Literal {
+  public:
+    BasicLiteral(const SourceLocation *loc, std::string value);
+  protected:
+    std::string value;
+};
+
+class NumberLiteral : public BasicLiteral {
+  public:
+    NumberLiteral(const SourceLocation *loc, std::string str);
+  private:
+    long val;
+};
+
+class StringLiteral : public BasicLiteral {
+  public:
+    StringLiteral(const SourceLocation *loc, std::string value);
+};
+
+class BooleanLiteral : public BasicLiteral {
+  public:
+    BooleanLiteral(const SourceLocation *loc, std::string value);
+  private:
+    bool literal;
+};
+
+class NullLiteral : public BasicLiteral {
+  public:
+    NullLiteral(const SourceLocation *loc, std::string value);
+};
+
+class ArrayLiteral : public Literal {
+  public:
+    ArrayLiteral(const SourceLocation *loc, std::vector<Expression *> list);
+  private:
+    std::vector<Expression *> list;
+};
+
+class FunctionLiteral : public Literal {
+  public:
+    FunctionLiteral(const SourceLocation *loc,
+                    std::vector<ParamDecl *> parameters,
+                    ASTTypeExpr *returnType,
+                    BlockStmt *body);
+  private:
+    std::vector<ParamDecl *> parameters;
+    ASTTypeExpr *returnType;
+    BlockStmt *body;
+};
 
 }
 

@@ -4,7 +4,7 @@
 
 #include "Operator.h"
 
-namespace reflex {
+namespace reflex::Operator {
 
 BinaryOperator createBinaryOperatorFromToken(const Token &token) {
     switch (token.getTokenType().getValue()) {

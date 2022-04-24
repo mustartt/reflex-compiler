@@ -4,12 +4,10 @@
 
 #include "ASTDeclaration.h"
 
-#include <utility>
-
 namespace reflex {
 
 Declaration::Declaration(const SourceLocation *loc, std::string declname)
-    : loc(loc), declname(std::move(declname)) {}
+    : ASTNode(loc), declname(std::move(declname)) {}
 
 AggregateDecl::AggregateDecl(const SourceLocation *loc, std::string declname)
     : Declaration(loc, std::move(declname)) {}

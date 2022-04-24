@@ -8,8 +8,8 @@ add_library(ast
         AstNodes.cpp
         AstVisitor.h
         AstContextManager.h
-        Operator.cpp
-        Operator.h
+        ../AST/Operator.cpp
+        ../AST/Operator.h
         AstVisitor.cpp
         )
 

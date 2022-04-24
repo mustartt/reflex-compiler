@@ -26,7 +26,6 @@ class Declaration : public ASTNode {
     Declaration(const SourceLocation *loc, std::string declname);
 
   private:
-    const SourceLocation *loc;
     std::string declname;
 };
 

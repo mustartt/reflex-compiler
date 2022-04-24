@@ -17,8 +17,6 @@ class SourceLocation;
 class ASTTypeExpr : public ASTNode {
   public:
     explicit ASTTypeExpr(const SourceLocation *loc);
-  private:
-    const SourceLocation *loc;
 };
 
 class ReferenceTypenameExpr : public ASTTypeExpr {

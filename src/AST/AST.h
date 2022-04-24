@@ -7,9 +7,17 @@
 
 namespace reflex {
 
+class SourceLocation;
+
 class ASTNode {
   public:
+    explicit ASTNode(const SourceLocation *loc);
     virtual ~ASTNode() = default;
+
+    [[nodiscard]] const SourceLocation *location() const;
+
+  private:
+    const SourceLocation *loc;
 };
 
 }
