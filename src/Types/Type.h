@@ -80,6 +80,7 @@ class FunctionType : public Type {
 enum class Visibility {
   Public, Private, Protected
 };
+
 std::string getVisibilityString(Visibility visibility);
 Visibility getVisibilityFromString(const std::string &ident);
 

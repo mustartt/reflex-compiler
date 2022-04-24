@@ -378,7 +378,11 @@ class FunctionDecl : public Declaration {
     TypeExpr *retTyp;
     Block *body;
   public:
-    FunctionDecl(const SourceLocation &loc, Identifier *name, std::vector<ParamDecl *> params, TypeExpr *retTyp, Block *body);
+    FunctionDecl(const SourceLocation &loc,
+                 Identifier *name,
+                 std::vector<ParamDecl *> params,
+                 TypeExpr *retTyp,
+                 Block *body);
     void accept(AstVisitor *visitor) override;
     [[nodiscard]] const std::vector<ParamDecl *> &getParams() const;
     [[nodiscard]] TypeExpr *getRetTyp() const;
