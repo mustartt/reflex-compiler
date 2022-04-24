@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <Ast.h>
 #include <AstNodes.h>
-#include <Token.h>
+#include "../Source/Token.h"
 
 namespace reflex {
 

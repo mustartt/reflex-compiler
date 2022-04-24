@@ -11,35 +11,18 @@
 
 namespace reflex {
 
-class Source;
-
-class Loc {
-    Source *source;
-    size_t line;
-    size_t col;
-    size_t size;
-  public:
-    Loc() = default;
-    Loc(Source *source, size_t line, size_t col, size_t size);
-
-    [[nodiscard]] std::string getFormattedRepr() const;
-    void highlightToken(std::ostream &ostream) const;
-
-    [[nodiscard]] size_t getLine() const { return line; }
-    [[nodiscard]] size_t getCol() const { return col; }
-    [[nodiscard]] size_t getSize() const { return size; }
-};
+class SourceLocation;
 
 class Token {
-    TokenType tokenType{TokenType::EndOfFile};
-    std::string lexeme{"EOF"};
-    Loc loc{};
+    TokenType tokenType;
+    std::string lexeme;
+    const SourceLocation *loc;
   public:
-    Token() = default;
-    Token(TokenType::Value tokenType, std::string lexeme, Loc loc);
+    Token(TokenType::Value tokenType, std::string lexeme, const SourceLocation *loc);
 
-    [[nodiscard]] const std::string &getLexeme() const { return lexeme; }
-    [[nodiscard]] Loc getLocInfo() const { return loc; }
+    [[nodiscard]]
+    const std::string &getLexeme() const { return lexeme; }
+    [[nodiscard]] const SourceLocation *getLocInfo() const { return loc; }
     [[nodiscard]] TokenType getTokenType() const { return tokenType; }
 
     [[nodiscard]] std::string getTokenTypeString() const;
@@ -55,6 +38,7 @@ class Token {
     [[nodiscard]] bool isPostfixOp() const;
 
     [[nodiscard]] bool isDeclaration() const;
+    [[nodiscard]] bool isTrivial() const;
 
     friend std::ostream &operator<<(std::ostream &os, const Token &token);
 };

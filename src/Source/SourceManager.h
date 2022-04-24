@@ -34,8 +34,6 @@ class SourceLocation {
     SourceLocation(SourceFile &parent,
                    size_t startline, size_t startcol,
                    size_t endline, size_t endcol);
-    SourceLocation(const SourceLocation &) = delete;
-    SourceLocation(SourceLocation &&) = default;
 
     void printSourceRegion(std::ostream &os, bool underline = false) const;
     [[nodiscard]] std::string getLocationString() const;
@@ -68,10 +66,11 @@ class SourceFile {
     /// @param line line number representing the line number [1, n]
     [[nodiscard]] const std::string &line(size_t line) const;
     [[nodiscard]] size_t totalLine() const { return source.size(); }
+    [[nodiscard]] const SourceLocation *getLastValidPosition();
 
-    const SourceLocation &createSourceLocation(size_t startline, size_t startcol,
+    const SourceLocation *createSourceLocation(size_t startline, size_t startcol,
                                                size_t endline, size_t endcol);
-    const SourceLocation &mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    const SourceLocation *mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
     bool operator==(const SourceFile &rhs) const;
 
     [[nodiscard]] const std::string &getFilename() const;
@@ -86,8 +85,8 @@ class SourceManager {
   public:
     SourceFile &open(const std::string &filename);
 
-    static const SourceLocation &mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
-    static const SourceLocation &createSourceLocation(SourceFile &source,
+    static const SourceLocation *mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    static const SourceLocation *createSourceLocation(SourceFile &source,
                                                       size_t startline, size_t startcol,
                                                       size_t endline, size_t endcol);
   private:

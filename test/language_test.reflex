@@ -1,3 +1,4 @@
+
 class Base {
     public var base: int;
     public func method() -> void {}
@@ -11,3 +12,5 @@ class Derived {
     public var derived: num;
     public func method() -> void {} // overrides
 }
+
+

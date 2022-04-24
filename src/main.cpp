@@ -1,38 +1,22 @@
 #include <iostream>
-#include <fstream>
-#include <Source.h>
-#include <Lexer.h>
-#include <AstContextManager.h>
-#include <Parser.h>
-#include <AstPrinter.h>
-#include <TypeContextManager.h>
-#include <AstRecordTypeAnnotator.h>
-#include <AstDeclTypeAnnotator.h>
-#include <ScopeSymbolTypeTable.h>
-#include <AstExpressionAnnotator.h>
-#include <CodeGenerator.h>
 #include <SourceManager.h>
+#include <Lexer.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
 
     SourceManager srcManager;
     auto &file = srcManager.open("language_test.reflex");
-    auto &loc1 = SourceManager::createSourceLocation(file, 10, 1, 10, 13);
-    auto &loc2 = SourceManager::createSourceLocation(file, 13, 1, 13, 1);
-    auto &loc3 = SourceManager::mergeSourceLocation(loc2, loc1);
 
-    loc1.printSourceRegion(std::cout, true);
-    loc2.printSourceRegion(std::cout, true);
-    std::cout << std::endl;
-    loc3.printSourceRegion(std::cout, true);
+    Lexer lexer(file, file.content(), getTokenDescription(), getKeywordDescription());
+    while (lexer.hasNext()) {
+        auto tok = lexer.nextToken();
 
-//    std::ifstream file("language_test.reflex");
-//    std::string content((std::istreambuf_iterator<char>(file)),
-//                        std::istreambuf_iterator<char>());
-//    Source src("language_test.reflex", std::move(content));
-//    Lexer lexer(&src, src.getContent(), getTokenDescription(), getKeywordDescription());
-//    AstContextManager ctx;
+        if (!tok.isTrivial())
+            tok.getLocInfo()->printSourceRegion(std::cout, true);
+    }
+
+    //    AstContextManager ctx;
 //    Parser parser(&lexer, &ctx);
 //
 //    auto root = parser.parseCompilationUnit();

@@ -5,8 +5,9 @@
 #ifndef REFLEX_SRC_AST_AST_H_
 #define REFLEX_SRC_AST_AST_H_
 
-#include "../Lexer/Token.h"
+#include "../Source/Token.h"
 #include "Type.h"
+#include "../Source/SourceManager.h"
 
 namespace reflex {
 
@@ -18,12 +19,12 @@ class AstVisitable {
 
 class AstExpr : public AstVisitable {
     Type *typ = nullptr;
-    Loc loc;
+    SourceLocation &loc;
   public:
-    explicit AstExpr(const Loc &loc) : loc(loc) {}
+    explicit AstExpr(SourceLocation &loc) : loc(loc) {}
     virtual ~AstExpr() = default;
 
-    [[nodiscard]] const Loc &getLoc() const { return loc; }
+    [[nodiscard]] const SourceLocation &getLoc() const { return loc; }
     [[nodiscard]] Type *getTyp() const { return typ; }
     void setTyp(Type *type) { AstExpr::typ = type; }
 };

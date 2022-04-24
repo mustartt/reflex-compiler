@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 #include <string>
-#include "../Lexer/Token.h"
+#include "../Source/Token.h"
 
 namespace reflex {
 

@@ -2,7 +2,7 @@
 // Created by henry on 2022-03-25.
 //
 
-#include "Token.h"
+#include "../../src/Source/Token.h"
 
 #include "gtest/gtest.h"
 

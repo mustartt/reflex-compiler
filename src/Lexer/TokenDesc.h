@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "TokenType.h"
+#include "../Source/TokenType.h"
 
 namespace reflex {
 

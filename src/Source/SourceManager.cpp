@@ -4,6 +4,8 @@
 
 #include "SourceManager.h"
 
+#include <sstream>
+
 namespace reflex {
 
 InvalidSourceLocationError::InvalidSourceLocationError(const std::string &msg)
@@ -27,7 +29,11 @@ SourceLocation::SourceLocation(SourceFile &parent, size_t startline, size_t star
 
 void SourceLocation::printSourceRegion(std::ostream &os, bool underline) const {
     for (size_t line = startline; line <= endline; ++line) {
-        os << parent.line(line) << std::endl;
+        const auto &sourceLine = parent.line(line);
+        for (size_t i = 0; i < sourceLine.size() - 1; ++i) {
+            os << sourceLine[i];
+        }
+        os << std::endl;
         if (underline) {
             for (size_t col = 1;
                  col <= parent.line(line).size(); ++col) {
@@ -80,16 +86,17 @@ std::size_t SourceLocationHash::operator()(const SourceLocation &loc) const noex
 SourceFile::SourceFile(std::string filename, std::istream &is) : filename{std::move(filename)} {
     std::string line;
     while (getline(is, line)) {
+        line += '\n';
         source.emplace_back(std::move(line));
     }
 }
 
 std::string SourceFile::content() const {
-    std::string file;
+    std::stringstream file;
     for (const auto &line: source) {
-        file.append(line);
+        file << line;
     }
-    return file;
+    return file.str();
 }
 
 const std::string &SourceFile::line(size_t line) const {
@@ -101,12 +108,12 @@ const std::string &SourceFile::line(size_t line) const {
     return source[line - 1];
 }
 
-const SourceLocation &SourceFile::createSourceLocation(size_t startline,
+const SourceLocation *SourceFile::createSourceLocation(size_t startline,
                                                        size_t startcol,
                                                        size_t endline,
                                                        size_t endcol) {
     auto result = locationContext.emplace(*this, startline, startcol, endline, endcol);
-    return *result.first;
+    return &*result.first;
 }
 
 using Loc = std::pair<size_t, size_t>;
@@ -118,7 +125,7 @@ Loc &selectLocation(Loc &loc1, Loc &loc2, Compare cmp) {
     return cmp(loc1, loc2) ? loc1 : loc2;
 }
 
-const SourceLocation &SourceFile::mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2) {
+const SourceLocation *SourceFile::mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2) {
     auto starting1 = loc1.getStartLocation();
     auto starting2 = loc2.getStartLocation();
     auto ending1 = loc1.getEndLocation();
@@ -137,6 +144,11 @@ bool SourceFile::operator==(const SourceFile &rhs) const {
 const std::string &SourceFile::getFilename() const {
     return filename;
 }
+const SourceLocation *SourceFile::getLastValidPosition() {
+    auto endline = totalLine();
+    auto endcol = line(endline).size();
+    return createSourceLocation(endline, endcol, endline, endcol);
+}
 
 SourceFile &SourceManager::open(const std::string &filename) {
     std::ifstream file{filename};
@@ -146,12 +158,12 @@ SourceFile &SourceManager::open(const std::string &filename) {
     return fileContext.at(filename);
 }
 
-const SourceLocation &
+const SourceLocation *
 SourceManager::mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2) {
     return loc1.getSource().mergeSourceLocation(loc1, loc2);
 }
 
-const SourceLocation &
+const SourceLocation *
 SourceManager::createSourceLocation(SourceFile &source,
                                     size_t startline, size_t startcol,
                                     size_t endline, size_t endcol) {

@@ -7,8 +7,8 @@
 
 #include <string>
 #include <regex>
-#include "Token.h"
-#include "TokenDesc.h"
+#include "../Source/Token.h"
+#include <TokenDesc.h>
 
 namespace reflex {
 
@@ -19,23 +19,31 @@ class LexerError : public std::runtime_error {
     explicit LexerError(const std::string &arg);
 };
 
+class SourceFile;
+
 class Lexer {
-    Source *source;
-    std::string content;
-    size_t index;
-    size_t line = 1;
-    size_t col = 1;
-    TokenRegexDesc tokenDesc;
-    KeywordDesc keywordDesc;
+    struct LexerState {
+      size_t index;
+      size_t line;
+      size_t col;
+    };
   public:
-    explicit Lexer(Source *source,
+    explicit Lexer(SourceFile &source,
                    std::string content,
                    const TokenDesc &tokDesc,
                    KeywordDesc keyDesc);
 
     [[nodiscard]] bool hasNext() const;
     Token nextToken();
-    Loc getCurrentPosition() const;
+  private:
+    void updateInternalState(const std::string &lexeme);
+    LexerState getLastValidSourceLoc();
+
+    SourceFile &source;
+    std::string content;
+    LexerState state;
+    TokenRegexDesc tokenDesc;
+    KeywordDesc keywordDesc;
 };
 
 }

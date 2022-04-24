@@ -4,12 +4,14 @@
 
 #include "Lexer.h"
 
+#include "../Source/SourceManager.h"
+
 namespace reflex {
 
 LexerError::LexerError(const std::string &arg) : runtime_error(arg) {}
 
-Lexer::Lexer(Source *source, std::string content, const TokenDesc &tokDesc, KeywordDesc keyDesc)
-    : index(0), source(source), content(std::move(content)), keywordDesc(std::move(keyDesc)) {
+Lexer::Lexer(SourceFile &source, std::string content, const TokenDesc &tokDesc, KeywordDesc keyDesc)
+    : state{0, 1, 1}, source(source), content(std::move(content)), keywordDesc(std::move(keyDesc)) {
     for (const auto&[type, regexExpr]: tokDesc) {
         std::regex parsedRegex{"^(" + regexExpr + ")"};
         tokenDesc.emplace_back(type, std::move(parsedRegex));
@@ -17,7 +19,7 @@ Lexer::Lexer(Source *source, std::string content, const TokenDesc &tokDesc, Keyw
 }
 
 bool Lexer::hasNext() const {
-    return index < content.size();
+    return state.index < content.size();
 }
 
 std::string getErrorTokenLookahead(const std::string &content, size_t lookahead = 20) {
@@ -25,23 +27,46 @@ std::string getErrorTokenLookahead(const std::string &content, size_t lookahead 
     return content.substr(0, std::min(end, lookahead));
 }
 
-Token Lexer::nextToken() {
-    if (!hasNext()) throw LexerError("Expected Token but got EOF instead.");
+void Lexer::updateInternalState(const std::string &lexeme) {
+    state.index += lexeme.length();
+    for (const char c: lexeme) {
+        if (c == '\n') {
+            state.line += 1;
+            state.col = 1;
+        } else {
+            state.col += 1;
+        }
+    }
+}
 
-    const std::string current = content.substr(index);
+Lexer::LexerState Lexer::getLastValidSourceLoc() {
+    if (state.col == 1) {
+        if (state.line == 1) return {0, 1, 1};
+        return {state.index,
+                state.line - 1,
+                source.line(state.line - 1).size() + 1};
+    }
+    return state;
+}
+
+Token Lexer::nextToken() {
+    if (!hasNext())
+        return {TokenType::EndOfFile, "EOF", source.getLastValidPosition()};
+
+    const std::string current = content.substr(state.index);
 
     for (const auto &[type, regex]: tokenDesc) {
         std::smatch matches;
         if (std::regex_search(current, matches, regex)) {
             auto lexeme = matches[0].str();
-            index += lexeme.length();
-            Loc loc(source, line, col, lexeme.length());
-            if (lexeme.starts_with('\n')) {
-                line += (int)std::count(lexeme.begin(), lexeme.end(), '\n');
-                col = 1;
-            } else {
-                col += (int)lexeme.length();
-            }
+            auto lastState = state;
+            updateInternalState(lexeme);
+            auto currState = getLastValidSourceLoc();
+            const auto &loc = SourceManager::createSourceLocation(
+                source,
+                lastState.line, lastState.col,
+                currState.line, currState.col - 1
+            );
             if (type.getValue() == TokenType::Identifier && keywordDesc.count(lexeme)) {
                 return {keywordDesc[lexeme].getValue(), lexeme, loc};
             }
@@ -50,10 +75,6 @@ Token Lexer::nextToken() {
     }
 
     throw LexerError("Unknown Token: " + getErrorTokenLookahead(current) + ".");
-}
-
-Loc Lexer::getCurrentPosition() const {
-    return {source, line, col, 1};
 }
 
 }

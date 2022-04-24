@@ -15,13 +15,10 @@ ExpectToken::ExpectToken(TokenType type, const Token &token)
     : ParsingError("Expected token of value " + type.getTypeString()
                        + " but got " + token.toString() + " instead.") {}
 
-Parser::Parser(Lexer *lexer, AstContextManager *ctx) : lexer(lexer), ctx(ctx) {
-    tok = next();
-}
+Parser::Parser(Lexer *lexer, AstContextManager *ctx)
+    : lexer(lexer), ctx(ctx), tok(next()) {}
 
 Token Parser::next() {
-    if (!lexer->hasNext())
-        return {TokenType::EndOfFile, "EOF", lexer->getCurrentPosition()};
     tok = lexer->nextToken();
     if (!check(TokenType::WhiteSpace) &&
         !check(TokenType::SingleComment) &&

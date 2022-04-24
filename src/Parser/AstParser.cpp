@@ -42,7 +42,7 @@ TypeExpr *Parser::parseType() {
             next();
             auto lenExpr = parseExpr();
             expect(TokenType::RBracket);
-            Loc loc = nestedTyp->getLoc();
+            const auto &loc = nestedTyp->getLoc();
             auto arrTyp = parseElementType1(ctx->create<ArrayTypeExpr>(loc, nestedTyp, lenExpr));
             return parseElementType1(
                 ctx->create<ArrayTypeExpr>(loc, arrTyp, lenExpr)
@@ -677,7 +677,7 @@ Declaration *Parser::parseClassDecl() {
 IdentExpr *Parser::parseBaseClass() {
     if (!check(TokenType::LParen)) return nullptr;
     next();
-    IdentExpr* baseclass = parseIdent();
+    IdentExpr *baseclass = parseIdent();
     if (check(TokenType::NameSeparator)) {
         baseclass = parseModuleIdent(baseclass);
     }
