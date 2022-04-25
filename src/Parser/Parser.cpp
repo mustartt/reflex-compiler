@@ -1,40 +1,42 @@
 //
-// Created by henry on 2022-03-21.
+// Created by henry on 2022-04-24.
 //
 
 #include "Parser.h"
 
-#include "../Lexer/Lexer.h"
+#include <Lexer.h>
 
 namespace reflex {
 
-ParsingError::ParsingError(const std::string &msg)
-    : runtime_error("Parsing Error: " + msg) {}
-
-ExpectToken::ExpectToken(TokenType type, const Token &token)
-    : ParsingError("Expected token of value " + type.getTypeString()
-                       + " but got " + token.toString() + " instead.") {}
-
-Parser::Parser(Lexer *lexer, AstContextManager *ctx)
-    : lexer(lexer), ctx(ctx), tok(next()) {}
-
 Token Parser::next() {
-    tok = lexer->nextToken();
-    if (!check(TokenType::WhiteSpace) &&
-        !check(TokenType::SingleComment) &&
-        !check(TokenType::MultiComment))
-        return tok;
+    lookahead = lexer.nextToken();
+    if (!lookahead.isTrivial())
+        return lookahead;
     return next();
 }
 
 bool Parser::check(TokenType::Value tokenType) const {
-    return tok.getTokenType().getValue() == tokenType;
+    return lookahead.getTokenType().getValue() == tokenType;
 }
 
-Token Parser::expect(TokenType::Value expectedType) {
-    auto curr = tok;
-    if (!check(expectedType)) throw ExpectToken(TokenType(expectedType), curr);
-    next();
+Token Parser::expect(TokenType::Value expectedType, ErrorHandler *handler) {
+    auto curr = lookahead;
+    if (!check(expectedType)) {
+        if (handler) {
+            errorList.push_back(std::make_unique<ParsingExpectedTokenError>(
+                curr.getLocInfo(), TokenType(expectedType), curr
+            ));
+            handler->resumeParsingHandler();
+        } else {
+            throw UnrecoverableError(
+                curr.getLocInfo(),
+                "error: expected " + TokenType(expectedType).getTypeString() +
+                    " but got " + curr.getTokenType().getTypeString()
+            );
+        }
+    } else {
+        next();
+    }
     return curr;
 }
 

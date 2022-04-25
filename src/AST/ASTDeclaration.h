@@ -136,6 +136,20 @@ class MethodDecl : public FunctionDecl {
     Visibility visibility;
 };
 
+class CompilationUnit : public Declaration {
+  public:
+    CompilationUnit(const SourceLocation *loc,
+                    std::string declname,
+                    std::vector<Declaration *> decls = {});
+
+    void addDecl(Declaration *decl);
+    Declaration *getDecl(size_t index);
+    [[nodiscard]] const std::vector<Declaration *> &getDecls() const;
+
+  private:
+    std::vector<Declaration *> decls;
+};
+
 }
 
 #endif //REFLEX_SRC_AST_ASTDECLARATION_H_

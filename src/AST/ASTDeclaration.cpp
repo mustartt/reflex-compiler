@@ -84,4 +84,22 @@ MethodDecl::MethodDecl(const SourceLocation *loc,
                    body),
       parent(parent),
       visibility(visibility) {}
+
+CompilationUnit::CompilationUnit(const SourceLocation *loc,
+                                 std::string declname,
+                                 std::vector<Declaration *> decls)
+    : Declaration(loc, std::move(declname)), decls(std::move(decls)) {}
+
+void CompilationUnit::addDecl(Declaration *decl) {
+    decls.push_back(decl);
+}
+
+Declaration *CompilationUnit::getDecl(size_t index) {
+    return decls.at(index);
+}
+
+const std::vector<Declaration *> &CompilationUnit::getDecls() const {
+    return decls;
+}
+
 }

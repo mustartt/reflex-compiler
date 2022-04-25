@@ -1,112 +1,89 @@
 //
-// Created by henry on 2022-03-21.
+// Created by henry on 2022-04-24.
 //
 
 #ifndef REFLEX_SRC_PARSER_PARSER_H_
 #define REFLEX_SRC_PARSER_PARSER_H_
 
-#include <stdexcept>
-#include <Ast.h>
-#include <AstNodes.h>
-#include "../Source/Token.h"
+#include <utility>
+#include <vector>
+#include <string>
+#include <memory>
+#include <exception>
+
+#include <SourceManager.h>
+#include <Token.h>
+#include <ErrorHandler.h>
+#include <ASTType.h>
+#include <ParsingError.h>
 
 namespace reflex {
 
-class ParsingError : public std::runtime_error {
-  public:
-    explicit ParsingError(const std::string &msg);
-};
-
-class ExpectToken : public ParsingError {
-  public:
-    ExpectToken(TokenType type, const Token &token);
-};
-
+class ASTContext;
 class Lexer;
-class AstContextManager;
-class Parser {
-    AstContextManager *ctx;
-    Lexer *lexer;
-    Token tok;
-  public:
-    explicit Parser(Lexer *lexer, AstContextManager *ctx);
+class Parser;
 
+/// UnrecoverableError is thrown to propagate unrecoverable parsing error to the
+/// parent parsing context to handle
+class UnrecoverableError : public std::exception {
+  public:
+    UnrecoverableError(const SourceLocation *loc, std::string msg)
+        : loc(loc), msg(std::move(msg)) {}
+    const SourceLocation *getErrorLocation() const { return loc; }
+    const std::string &getErrorMessage() const { return msg; }
+  private:
+    const SourceLocation *loc;
+    std::string msg;
+};
+
+class ParsingContext final {
+  public:
+    explicit ParsingContext(Parser &parser, std::string context)
+        : parser(parser), context(std::move(context)) {}
+    ParsingContext(const ParsingContext &) = delete;
+    ParsingContext(ParsingContext &&) = default;
+
+  private:
+    Parser &parser;
+    std::string context;
+};
+
+class Parser final {
+    struct ParserState {
+      int depth = 0;
+    };
+    friend class ErrorHandler;
+    friend class ParsingContext;
+  public:
+    Parser(ASTContext &context, Lexer &lexer)
+        : context(context), lexer(lexer), lookahead(next()), state{} {}
+
+    /// sets lookahead to next available token in the lexer
+    /// @note skips all whitespace and comment tokens
     Token next();
+
     [[nodiscard]] bool check(TokenType::Value tokenType) const;
-    Token expect(TokenType::Value expectedType);
+
+    /// check if lookahead is of @param expectedType returns the consumed token
+    /// @param handler invokes the resume handler if token type does not match
+    ///                if handler is not provided, then throws the ExpectToken
+    Token expect(TokenType::Value expectedType, ErrorHandler *handler = nullptr);
 
   public:
-    Identifier *parseIdent();
-    IdentExpr *parseModuleIdent(IdentExpr *base);
-
-    TypeExpr *parseType();
+    ASTTypeExpr *parseType();
     ArrayTypeExpr *parseArrayType();
     ArrayTypeExpr *parseElementType1(ArrayTypeExpr *baseTyp);
     FunctionTypeExpr *parseFunctionType();
-    std::vector<TypeExpr *> parseParamTypeList();
+    std::vector<ASTTypeExpr *> parseParamTypeList();
 
-    Literal *parseLiteral();
-    Literal *parseBasicLit();
-    NumberLit *parseNumberLit();
-    StringLit *parseStringLit();
-    BoolLit *parseBoolLit();
-    NullLit *parseNullLit();
+  private:
+    ASTContext &context;
+    Lexer &lexer;
+    Token lookahead;
+    ParserState state;
 
-    Literal *parseArrayLit();
-    std::vector<AstExpr *> parseLiteralValue();
-    std::vector<AstExpr *> parseElementList();
-    AstExpr *parseElement();
-    Literal *parseFunctionLit();
-    std::pair<std::vector<ParamDecl *>, TypeExpr *> parseSignature();
-    std::vector<ParamDecl *> parseParamList();
-    ParamDecl *parseFuncParam();
-
-    Expression *parseExpr();
-    Expression *parseNamedOperand();
-    Expression *parseExpr1(int minPrec, Expression *lhs);
-    Expression *parseUnaryExpr();
-    Expression *parseOperand();
-    Expression *parsePrimaryExpr1(Expression *base);
-    Expression *parsePrimaryExpr2(Expression *base);
-    Expression *parseNewExpr();
-    Expression *parseConversion();
-    Expression *parsePrimaryExpr();
-    Expression *parseSelectorExpr(Expression *base);
-    Expression *parseIndexExpr(Expression *base);
-    std::vector<Expression *> parseArgumentList();
-    Expression *parseArgument(Expression *base);
-
-    Block *parseBlock();
-    std::vector<Statement *> parseStmtList();
-    Statement *parseStatement();
-
-    Declaration *parseVarOrTypeDecl();
-    Declaration *parseTypeDecl();
-    Declaration *parseVarDecl();
-    Statement *parseReturnStmt();
-    Statement *parseBreakStmt();
-    Statement *parseContinueStmt();
-    Statement *parseBlockStmt();
-    Statement *parseIfStmt();
-    Statement *parseForStmt();
-    ForClause *parseForClause();
-    Statement *parseWhileStmt();
-    SimpleStmt *parseSimpleStmt();
-
-    FunctionDecl *parseFunctionDecl();
-
-    IdentExpr *parseDerivedInterface();
-    std::vector<IdentExpr *> parseInterfaceList();
-    IdentExpr *parseBaseClass();
-    Declaration *parseClassDecl();
-    std::vector<MemberDecl *> parseClassBody();
-    MemberDecl *parseClassMemberDecl();
-    std::vector<MemberDecl *> parseInterfaceBody();
-    MemberDecl *parseInterfaceMemberDecl();
-    Declaration *parseInterfaceDecl();
-    Declaration *parseAnnotationDecl();
-
-    CompilationUnit *parseCompilationUnit();
+    std::vector<ParsingContext> contextStack;
+    std::vector<std::unique_ptr<ParsingErrorMessage>> errorList;
 };
 
 }
