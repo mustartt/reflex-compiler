@@ -10,6 +10,7 @@
 #include "ASTDeclaration.h"
 #include "ASTStatement.h"
 #include "ASTExpression.h"
+#include "ASTLiteral.h"
 
 namespace reflex {
 
@@ -41,11 +42,10 @@ void AstPrinter::printTreePrefix() {
 }
 
 std::string AstPrinter::printAstType(Type *type) {
-//    if (!type) {
-//        return "<<unknown>>";
-//    }
-//    return "<" + type->getTypeString() + ">";
-    return "<<unknown>>";
+    if (!type) {
+        return "<<unknown>>";
+    }
+    return "<<invalid>>";
 }
 
 void AstPrinter::printNodePrefix(const std::string &message, bool end) {
@@ -448,6 +448,72 @@ OpaqueType AstPrinter::visit(ArgumentExpr &expr) {
             (*i)->accept(this);
         }
     }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(NumberLiteral &literal) {
+    printNodePrefix("NumberLiteral: '" + literal.getLiteral() + "' "
+                        + literal.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(StringLiteral &literal) {
+    printNodePrefix("StringLiteral: \"" + literal.getLiteral() + "\" "
+                        + literal.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(BooleanLiteral &literal) {
+    printNodePrefix("BooleanLiteral: \"" + literal.getLiteral() + "\" "
+                        + literal.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(NullLiteral &literal) {
+    printNodePrefix("NullLiteral: \"" + literal.getLiteral() + "\" "
+                        + literal.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ArrayLiteral &literal) {
+    printNodePrefix("ArrayLiteral: "
+                        + literal.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    int it = 0;
+    const auto &initLst = literal.getInitList();
+    for (auto i = initLst.begin(); i != initLst.end(); ++i, ++it) {
+        auto isLastNode = it == initLst.size() - 1;
+        Scope _s(*this, isLastNode);
+        (*i)->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(FunctionLiteral &literal) {
+    printNodePrefix("FunctionLiteral: " + printAstType(nullptr));
+
+    int it = 0;
+    for (auto i = literal.getParamDecls().begin(); i != literal.getParamDecls().end(); ++i, ++it) {
+        auto isLastNode = it == literal.getParamDecls().size() - 1;
+        Scope _s(*this, literal.getBody() == nullptr && isLastNode);
+        (*i)->accept(this);
+    }
+    if (literal.getBody()) {
+        Scope _s(*this, true);
+        literal.getBody()->accept(this);
+    }
+
     depthFlag[depth] = true;
     return {};
 }

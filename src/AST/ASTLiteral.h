@@ -25,6 +25,9 @@ class Literal : public Expression {
 class BasicLiteral : public Literal {
   public:
     BasicLiteral(const SourceLocation *loc, std::string value);
+
+    const std::string &getLiteral() const { return value; }
+
   protected:
     std::string value;
 };
@@ -32,20 +35,30 @@ class BasicLiteral : public Literal {
 class NumberLiteral : public BasicLiteral {
   public:
     NumberLiteral(const SourceLocation *loc, std::string str);
+
+    double getValue() const { return val; }
+
+    ASTExpressionVisitorDispatcher
   private:
-    long val;
+    double val;
 };
 
 class StringLiteral : public BasicLiteral {
   public:
     StringLiteral(const SourceLocation *loc, std::string value);
+
+    ASTExpressionVisitorDispatcher
 };
 
 class BooleanLiteral : public BasicLiteral {
   public:
     BooleanLiteral(const SourceLocation *loc, std::string value);
+
+    bool getValue() const { return literal; }
+
+    ASTExpressionVisitorDispatcher
   private:
-    bool literal;
+    bool literal{};
 };
 
 class NullLiteral : public BasicLiteral {
@@ -56,6 +69,10 @@ class NullLiteral : public BasicLiteral {
 class ArrayLiteral : public Literal {
   public:
     ArrayLiteral(const SourceLocation *loc, std::vector<Expression *> list);
+
+    const std::vector<Expression *> &getInitList() const { return list; }
+
+    ASTExpressionVisitorDispatcher
   private:
     std::vector<Expression *> list;
 };
@@ -66,6 +83,12 @@ class FunctionLiteral : public Literal {
                     std::vector<ParamDecl *> parameters,
                     ASTTypeExpr *returnType,
                     BlockStmt *body);
+
+    const std::vector<ParamDecl *> &getParamDecls() const { return parameters; }
+    ASTTypeExpr *getReturnType() const { return returnType; }
+    BlockStmt *getBody() const { return body; }
+
+    ASTExpressionVisitorDispatcher
   private:
     std::vector<ParamDecl *> parameters;
     ASTTypeExpr *returnType;

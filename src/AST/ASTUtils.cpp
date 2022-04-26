@@ -4,6 +4,8 @@
 
 #include "ASTUtils.h"
 
+#include <stdexcept>
+
 namespace reflex {
 
 std::string getVisibilityString(Visibility visibility) {

@@ -18,9 +18,16 @@ class IndexExpr;
 class SelectorExpr;
 class ArgumentExpr;
 
-class ASTExpressionVisitor {
+class NumberLiteral;
+class StringLiteral;
+class BooleanLiteral;
+class NullLiteral;
+class ArrayLiteral;
+class FunctionLiteral;
+
+class ASTExprVisitor {
   public:
-    virtual ~ASTExpressionVisitor() = default;
+    virtual ~ASTExprVisitor() = default;
 
     virtual OpaqueType visit(DeclRefExpr &) = 0;
     virtual OpaqueType visit(UnaryExpr &) = 0;
@@ -30,17 +37,24 @@ class ASTExpressionVisitor {
     virtual OpaqueType visit(IndexExpr &) = 0;
     virtual OpaqueType visit(SelectorExpr &) = 0;
     virtual OpaqueType visit(ArgumentExpr &) = 0;
+
+    virtual OpaqueType visit(NumberLiteral &) = 0;
+    virtual OpaqueType visit(StringLiteral &) = 0;
+    virtual OpaqueType visit(BooleanLiteral &) = 0;
+    virtual OpaqueType visit(NullLiteral &) = 0;
+    virtual OpaqueType visit(ArrayLiteral &) = 0;
+    virtual OpaqueType visit(FunctionLiteral &) = 0;
 };
 
 class ASTExpressionVisitable {
   public:
     virtual ~ASTExpressionVisitable() = default;
 
-    virtual OpaqueType accept(ASTExpressionVisitor *v) = 0;
+    virtual OpaqueType accept(ASTExprVisitor *v) = 0;
 };
 
 #define ASTExpressionVisitorDispatcher \
-OpaqueType accept(ASTExpressionVisitor *v) override { return v->visit(*this); }
+OpaqueType accept(ASTExprVisitor *v) override { return v->visit(*this); }
 
 class ClassDecl;
 class InterfaceDecl;

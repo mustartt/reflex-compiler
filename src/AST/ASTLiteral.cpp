@@ -20,7 +20,7 @@ BasicLiteral::BasicLiteral(const SourceLocation *loc, std::string value)
 NumberLiteral::NumberLiteral(const SourceLocation *loc, std::string str)
     : BasicLiteral(loc, std::move(str)) {
     std::stringstream ss(value);
-    long i;
+    double i;
     if ((ss >> i).fail() || !(ss >> std::ws).eof()) {
         throw BadLiteralError{"Cannot parse " + value + " to a number"};
     }

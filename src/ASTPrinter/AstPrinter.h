@@ -24,7 +24,7 @@ class Scope {
 class Type;
 class AstPrinter : public ASTDeclVisitor,
                    public ASTStmtVisitor,
-                   public ASTExpressionVisitor {
+                   public ASTExprVisitor {
     std::ostream &output;
     size_t depth;
     std::vector<bool> depthFlag;
@@ -64,6 +64,13 @@ class AstPrinter : public ASTDeclVisitor,
     OpaqueType visit(IndexExpr &expr) override;
     OpaqueType visit(SelectorExpr &expr) override;
     OpaqueType visit(ArgumentExpr &expr) override;
+
+    OpaqueType visit(NumberLiteral &literal) override;
+    OpaqueType visit(StringLiteral &literal) override;
+    OpaqueType visit(BooleanLiteral &literal) override;
+    OpaqueType visit(NullLiteral &literal) override;
+    OpaqueType visit(ArrayLiteral &literal) override;
+    OpaqueType visit(FunctionLiteral &literal) override;
 
   private:
     void printTreePrefix();
