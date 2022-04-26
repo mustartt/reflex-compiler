@@ -1,3 +1,7 @@
 [submodule "lib/googletest"]
 	path = lib/googletest
 	url = https://github.com/google/googletest.git
+
+[submodule "lib/doxygen-awesome-css"]
+	path = lib/doxygen-awesome-css
+	url = https://github.com/jothepro/doxygen-awesome-css.git
