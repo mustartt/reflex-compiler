@@ -53,7 +53,7 @@ class ASTExpressionVisitable {
     virtual OpaqueType accept(ASTExprVisitor *v) = 0;
 };
 
-#define ASTExpressionVisitorDispatcher \
+#define ASTExprVisitorDispatcher \
 OpaqueType accept(ASTExprVisitor *v) override { return v->visit(*this); }
 
 class ClassDecl;

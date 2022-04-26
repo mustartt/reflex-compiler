@@ -10,8 +10,9 @@ add_library(
         ErrorHandler.h
         ParsingError.cpp
         ParsingError.h
-        ParserType.cpp
-)
+        TypeParser.cpp
+        LiteralParser.cpp
+        DeclParser.cpp ExprParser.cpp StmtParser.cpp)
 
 target_link_libraries(parser LINK_PUBLIC ast lexer)
 

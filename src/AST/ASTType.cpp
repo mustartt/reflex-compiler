@@ -26,8 +26,8 @@ std::string QualifiedTypenameExpr::getQualifiedString() const {
     return prefix + "::" + type->getQualifiedString();
 }
 
-ArrayTypeExpr::ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type)
-    : ASTTypeExpr(loc), elementType(element_type) {}
+ArrayTypeExpr::ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type, NumberLiteral *size)
+    : ASTTypeExpr(loc), elementType(element_type), size(size) {}
 
 FunctionTypeExpr::FunctionTypeExpr(const SourceLocation *loc,
                                    ASTTypeExpr *return_type,

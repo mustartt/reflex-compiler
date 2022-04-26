@@ -21,7 +21,7 @@ SourceLocation::SourceLocation(SourceFile &parent, size_t startline, size_t star
     if (0 == startline || startline > parent.totalLine() ||
         0 == endline || endline > parent.totalLine() ||
         0 == startcol || startcol > parent.line(startline).size() ||
-        0 == startcol || startcol > parent.line(startline).size()) {
+        0 == endcol || endcol > parent.line(startline).size()) {
 
         throw InvalidSourceLocationError{"Failed to create SourceLocation at " + getStringRepr()};
     }
@@ -89,6 +89,7 @@ SourceFile::SourceFile(std::string filename, std::istream &is) : filename{std::m
         line += '\n';
         source.emplace_back(std::move(line));
     }
+    source.emplace_back("\n");
 }
 
 std::string SourceFile::content() const {
@@ -125,11 +126,11 @@ Loc &selectLocation(Loc &loc1, Loc &loc2, Compare cmp) {
     return cmp(loc1, loc2) ? loc1 : loc2;
 }
 
-const SourceLocation *SourceFile::mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2) {
-    auto starting1 = loc1.getStartLocation();
-    auto starting2 = loc2.getStartLocation();
-    auto ending1 = loc1.getEndLocation();
-    auto ending2 = loc2.getEndLocation();
+const SourceLocation *SourceFile::mergeSourceLocation(const SourceLocation *loc1, const SourceLocation *loc2) {
+    auto starting1 = loc1->getStartLocation();
+    auto starting2 = loc2->getStartLocation();
+    auto ending1 = loc1->getEndLocation();
+    auto ending2 = loc2->getEndLocation();
 
     auto &[sline, scol] = selectLocation(starting1, starting2, std::less<>());
     auto &[eline, ecol] = selectLocation(ending1, ending2, std::greater<>());
@@ -145,7 +146,7 @@ const std::string &SourceFile::getFilename() const {
     return filename;
 }
 const SourceLocation *SourceFile::getLastValidPosition() {
-    auto endline = totalLine();
+    auto endline = totalLine() - 1;
     auto endcol = line(endline).size();
     return createSourceLocation(endline, endcol, endline, endcol);
 }
@@ -159,8 +160,8 @@ SourceFile &SourceManager::open(const std::string &filename) {
 }
 
 const SourceLocation *
-SourceManager::mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2) {
-    return loc1.getSource().mergeSourceLocation(loc1, loc2);
+SourceManager::mergeSourceLocation(const SourceLocation *loc1, const SourceLocation *loc2) {
+    return loc1->getSource().mergeSourceLocation(loc1, loc2);
 }
 
 const SourceLocation *

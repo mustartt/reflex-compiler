@@ -33,7 +33,11 @@ class Declaration : public ASTNode, public ASTDeclVisitable {
 
 class AggregateDecl : public Declaration {
   public:
-    AggregateDecl(const SourceLocation *loc, std::string declname);
+    AggregateDecl(const SourceLocation *loc, Visibility visibility, std::string declname);
+
+    Visibility getVisibility() const { return visibility; }
+  private:
+    Visibility visibility;
 };
 
 class FieldDecl;
@@ -42,18 +46,23 @@ class MethodDecl;
 class ClassDecl : public AggregateDecl {
   public:
     ClassDecl(const SourceLocation *loc,
+              Visibility visibility,
               std::string declname,
               ReferenceTypenameExpr *baseclass,
               std::vector<ReferenceTypenameExpr *> interfaces,
-              std::vector<AggregateDecl *> decls,
-              std::vector<FieldDecl *> fields,
-              std::vector<MethodDecl *> methods);
+              std::vector<AggregateDecl *> decls = {},
+              std::vector<FieldDecl *> fields = {},
+              std::vector<MethodDecl *> methods = {});
 
     ReferenceTypenameExpr *getBaseclass() const { return baseclass; }
     const std::vector<ReferenceTypenameExpr *> &getInterfaces() const { return interfaces; }
     const std::vector<AggregateDecl *> &getDecls() const { return decls; }
     const std::vector<FieldDecl *> &getFields() const { return fields; }
     const std::vector<MethodDecl *> &getMethods() const { return methods; }
+
+    void addMemberDecl(AggregateDecl *decl) { decls.push_back(decl); }
+    void addMemberDecl(FieldDecl *decl) { fields.push_back(decl); }
+    void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
 
     ASTDeclVisitorDispatcher
   private:
@@ -68,14 +77,18 @@ class ClassDecl : public AggregateDecl {
 class InterfaceDecl : public AggregateDecl {
   public:
     InterfaceDecl(const SourceLocation *loc,
+                  Visibility visibility,
                   std::string declname,
                   std::vector<ReferenceTypenameExpr *> interfaces,
-                  std::vector<AggregateDecl *> decls,
-                  std::vector<MethodDecl *> methods);
+                  std::vector<AggregateDecl *> decls = {},
+                  std::vector<MethodDecl *> methods = {});
 
     const std::vector<ReferenceTypenameExpr *> &getInterfaces() const { return interfaces; }
     const std::vector<AggregateDecl *> &getDecls() const { return decls; }
     const std::vector<MethodDecl *> &getMethods() const { return methods; }
+
+    void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
+    void addMemberDecl(InterfaceDecl *decl) { decls.push_back(decl); }
 
     ASTDeclVisitorDispatcher
   private:
@@ -124,9 +137,7 @@ class ParamDecl : public VariableDecl {
   public:
     ParamDecl(const SourceLocation *loc,
               std::string declname,
-              ASTTypeExpr *type_decl,
-              FunctionDecl *parent,
-              Expression *initializer = nullptr);
+              ASTTypeExpr *type_decl);
 
     FunctionDecl *getParent() const { return parent; }
 

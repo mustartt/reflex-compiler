@@ -76,7 +76,7 @@ class SourceFile {
 
     const SourceLocation *createSourceLocation(size_t startline, size_t startcol,
                                                size_t endline, size_t endcol);
-    const SourceLocation *mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    const SourceLocation *mergeSourceLocation(const SourceLocation *loc1, const SourceLocation *loc2);
     bool operator==(const SourceFile &rhs) const;
 
     [[nodiscard]] const std::string &getFilename() const;
@@ -91,7 +91,7 @@ class SourceManager {
   public:
     SourceFile &open(const std::string &filename);
 
-    static const SourceLocation *mergeSourceLocation(const SourceLocation &loc1, const SourceLocation &loc2);
+    static const SourceLocation *mergeSourceLocation(const SourceLocation *loc1, const SourceLocation *loc2);
     static const SourceLocation *createSourceLocation(SourceFile &source,
                                                       size_t startline, size_t startcol,
                                                       size_t endline, size_t endcol);

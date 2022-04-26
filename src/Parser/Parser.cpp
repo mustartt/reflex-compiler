@@ -8,11 +8,20 @@
 
 namespace reflex {
 
+Parser::Parser(ASTContext &context, Lexer &lex)
+    : context(context), lexer(lex),
+      lookahead(TokenType::EndOfFile, "EOF",
+                lex.getSource().createSourceLocation(1, 1, 1, 1)),
+      state{} {
+    lookahead = next();
+}
+
 Token Parser::next() {
     lookahead = lexer.nextToken();
-    if (!lookahead.isTrivial())
-        return lookahead;
-    return next();
+    while (lookahead.isTrivial()) {
+        lookahead = lexer.nextToken();
+    }
+    return lookahead;
 }
 
 bool Parser::check(TokenType::Value tokenType) const {
@@ -38,6 +47,11 @@ Token Parser::expect(TokenType::Value expectedType, ErrorHandler *handler) {
         next();
     }
     return curr;
+}
+
+std::string Parser::parseString() {
+    auto name = expect(TokenType::Identifier);
+    return name.getLexeme();
 }
 
 }

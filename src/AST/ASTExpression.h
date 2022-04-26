@@ -31,7 +31,7 @@ class DeclRefExpr : public Expression {
     [[nodiscard]] virtual std::string getReferenceName() const = 0;
     [[nodiscard]] virtual const std::string &getBaseRefName() const = 0;
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Declaration *decl;
 };
@@ -65,7 +65,7 @@ class UnaryExpr : public Expression {
     Operator::UnaryOperator getUnaryOp() const { return op; }
     Expression *getExpr() const { return expr; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Operator::UnaryOperator op;
     Expression *expr;
@@ -80,7 +80,7 @@ class BinaryExpr : public Expression {
     Expression *getLhs() const { return lhs; }
     Expression *getRhs() const { return rhs; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Operator::BinaryOperator op;
     Expression *lhs;
@@ -93,7 +93,7 @@ class NewExpr : public Expression {
 
     ASTTypeExpr *getInstanceType() const { return instanceType; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     ASTTypeExpr *instanceType;
 };
@@ -104,7 +104,7 @@ class CastExpr : public Expression {
 
     Expression *getFrom() const { return from; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     ASTTypeExpr *resultType;
     Expression *from;
@@ -117,7 +117,7 @@ class IndexExpr : public Expression {
     Expression *getBaseExpr() const { return expr; }
     Expression *getIndex() const { return index; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Expression *expr;
     Expression *index;
@@ -130,7 +130,7 @@ class SelectorExpr : public Expression {
     Expression *getBaseExpr() const { return expr; }
     const std::string &getSelector() const { return selector; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Expression *expr;
     std::string selector;
@@ -143,7 +143,7 @@ class ArgumentExpr : public Expression {
     Expression *getBaseExpr() const { return expr; }
     const std::vector<Expression *> &getArguments() const { return arguments; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     Expression *expr;
     std::vector<Expression *> arguments;

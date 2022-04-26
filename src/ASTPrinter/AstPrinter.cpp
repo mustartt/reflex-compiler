@@ -63,7 +63,8 @@ void AstPrinter::printNodePrefix(const std::string &message, bool end) {
 
 OpaqueType AstPrinter::visit(CompilationUnit &CU) {
     printNodePrefix("CompilationUnit: "
-                        + CU.location()->getStringRepr() + " "
+                        + CU.location()->getStringRepr() + " '"
+                        + CU.getDeclname() + "' "
                         + printAstType(nullptr));
     {
         int it = 0;
@@ -79,7 +80,8 @@ OpaqueType AstPrinter::visit(CompilationUnit &CU) {
 
 OpaqueType AstPrinter::visit(ClassDecl &klass) {
     printNodePrefix("ClassDecl: "
-                        + klass.location()->getStringRepr() + " "
+                        + klass.location()->getStringRepr() + " '"
+                        + klass.getDeclname() + "' "
                         + printAstType(nullptr));
     {
         std::vector<Declaration *> members;
@@ -100,7 +102,8 @@ OpaqueType AstPrinter::visit(ClassDecl &klass) {
 
 OpaqueType AstPrinter::visit(InterfaceDecl &inf) {
     printNodePrefix("InterfaceDecl: "
-                        + inf.location()->getStringRepr() + " "
+                        + inf.location()->getStringRepr() + " '"
+                        + inf.getDeclname() + "' "
                         + printAstType(nullptr));
     {
         std::vector<Declaration *> members;
@@ -207,7 +210,7 @@ OpaqueType AstPrinter::visit(MethodDecl &decl) {
 }
 
 OpaqueType AstPrinter::visit(BlockStmt &stmt) {
-    printNodePrefix("Block: " + stmt.location()->getStringRepr());
+    printNodePrefix("BlockStmt: " + stmt.location()->getStringRepr());
 
     int it = 0;
     for (auto i = stmt.getStmts().begin(); i != stmt.getStmts().end(); ++i, ++it) {

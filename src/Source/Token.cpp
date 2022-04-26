@@ -88,7 +88,6 @@ bool Token::isDeclaration() const {
 bool Token::isTrivial() const {
     auto val = tokenType.getValue();
     return val == TokenType::WhiteSpace
-        || val == TokenType::EndOfFile
         || val == TokenType::SingleComment
         || val == TokenType::MultiComment;
 }

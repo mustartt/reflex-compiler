@@ -38,7 +38,7 @@ class NumberLiteral : public BasicLiteral {
 
     double getValue() const { return val; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     double val;
 };
@@ -47,7 +47,7 @@ class StringLiteral : public BasicLiteral {
   public:
     StringLiteral(const SourceLocation *loc, std::string value);
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
 };
 
 class BooleanLiteral : public BasicLiteral {
@@ -56,7 +56,7 @@ class BooleanLiteral : public BasicLiteral {
 
     bool getValue() const { return literal; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     bool literal{};
 };
@@ -64,6 +64,8 @@ class BooleanLiteral : public BasicLiteral {
 class NullLiteral : public BasicLiteral {
   public:
     NullLiteral(const SourceLocation *loc, std::string value);
+
+    ASTExprVisitorDispatcher
 };
 
 class ArrayLiteral : public Literal {
@@ -72,7 +74,7 @@ class ArrayLiteral : public Literal {
 
     const std::vector<Expression *> &getInitList() const { return list; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     std::vector<Expression *> list;
 };
@@ -88,7 +90,7 @@ class FunctionLiteral : public Literal {
     ASTTypeExpr *getReturnType() const { return returnType; }
     BlockStmt *getBody() const { return body; }
 
-    ASTExpressionVisitorDispatcher
+    ASTExprVisitorDispatcher
   private:
     std::vector<ParamDecl *> parameters;
     ASTTypeExpr *returnType;

@@ -9,17 +9,18 @@ namespace reflex {
 Declaration::Declaration(const SourceLocation *loc, std::string declname)
     : ASTNode(loc), declname(std::move(declname)) {}
 
-AggregateDecl::AggregateDecl(const SourceLocation *loc, std::string declname)
-    : Declaration(loc, std::move(declname)) {}
+AggregateDecl::AggregateDecl(const SourceLocation *loc, Visibility visibility, std::string declname)
+    : Declaration(loc, std::move(declname)), visibility(visibility) {}
 
 ClassDecl::ClassDecl(const SourceLocation *loc,
+                     Visibility visibility,
                      std::string declname,
                      ReferenceTypenameExpr *baseclass,
                      std::vector<ReferenceTypenameExpr *> interfaces,
                      std::vector<AggregateDecl *> decls,
                      std::vector<FieldDecl *> fields,
                      std::vector<MethodDecl *> methods)
-    : AggregateDecl(loc, std::move(declname)),
+    : AggregateDecl(loc, visibility, std::move(declname)),
       baseclass(baseclass),
       interfaces(std::move(interfaces)),
       decls(std::move(decls)),
@@ -27,11 +28,12 @@ ClassDecl::ClassDecl(const SourceLocation *loc,
       methods(std::move(methods)) {}
 
 InterfaceDecl::InterfaceDecl(const SourceLocation *loc,
+                             Visibility visibility,
                              std::string declname,
                              std::vector<ReferenceTypenameExpr *> interfaces,
                              std::vector<AggregateDecl *> decls,
                              std::vector<MethodDecl *> methods)
-    : AggregateDecl(loc, std::move(declname)),
+    : AggregateDecl(loc, visibility, std::move(declname)),
       interfaces(std::move(interfaces)),
       decls(std::move(decls)),
       methods(std::move(methods)) {}
@@ -56,10 +58,8 @@ FieldDecl::FieldDecl(const SourceLocation *loc,
 
 ParamDecl::ParamDecl(const SourceLocation *loc,
                      std::string declname,
-                     ASTTypeExpr *type_decl,
-                     FunctionDecl *parent,
-                     Expression *initializer)
-    : VariableDecl(loc, std::move(declname), type_decl, initializer), parent(parent) {}
+                     ASTTypeExpr *type_decl)
+    : VariableDecl(loc, std::move(declname), type_decl, nullptr), parent(nullptr) {}
 
 FunctionDecl::FunctionDecl(const SourceLocation *loc,
                            std::string declname,

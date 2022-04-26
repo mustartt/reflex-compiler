@@ -35,6 +35,7 @@ class Lexer {
 
     [[nodiscard]] bool hasNext() const;
     Token nextToken();
+    SourceFile &getSource() { return source; }
   private:
     void updateInternalState(const std::string &lexeme);
     LexerState getLastValidSourceLoc();

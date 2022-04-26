@@ -11,11 +11,14 @@
 #include <memory>
 #include <exception>
 
-#include <SourceManager.h>
 #include <Token.h>
+#include <SourceManager.h>
 #include <ErrorHandler.h>
-#include <ASTType.h>
 #include <ParsingError.h>
+#include <ASTType.h>
+#include <ASTLiteral.h>
+#include <ASTDeclaration.h>
+#include <ASTStatement.h>
 
 namespace reflex {
 
@@ -55,8 +58,7 @@ class Parser final {
     friend class ErrorHandler;
     friend class ParsingContext;
   public:
-    Parser(ASTContext &context, Lexer &lexer)
-        : context(context), lexer(lexer), lookahead(next()), state{} {}
+    Parser(ASTContext &context, Lexer &lex);
 
     /// sets lookahead to next available token in the lexer
     /// @note skips all whitespace and comment tokens
@@ -71,11 +73,80 @@ class Parser final {
 
   public:
     ASTTypeExpr *parseType();
+    BaseTypenameExpr *parseBaseTypenameType();
+    QualifiedTypenameExpr *parseQualifiedType(ReferenceTypenameExpr *expr);
     ArrayTypeExpr *parseArrayType();
-    ArrayTypeExpr *parseElementType1(ArrayTypeExpr *baseTyp);
+    ArrayTypeExpr *parseElementType1(ArrayTypeExpr *baseType);
     FunctionTypeExpr *parseFunctionType();
     std::vector<ASTTypeExpr *> parseParamTypeList();
 
+    Literal *parseLiteral();
+    Literal *parseBasicLit();
+    NumberLiteral *parseNumberLit();
+    StringLiteral *parseStringLit();
+    BooleanLiteral *parseBoolLit();
+    NullLiteral *parseNullLit();
+
+    Literal *parseArrayLit();
+    std::vector<Expression *> parseLiteralValue();
+    std::vector<Expression *> parseElementList();
+    Expression *parseElement();
+    Literal *parseFunctionLit();
+
+    std::pair<std::vector<ParamDecl *>, ASTTypeExpr *> parseSignature();
+    std::vector<ParamDecl *> parseParamList();
+    ParamDecl *parseFuncParam();
+
+    Expression *parseExpr();
+    Identifier *parseBaseDeclRef();
+    ModuleSelector *parseModuleSelector(DeclRefExpr *base);
+    Expression *parseNamedOperand();
+    Expression *parseExpr1(int minPrec, Expression *lhs);
+    Expression *parseUnaryExpr();
+    Expression *parseOperand();
+    Expression *parsePrimaryExpr1(Expression *base);
+    Expression *parsePrimaryExpr2(Expression *base);
+    Expression *parseNewExpr();
+    Expression *parseConversion();
+    Expression *parsePrimaryExpr();
+    Expression *parseSelectorExpr(Expression *base);
+    IndexExpr *parseIndexExpr(Expression *base);
+    std::vector<Expression *> parseArgumentList();
+    ArgumentExpr *parseArgument(Expression *base);
+
+    std::vector<Statement *> parseStmtList();
+    Statement *parseStatement();
+
+    BlockStmt *parseBlockStmt();
+
+    DeclStmt *parseDeclStmt();
+
+    Statement *parseReturnStmt();
+    Statement *parseBreakStmt();
+    Statement *parseContinueStmt();
+    Statement *parseIfStmt();
+    Statement *parseForStmt();
+    ForClause *parseForClause();
+    Statement *parseWhileStmt();
+    SimpleStmt *parseSimpleStmt();
+
+    FunctionDecl *parseFunctionDecl();
+    MethodDecl *parseMethodDecl(Visibility visibility, AggregateDecl *parent);
+    VariableDecl *parseVariableDecl();
+    FieldDecl *parseFieldDecl(Visibility visibility, ClassDecl *parent);
+
+    ReferenceTypenameExpr *parseBaseClass();
+    ReferenceTypenameExpr *parseDerivedInterface();
+    std::vector<ReferenceTypenameExpr *> parseInterfaceList();
+
+    ClassDecl *parseClassDecl(Visibility visibility);
+    InterfaceDecl *parseInterfaceDecl(Visibility visibility);
+    void parseClassBody(ClassDecl *klass);
+    void parseInterfaceBody(InterfaceDecl *interface);
+
+    CompilationUnit *parseCompilationUnit();
+
+    std::string parseString();
   private:
     ASTContext &context;
     Lexer &lexer;

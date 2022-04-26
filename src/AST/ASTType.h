@@ -13,6 +13,7 @@
 namespace reflex {
 
 class SourceLocation;
+class NumberLiteral;
 
 class ASTTypeExpr : public ASTNode {
   public:
@@ -31,7 +32,7 @@ class BaseTypenameExpr : public ReferenceTypenameExpr {
     BaseTypenameExpr(const SourceLocation *loc, std::string type_name);
 
     [[nodiscard]] std::string getQualifiedString() const override;
-
+    const std::string &getTypeName() const { return typeName; }
   private:
     std::string typeName;
 };
@@ -49,9 +50,10 @@ class QualifiedTypenameExpr : public ReferenceTypenameExpr {
 
 class ArrayTypeExpr : public ASTTypeExpr {
   public:
-    ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type);
+    ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type, NumberLiteral* size);
 
   private:
+    NumberLiteral *size;
     ASTTypeExpr *elementType;
 };
 
