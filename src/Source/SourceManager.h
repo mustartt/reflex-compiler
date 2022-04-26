@@ -36,7 +36,13 @@ class SourceLocation {
                    size_t endline, size_t endcol);
 
     void printSourceRegion(std::ostream &os, bool underline = false) const;
+
+    /// Produce a string representation with filename and source location
+    /// @return <filename>: <startline:startcol, endline,endcol>
     [[nodiscard]] std::string getLocationString() const;
+
+    /// Produce a string representation of source location
+    /// @return <startline:startcol, endline,endcol>
     [[nodiscard]] std::string getStringRepr() const;
 
     [[nodiscard]] std::pair<size_t, size_t> getStartLocation() const;

@@ -48,6 +48,12 @@ class ClassDecl : public AggregateDecl {
               std::vector<FieldDecl *> fields,
               std::vector<MethodDecl *> methods);
 
+    ReferenceTypenameExpr *getBaseclass() const { return baseclass; }
+    const std::vector<ReferenceTypenameExpr *> &getInterfaces() const { return interfaces; }
+    const std::vector<AggregateDecl *> &getDecls() const { return decls; }
+    const std::vector<FieldDecl *> &getFields() const { return fields; }
+    const std::vector<MethodDecl *> &getMethods() const { return methods; }
+
     ASTDeclVisitorDispatcher
   private:
     ReferenceTypenameExpr *baseclass;
@@ -65,6 +71,10 @@ class InterfaceDecl : public AggregateDecl {
                   std::vector<ReferenceTypenameExpr *> interfaces,
                   std::vector<AggregateDecl *> decls,
                   std::vector<MethodDecl *> methods);
+
+    const std::vector<ReferenceTypenameExpr *> &getInterfaces() const { return interfaces; }
+    const std::vector<AggregateDecl *> &getDecls() const { return decls; }
+    const std::vector<MethodDecl *> &getMethods() const { return methods; }
 
     ASTDeclVisitorDispatcher
   private:
