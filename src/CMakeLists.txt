@@ -7,7 +7,7 @@ add_subdirectory(Lexer)
 add_subdirectory(AST)
 add_subdirectory(Parser)
 
-#add_subdirectory(AstPrinter)
+#add_subdirectory(ASTPrinter)
 #add_subdirectory(Types)
 #add_subdirectory(TypeChecker)
 #add_subdirectory(CodeGen)

@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "Operator.h"
+#include <Operator.h>
+#include <ASTVisitor.h>
 
 namespace reflex {
 
@@ -18,7 +19,7 @@ class SourceLocation;
 class Declaration;
 class ASTTypeExpr;
 
-class Expression : public ASTNode {
+class Expression : public ASTNode, public ASTExpressionVisitable {
   public:
     explicit Expression(const SourceLocation *loc);
 };
@@ -29,6 +30,7 @@ class ReferenceExpr : public Expression {
 
     [[nodiscard]] virtual std::string getReferenceName() const = 0;
 
+    ASTExpressionVisitorDispatcher
   private:
     Declaration *decl;
 };
@@ -56,6 +58,8 @@ class ModuleSelector : public ReferenceExpr {
 class UnaryExpr : public Expression {
   public:
     UnaryExpr(const SourceLocation *loc, Operator::UnaryOperator op, Expression *expr);
+
+    ASTExpressionVisitorDispatcher
   private:
     Operator::UnaryOperator op;
     Expression *expr;
@@ -65,6 +69,8 @@ class BinaryExpr : public Expression {
   public:
     BinaryExpr(const SourceLocation *loc, Operator::BinaryOperator op,
                Expression *lhs, Expression *rhs);
+
+    ASTExpressionVisitorDispatcher
   private:
     Operator::BinaryOperator op;
     Expression *lhs;
@@ -74,6 +80,8 @@ class BinaryExpr : public Expression {
 class NewExpr : public Expression {
   public:
     NewExpr(const SourceLocation *loc, ASTTypeExpr *instanceType);
+
+    ASTExpressionVisitorDispatcher
   private:
     ASTTypeExpr *instanceType;
 };
@@ -81,6 +89,8 @@ class NewExpr : public Expression {
 class CastExpr : public Expression {
   public:
     CastExpr(const SourceLocation *loc, ASTTypeExpr *resultType, Expression *from);
+
+    ASTExpressionVisitorDispatcher
   private:
     ASTTypeExpr *resultType;
     Expression *from;
@@ -89,6 +99,8 @@ class CastExpr : public Expression {
 class IndexExpr : public Expression {
   public:
     IndexExpr(const SourceLocation *loc, Expression *expr, Expression *index);
+
+    ASTExpressionVisitorDispatcher
   private:
     Expression *expr;
     Expression *index;
@@ -97,6 +109,8 @@ class IndexExpr : public Expression {
 class SelectorExpr : public Expression {
   public:
     SelectorExpr(const SourceLocation *loc, Expression *expr, std::string aSelector);
+
+    ASTExpressionVisitorDispatcher
   private:
     Expression *expr;
     std::string selector;
@@ -105,6 +119,8 @@ class SelectorExpr : public Expression {
 class ArgumentExpr : public Expression {
   public:
     ArgumentExpr(const SourceLocation *loc, Expression *expr, std::vector<Expression *> arguments);
+
+    ASTExpressionVisitorDispatcher
   private:
     Expression *expr;
     std::vector<Expression *> arguments;

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <ASTUtils.h>
+#include <ASTVisitor.h>
 
 namespace reflex {
 
@@ -21,7 +22,7 @@ class Expression;
 class BlockStmt;
 class FunctionTypeExpr;
 
-class Declaration : public ASTNode {
+class Declaration : public ASTNode, public ASTDeclVisitable {
   public:
     Declaration(const SourceLocation *loc, std::string declname);
 
@@ -47,6 +48,7 @@ class ClassDecl : public AggregateDecl {
               std::vector<FieldDecl *> fields,
               std::vector<MethodDecl *> methods);
 
+    ASTDeclVisitorDispatcher
   private:
     ReferenceTypenameExpr *baseclass;
     std::vector<ReferenceTypenameExpr *> interfaces;
@@ -64,6 +66,7 @@ class InterfaceDecl : public AggregateDecl {
                   std::vector<AggregateDecl *> decls,
                   std::vector<MethodDecl *> methods);
 
+    ASTDeclVisitorDispatcher
   private:
     std::vector<ReferenceTypenameExpr *> interfaces;
 
@@ -77,6 +80,8 @@ class VariableDecl : public Declaration {
                  std::string declname,
                  ASTTypeExpr *type_decl,
                  Expression *initializer = nullptr);
+
+    ASTDeclVisitorDispatcher
   protected:
     ASTTypeExpr *typeDecl;
     Expression *initializer;
@@ -91,6 +96,7 @@ class FieldDecl : public VariableDecl {
               Visibility visibility,
               Expression *initializer = nullptr);
 
+    ASTDeclVisitorDispatcher
   private:
     ClassDecl *parent;
     Visibility visibility;
@@ -105,6 +111,7 @@ class ParamDecl : public VariableDecl {
               FunctionDecl *parent,
               Expression *initializer = nullptr);
 
+    ASTDeclVisitorDispatcher
   private:
     FunctionDecl *parent;
 };
@@ -116,6 +123,8 @@ class FunctionDecl : public Declaration {
                  std::vector<ParamDecl *> param_decls,
                  ASTTypeExpr *return_type_decl,
                  BlockStmt *body);
+
+    ASTDeclVisitorDispatcher
   protected:
     std::vector<ParamDecl *> paramDecls;
     ASTTypeExpr *returnTypeDecl;
@@ -131,6 +140,8 @@ class MethodDecl : public FunctionDecl {
                BlockStmt *body,
                AggregateDecl *parent,
                Visibility visibility);
+
+    ASTDeclVisitorDispatcher
   private:
     AggregateDecl *parent;
     Visibility visibility;
@@ -146,6 +157,7 @@ class CompilationUnit : public Declaration {
     Declaration *getDecl(size_t index);
     [[nodiscard]] const std::vector<Declaration *> &getDecls() const;
 
+    ASTDeclVisitorDispatcher
   private:
     std::vector<Declaration *> decls;
 };

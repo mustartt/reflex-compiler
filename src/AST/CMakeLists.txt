@@ -22,7 +22,7 @@ add_library(
         ASTContext.h
         Operator.cpp
         Operator.h
-)
+        Utils/Generics.h ASTVisitor.h)
 
 set_target_properties(ast PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(ast PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
