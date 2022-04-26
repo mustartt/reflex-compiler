@@ -15,4 +15,4 @@ add_subdirectory(ASTPrinter)
 add_executable(reflex main.cpp)
 
 #target_link_libraries(reflex ${llvm_libs} ast parser ast_printer types typechecker codegen)
-target_link_libraries(reflex ${llvm_libs} lexer ast)
+target_link_libraries(reflex ${llvm_libs} lexer ast astprinter parser)
