@@ -11,10 +11,6 @@ Statement::Statement(const SourceLocation *loc) : ASTNode(loc) {}
 BlockStmt::BlockStmt(const SourceLocation *loc, std::vector<Statement *> stmts)
     : Statement(loc), statements(std::move(stmts)) {}
 
-const std::vector<Statement *> &BlockStmt::getStatements() const {
-    return statements;
-}
-
 SimpleStmt::SimpleStmt(const SourceLocation *loc) : Statement(loc) {}
 
 ReturnStmt::ReturnStmt(const SourceLocation *loc, Expression *returnValue)

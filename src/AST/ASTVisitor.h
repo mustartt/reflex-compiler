@@ -9,7 +9,7 @@
 
 namespace reflex {
 
-class ReferenceExpr;
+class DeclRefExpr;
 class UnaryExpr;
 class BinaryExpr;
 class NewExpr;
@@ -22,7 +22,7 @@ class ASTExpressionVisitor {
   public:
     virtual ~ASTExpressionVisitor() = default;
 
-    virtual OpaqueType visit(ReferenceExpr &) = 0;
+    virtual OpaqueType visit(DeclRefExpr &) = 0;
     virtual OpaqueType visit(UnaryExpr &) = 0;
     virtual OpaqueType visit(BinaryExpr &) = 0;
     virtual OpaqueType visit(NewExpr &) = 0;
@@ -46,6 +46,7 @@ class ClassDecl;
 class InterfaceDecl;
 class VariableDecl;
 class FieldDecl;
+class ParamDecl;
 class FunctionDecl;
 class MethodDecl;
 class CompilationUnit;
@@ -58,6 +59,7 @@ class ASTDeclVisitor {
     virtual OpaqueType visit(InterfaceDecl &) = 0;
     virtual OpaqueType visit(VariableDecl &) = 0;
     virtual OpaqueType visit(FieldDecl &) = 0;
+    virtual OpaqueType visit(ParamDecl &) = 0;
     virtual OpaqueType visit(FunctionDecl &) = 0;
     virtual OpaqueType visit(MethodDecl &) = 0;
     virtual OpaqueType visit(CompilationUnit &) = 0;
@@ -84,6 +86,7 @@ class EmptyStmt;
 class AssignmentStmt;
 class IncDecStmt;
 class ExpressionStmt;
+class DeclStmt;
 
 class ASTStmtVisitor {
   public:
@@ -100,6 +103,7 @@ class ASTStmtVisitor {
     virtual OpaqueType visit(AssignmentStmt &) = 0;
     virtual OpaqueType visit(IncDecStmt &) = 0;
     virtual OpaqueType visit(ExpressionStmt &) = 0;
+    virtual OpaqueType visit(DeclStmt &) = 0;
 };
 
 class ASTStmtVisitable {

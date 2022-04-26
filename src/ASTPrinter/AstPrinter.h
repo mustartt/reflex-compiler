@@ -39,6 +39,7 @@ class AstPrinter : public ASTDeclVisitor,
     OpaqueType visit(InterfaceDecl &decl) override;
     OpaqueType visit(VariableDecl &decl) override;
     OpaqueType visit(FieldDecl &decl) override;
+    OpaqueType visit(ParamDecl &decl) override;
     OpaqueType visit(FunctionDecl &decl) override;
     OpaqueType visit(MethodDecl &decl) override;
 
@@ -53,8 +54,9 @@ class AstPrinter : public ASTDeclVisitor,
     OpaqueType visit(AssignmentStmt &stmt) override;
     OpaqueType visit(IncDecStmt &stmt) override;
     OpaqueType visit(ExpressionStmt &stmt) override;
+    OpaqueType visit(DeclStmt &stmt) override;
 
-    OpaqueType visit(ReferenceExpr &expr) override;
+    OpaqueType visit(DeclRefExpr &expr) override;
     OpaqueType visit(UnaryExpr &expr) override;
     OpaqueType visit(BinaryExpr &expr) override;
     OpaqueType visit(NewExpr &expr) override;

@@ -119,4 +119,337 @@ OpaqueType AstPrinter::visit(InterfaceDecl &inf) {
     return {};
 }
 
+OpaqueType AstPrinter::visit(VariableDecl &decl) {
+    printNodePrefix("VariableDecl: "
+                        + decl.location()->getStringRepr() + " '"
+                        + decl.getDeclname() + "' "
+                        + printAstType(nullptr));
+
+    if (decl.getInitializer()) {
+        Scope _(*this, true);
+        decl.getInitializer()->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(FieldDecl &decl) {
+    printNodePrefix("FieldDecl: "
+                        + decl.location()->getStringRepr() + " "
+                        + getVisibilityString(decl.getVisibility()) + " member '"
+                        + decl.getDeclname() + "' "
+                        + printAstType(nullptr));
+
+    if (decl.getInitializer()) {
+        Scope _(*this, true);
+        decl.getInitializer()->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ParamDecl &decl) {
+    printNodePrefix("ParamDecl: "
+                        + decl.location()->getStringRepr() + " '"
+                        + decl.getDeclname() + "' "
+                        + printAstType(nullptr));
+
+    if (decl.getInitializer()) {
+        Scope _(*this, true);
+        decl.getInitializer()->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(FunctionDecl &decl) {
+    printNodePrefix("FunctionDecl: "
+                        + decl.location()->getStringRepr() + " '"
+                        + decl.getDeclname() + "' "
+                        + printAstType(nullptr));
+    int it = 0;
+    for (auto i = decl.getParamDecls().begin(); i != decl.getParamDecls().end(); ++i, ++it) {
+        auto isLastNode = it == decl.getParamDecls().size() - 1;
+        Scope _s(*this, decl.getBody() == nullptr && isLastNode);
+        (*i)->accept(this);
+    }
+    if (decl.getBody()) {
+        Scope _s(*this, true);
+        decl.getBody()->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(MethodDecl &decl) {
+    printNodePrefix("MethodDecl: "
+                        + decl.location()->getStringRepr() + " "
+                        + getVisibilityString(decl.getVisibility()) + " member '"
+                        + decl.getDeclname() + "' "
+                        + printAstType(nullptr));
+    int it = 0;
+    for (auto i = decl.getParamDecls().begin(); i != decl.getParamDecls().end(); ++i, ++it) {
+        auto isLastNode = it == decl.getParamDecls().size() - 1;
+        Scope _s(*this, decl.getBody() == nullptr && isLastNode);
+        (*i)->accept(this);
+    }
+    if (decl.getBody()) {
+        Scope _s(*this, true);
+        decl.getBody()->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(BlockStmt &stmt) {
+    printNodePrefix("Block: " + stmt.location()->getStringRepr());
+
+    int it = 0;
+    for (auto i = stmt.getStmts().begin(); i != stmt.getStmts().end(); ++i, ++it) {
+        auto isLastNode = it == stmt.getStmts().size() - 1;
+        Scope _s(*this, isLastNode);
+        (*i)->accept(this);
+    }
+
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ReturnStmt &stmt) {
+    printNodePrefix("ReturnStmt: "
+                        + stmt.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    if (stmt.getReturnValue()) {
+        Scope _(*this, true);
+        stmt.getReturnValue()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(BreakStmt &stmt) {
+    printNodePrefix("BreakStmt: " + stmt.location()->getStringRepr());
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ContinueStmt &stmt) {
+    printNodePrefix("ContinueStmt: " + stmt.location()->getStringRepr());
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(IfStmt &stmt) {
+    printNodePrefix("IfStmt: " + stmt.location()->getStringRepr());
+    {
+        Scope _(*this, false);
+        stmt.getCond()->accept(this);
+    }
+    auto hasElseBlock = stmt.getElseBlock();
+    {
+        Scope _(*this, hasElseBlock);
+        stmt.getPrimaryBlock()->accept(this);
+    }
+    if (hasElseBlock) {
+        Scope _(*this, true);
+        stmt.getElseBlock()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ForStmt &stmt) {
+    printNodePrefix("ForStmt: " + stmt.location()->getStringRepr());
+    // for clause visiting
+    {
+        Scope _(*this, true);
+        stmt.getBody()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(WhileStmt &stmt) {
+    printNodePrefix("WhileStmt: " + stmt.location()->getStringRepr());
+    {
+        Scope _(*this, false);
+        stmt.getCond()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        stmt.getBody()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(EmptyStmt &stmt) {
+    printNodePrefix("EmptyStmt: " + stmt.location()->getStringRepr());
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(AssignmentStmt &stmt) {
+    printNodePrefix("AssignmentStmt: '"
+                        + getAssignOperator(stmt.getAssignOp()) + "' "
+                        + stmt.location()->getStringRepr());
+    {
+        Scope _s(*this, false);
+        stmt.getLhs()->accept(this);
+    }
+    {
+        Scope _s(*this, true);
+        stmt.getRhs()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(IncDecStmt &stmt) {
+    printNodePrefix("IncDecStmt: '"
+                        + getPostfixOperator(stmt.getPostfixOp()) + "' "
+                        + stmt.location()->getStringRepr());
+    {
+        Scope _s(*this, true);
+        stmt.getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ExpressionStmt &stmt) {
+    printNodePrefix("ExpressionStmt: " + stmt.location()->getStringRepr());
+    {
+        Scope _s(*this, true);
+        stmt.getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(DeclStmt &stmt) {
+    printNodePrefix("DeclStmt: " + stmt.location()->getStringRepr());
+    {
+        Scope _s(*this, true);
+        stmt.getDecl()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(DeclRefExpr &expr) {
+    printNodePrefix("DeclRefExpr: "
+                        + expr.getReferenceName() + " "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(UnaryExpr &expr) {
+    printNodePrefix("UnaryExpr: '"
+                        + Operator::getUnaryOperator(expr.getUnaryOp()) + "' "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    {
+        Scope _s(*this, true);
+        expr.getExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(BinaryExpr &expr) {
+    printNodePrefix("BinaryExpr: '"
+                        + Operator::getBinaryOperator(expr.getBinaryOp()) + "' "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    {
+        Scope _(*this, false);
+        expr.getLhs()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        expr.getRhs()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(NewExpr &expr) {
+    printNodePrefix("NewExpr: "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(CastExpr &expr) {
+    printNodePrefix("CastExpr: "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    {
+        Scope _(*this, true);
+        expr.getFrom()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(IndexExpr &expr) {
+    printNodePrefix("IndexExpr: "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    {
+        Scope _(*this, false);
+        expr.getBaseExpr()->accept(this);
+    }
+    {
+        Scope _(*this, true);
+        if (expr.getIndex())
+            expr.getIndex()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(SelectorExpr &expr) {
+    printNodePrefix("SelectorExpr: "
+                        + expr.getSelector() + " "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    {
+        Scope _(*this, true);
+        expr.getBaseExpr()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
+OpaqueType AstPrinter::visit(ArgumentExpr &expr) {
+    printNodePrefix("ArgumentExpr: "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(nullptr));
+    auto hasArgument = !expr.getArguments().empty();
+    {
+        Scope _(*this, !hasArgument);
+        expr.getBaseExpr()->accept(this);
+    }
+    {
+        int it = 0;
+        for (auto i = expr.getArguments().begin(); i != expr.getArguments().end(); ++i, ++it) {
+            auto isLastNode = it == expr.getArguments().size() - 1;
+            Scope _s(*this, isLastNode);
+            (*i)->accept(this);
+        }
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
 }

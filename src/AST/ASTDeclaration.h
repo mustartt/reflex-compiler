@@ -26,6 +26,7 @@ class Declaration : public ASTNode, public ASTDeclVisitable {
   public:
     Declaration(const SourceLocation *loc, std::string declname);
 
+    const std::string &getDeclname() const { return declname; }
   private:
     std::string declname;
 };
@@ -91,6 +92,9 @@ class VariableDecl : public Declaration {
                  ASTTypeExpr *type_decl,
                  Expression *initializer = nullptr);
 
+    ASTTypeExpr *getTypeDecl() const { return typeDecl; }
+    Expression *getInitializer() const { return initializer; }
+
     ASTDeclVisitorDispatcher
   protected:
     ASTTypeExpr *typeDecl;
@@ -105,6 +109,9 @@ class FieldDecl : public VariableDecl {
               ClassDecl *parent,
               Visibility visibility,
               Expression *initializer = nullptr);
+
+    ClassDecl *getParent() const { return parent; }
+    Visibility getVisibility() const { return visibility; }
 
     ASTDeclVisitorDispatcher
   private:
@@ -121,6 +128,8 @@ class ParamDecl : public VariableDecl {
               FunctionDecl *parent,
               Expression *initializer = nullptr);
 
+    FunctionDecl *getParent() const { return parent; }
+
     ASTDeclVisitorDispatcher
   private:
     FunctionDecl *parent;
@@ -133,6 +142,10 @@ class FunctionDecl : public Declaration {
                  std::vector<ParamDecl *> param_decls,
                  ASTTypeExpr *return_type_decl,
                  BlockStmt *body);
+
+    const std::vector<ParamDecl *> &getParamDecls() const { return paramDecls; }
+    ASTTypeExpr *getReturnTypeDecl() const { return returnTypeDecl; }
+    BlockStmt *getBody() const { return body; }
 
     ASTDeclVisitorDispatcher
   protected:
@@ -150,6 +163,9 @@ class MethodDecl : public FunctionDecl {
                BlockStmt *body,
                AggregateDecl *parent,
                Visibility visibility);
+
+    AggregateDecl *getParent() const { return parent; }
+    Visibility getVisibility() const { return visibility; }
 
     ASTDeclVisitorDispatcher
   private:

@@ -18,6 +18,7 @@ namespace reflex {
 class SourceLocation;
 class Expression;
 class VariableDecl;
+class Declaration;
 
 class Statement : public ASTNode, public ASTStmtVisitable {
   public:
@@ -28,11 +29,23 @@ class BlockStmt : public Statement {
   public:
     BlockStmt(const SourceLocation *loc, std::vector<Statement *> stmts);
 
-    [[nodiscard]] const std::vector<Statement *> &getStatements() const;
+    const std::vector<Statement *> &getStmts() const { return statements; }
 
     ASTStmtVisitorDispatcher
   private:
     std::vector<Statement *> statements;
+};
+
+class DeclStmt : public Statement {
+  public:
+    DeclStmt(const SourceLocation *loc, Declaration *decl)
+        : Statement(loc), decl(decl) {}
+
+    Declaration *getDecl() const { return decl; }
+
+    ASTStmtVisitorDispatcher
+  private:
+    Declaration *decl;
 };
 
 class SimpleStmt : public Statement {
@@ -43,6 +56,8 @@ class SimpleStmt : public Statement {
 class ReturnStmt : public Statement {
   public:
     ReturnStmt(const SourceLocation *loc, Expression *returnValue);
+
+    Expression *getReturnValue() const { return returnValue; }
 
     ASTStmtVisitorDispatcher
   private:

@@ -24,40 +24,46 @@ class Expression : public ASTNode, public ASTExpressionVisitable {
     explicit Expression(const SourceLocation *loc);
 };
 
-class ReferenceExpr : public Expression {
+class DeclRefExpr : public Expression {
   public:
-    ReferenceExpr(const SourceLocation *loc, Declaration *decl);
+    DeclRefExpr(const SourceLocation *loc, Declaration *decl);
 
     [[nodiscard]] virtual std::string getReferenceName() const = 0;
+    [[nodiscard]] virtual const std::string &getBaseRefName() const = 0;
 
     ASTExpressionVisitorDispatcher
   private:
     Declaration *decl;
 };
 
-class Identifier : public ReferenceExpr {
+class Identifier : public DeclRefExpr {
   public:
     Identifier(const SourceLocation *loc, Declaration *decl, std::string reference);
 
     [[nodiscard]] std::string getReferenceName() const override;
+    const std::string &getBaseRefName() const override;
   private:
     std::string reference;
 };
 
-class ModuleSelector : public ReferenceExpr {
+class ModuleSelector : public DeclRefExpr {
   public:
     ModuleSelector(const SourceLocation *loc, Declaration *decl,
-                   std::string prefix, ReferenceExpr *child);
+                   std::string prefix, DeclRefExpr *child);
 
     [[nodiscard]] std::string getReferenceName() const override;
+    const std::string &getBaseRefName() const override;
   private:
     std::string prefix;
-    ReferenceExpr *child;
+    DeclRefExpr *child;
 };
 
 class UnaryExpr : public Expression {
   public:
     UnaryExpr(const SourceLocation *loc, Operator::UnaryOperator op, Expression *expr);
+
+    Operator::UnaryOperator getUnaryOp() const { return op; }
+    Expression *getExpr() const { return expr; }
 
     ASTExpressionVisitorDispatcher
   private:
@@ -70,6 +76,10 @@ class BinaryExpr : public Expression {
     BinaryExpr(const SourceLocation *loc, Operator::BinaryOperator op,
                Expression *lhs, Expression *rhs);
 
+    Operator::BinaryOperator getBinaryOp() const { return op; }
+    Expression *getLhs() const { return lhs; }
+    Expression *getRhs() const { return rhs; }
+
     ASTExpressionVisitorDispatcher
   private:
     Operator::BinaryOperator op;
@@ -81,6 +91,8 @@ class NewExpr : public Expression {
   public:
     NewExpr(const SourceLocation *loc, ASTTypeExpr *instanceType);
 
+    ASTTypeExpr *getInstanceType() const { return instanceType; }
+
     ASTExpressionVisitorDispatcher
   private:
     ASTTypeExpr *instanceType;
@@ -89,6 +101,8 @@ class NewExpr : public Expression {
 class CastExpr : public Expression {
   public:
     CastExpr(const SourceLocation *loc, ASTTypeExpr *resultType, Expression *from);
+
+    Expression *getFrom() const { return from; }
 
     ASTExpressionVisitorDispatcher
   private:
@@ -100,6 +114,9 @@ class IndexExpr : public Expression {
   public:
     IndexExpr(const SourceLocation *loc, Expression *expr, Expression *index);
 
+    Expression *getBaseExpr() const { return expr; }
+    Expression *getIndex() const { return index; }
+
     ASTExpressionVisitorDispatcher
   private:
     Expression *expr;
@@ -110,6 +127,9 @@ class SelectorExpr : public Expression {
   public:
     SelectorExpr(const SourceLocation *loc, Expression *expr, std::string aSelector);
 
+    Expression *getBaseExpr() const { return expr; }
+    const std::string &getSelector() const { return selector; }
+
     ASTExpressionVisitorDispatcher
   private:
     Expression *expr;
@@ -119,6 +139,9 @@ class SelectorExpr : public Expression {
 class ArgumentExpr : public Expression {
   public:
     ArgumentExpr(const SourceLocation *loc, Expression *expr, std::vector<Expression *> arguments);
+
+    Expression *getBaseExpr() const { return expr; }
+    const std::vector<Expression *> &getArguments() const { return arguments; }
 
     ASTExpressionVisitorDispatcher
   private:

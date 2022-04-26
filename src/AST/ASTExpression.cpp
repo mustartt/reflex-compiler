@@ -11,23 +11,32 @@ namespace reflex {
 std::string Identifier::getReferenceName() const {
     return reference;
 }
+
+const std::string &Identifier::getBaseRefName() const {
+    return reference;
+}
+
 std::string ModuleSelector::getReferenceName() const {
     return prefix + "::" + child->getReferenceName();
 }
 
+const std::string &ModuleSelector::getBaseRefName() const {
+    return child->getBaseRefName();
+}
+
 Expression::Expression(const SourceLocation *loc) : ASTNode(loc) {}
 
-ReferenceExpr::ReferenceExpr(const SourceLocation *loc, Declaration *decl) : Expression(loc), decl(decl) {}
+DeclRefExpr::DeclRefExpr(const SourceLocation *loc, Declaration *decl) : Expression(loc), decl(decl) {}
 
 Identifier::Identifier(const SourceLocation *loc, Declaration *decl, std::string reference)
-    : ReferenceExpr(loc, decl),
+    : DeclRefExpr(loc, decl),
       reference(std::move(reference)) {}
 
 ModuleSelector::ModuleSelector(const SourceLocation *loc,
                                Declaration *decl,
                                std::string prefix,
-                               ReferenceExpr *child)
-    : ReferenceExpr(loc, decl), prefix(std::move(prefix)), child(child) {}
+                               DeclRefExpr *child)
+    : DeclRefExpr(loc, decl), prefix(std::move(prefix)), child(child) {}
 
 UnaryExpr::UnaryExpr(const SourceLocation *loc, Operator::UnaryOperator op, Expression *expr)
     : Expression(loc), op(op), expr(expr) {}
