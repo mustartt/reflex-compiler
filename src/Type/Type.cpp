@@ -44,7 +44,7 @@ std::string MemberAttrType::getTypeString() const {
 }
 
 std::string ReferenceType::getTypeString() const {
-    return refType->getTypeString() + "&" + (nullable ? "?" : "");
+    return "&" + refType->getTypeString() + (nullable ? "?" : "");
 }
 
 TypeError::TypeError(const std::string &arg)

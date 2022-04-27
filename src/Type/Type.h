@@ -87,6 +87,7 @@ class FunctionType : public ReferenceableType {
 
     const std::vector<Type *> &getParamTypes() const { return paramTypes; }
     Type *getReturnType() const { return returnType; }
+    bool canApplyArguments(const std::vector<Type *> &args) const { return paramTypes == args; }
 
   private:
     std::vector<Type *> paramTypes;
@@ -169,9 +170,10 @@ class ClassType : public CompositeType {
 
 class ReferenceType : public Type {
   public:
-    explicit ReferenceType(ReferenceableType *refType, bool nullable = false)
+    explicit ReferenceType(ReferenceableType *refType, bool nullable = true)
         : refType(refType), nullable(nullable) {
-        assert(refType && "CompilerError: Cannot reference nullptr");
+        if (!refType) throw TypeError{"ReferenceType cannot reference nullptr"};
+
     }
 
     bool isNullable() const { return nullable; }
