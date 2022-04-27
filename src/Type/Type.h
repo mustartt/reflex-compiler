@@ -60,6 +60,9 @@ class ArrayType : public ReferenceableType {
     std::string getTypeString() const override;
     bool isReferenceType() const override { return false; }
 
+    const std::optional<size_t> &getSize() const { return size; }
+    Type *getElementType() const { return elementType; }
+
   private:
     std::optional<size_t> size;
     Type *elementType;
@@ -73,6 +76,9 @@ class FunctionType : public ReferenceableType {
     std::string getTypeString() const override;
     bool isReferenceType() const override { return false; }
     bool isReturnVoid() const { return dynamic_cast<VoidType *>(returnType); }
+
+    const std::vector<Type *> &getParamTypes() const { return paramTypes; }
+    Type *getReturnType() const { return returnType; }
 
   private:
     std::vector<Type *> paramTypes;
@@ -94,8 +100,8 @@ class CompositeType : public ReferenceableType {
     bool isReferenceType() const override { return false; }
 
   private:
-    virtual std::vector<MemberAttrType *> getStaticAttribute(const std::string &name) const = 0;
-    virtual std::vector<MemberAttrType *> getInstanceAttribute(const std::string &name) const = 0;
+//    virtual std::vector<MemberAttrType *> getStaticAttribute(const std::string &name) const = 0;
+//    virtual std::vector<MemberAttrType *> getInstanceAttribute(const std::string &name) const = 0;
 
     AggregateDecl *decl;
     std::string name;
@@ -110,6 +116,7 @@ class MemberAttrType : public Type {
 
     std::string getTypeString() const override;
     bool isReferenceType() const override { return type->isReferenceType(); }
+    Type *getType() const { return type; }
 
     Visibility getVisibility() const { return visibility; }
     CompositeType *getParent() const { return parent; }
@@ -127,6 +134,7 @@ class InterfaceType : public CompositeType {
 
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
     const std::map<std::string, std::vector<MemberAttrType *>> &getMembers() const { return members; }
+    bool isClassType() const override { return false; }
 
   private:
     std::vector<InterfaceType *> interfaces;
@@ -140,6 +148,7 @@ class ClassType : public CompositeType {
     ClassType *getBaseclass() const { return baseclass; }
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
     const std::map<std::string, std::vector<MemberAttrType *>> &getMembers() const { return members; }
+    bool isClassType() const override { return true; }
 
   private:
     ClassType *baseclass = nullptr;
