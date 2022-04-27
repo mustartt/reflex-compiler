@@ -47,5 +47,7 @@ std::string ReferenceType::getTypeString() const {
     return refType->getTypeString() + "&" + (nullable ? "?" : "");
 }
 
+TypeError::TypeError(const std::string &arg)
+    : runtime_error("CompilerTypeError: " + arg) {}
 }
 

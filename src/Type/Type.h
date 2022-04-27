@@ -23,6 +23,11 @@ class Type {
     virtual bool isReferenceType() const = 0;
 };
 
+class TypeError : public std::runtime_error {
+  public:
+    explicit TypeError(const std::string &arg);
+};
+
 class VoidType : public Type {
   public:
     VoidType() = default;
@@ -54,7 +59,10 @@ class ReferenceableType : public Type {};
 class ArrayType : public ReferenceableType {
   public:
     explicit ArrayType(Type *elemType, std::optional<size_t> size = std::nullopt)
-        : elementType(elemType), size(size) {}
+        : elementType(elemType), size(size) {
+        if (dynamic_cast<VoidType *>(elemType))
+            throw TypeError{"ArrayType cannot have void type"};
+    }
 
     bool hasDefinedSize() const { return size.has_value(); }
     std::string getTypeString() const override;
@@ -91,7 +99,7 @@ class CompositeType : public ReferenceableType {
   public:
     CompositeType(std::string name, AggregateDecl *decl)
         : name(std::move(name)), decl(decl) {
-        assert(decl && "CompileError: Cannot have null parent decl");
+        if (!decl) throw TypeError{"CompositeType must have null parent decl"};
     };
 
     virtual bool isClassType() const = 0;
@@ -111,7 +119,10 @@ class MemberAttrType : public Type {
   public:
     MemberAttrType(Visibility visibility, CompositeType *parent, Type *type)
         : visibility(visibility), parent(parent), type(type) {
-        assert(!dynamic_cast<MemberAttrType *>(type) && "CompilerError: Cannot have nested MemberAttrType");
+        if (dynamic_cast<MemberAttrType *>(type))
+            throw TypeError{"MemberAttrType cannot have nested MemberAttrType"};
+        if (!parent) throw TypeError{"MemberAttrType must have parent CompositeType"};
+        if (dynamic_cast<VoidType *>(type)) throw TypeError{"MemberAttrType cannot have void type"};
     }
 
     std::string getTypeString() const override;

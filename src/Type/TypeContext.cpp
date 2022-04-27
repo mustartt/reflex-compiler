@@ -29,7 +29,7 @@ ArrayType *TypeContext::getArrayType(Type *elementTyp, std::optional<size_t> siz
                                   && existing->getSize() == size;
                             });
     if (res == arrayType.end()) {
-        arrayType.push_back(std::make_unique<ArrayType>(elementTyp));
+        arrayType.push_back(std::make_unique<ArrayType>(elementTyp, size));
         return arrayType.back().get();
     }
     return res->get();
