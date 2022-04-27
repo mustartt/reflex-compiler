@@ -21,14 +21,20 @@ class ASTTypeExpr;
 class Expression;
 class BlockStmt;
 class FunctionTypeExpr;
+class Type;
 
 class Declaration : public ASTNode, public ASTDeclVisitable {
   public:
     Declaration(const SourceLocation *loc, std::string declname);
 
     const std::string &getDeclname() const { return declname; }
+
+    Type *getType() const { return type; }
+    void setType(Type *typ) { Declaration::type = typ; }
+
   private:
     std::string declname;
+    Type *type = nullptr;
 };
 
 class AggregateDecl : public Declaration {

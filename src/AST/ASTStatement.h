@@ -19,6 +19,7 @@ class SourceLocation;
 class Expression;
 class VariableDecl;
 class Declaration;
+class Type;
 
 class Statement : public ASTNode, public ASTStmtVisitable {
   public:
@@ -58,10 +59,13 @@ class ReturnStmt : public Statement {
     ReturnStmt(const SourceLocation *loc, Expression *returnValue);
 
     Expression *getReturnValue() const { return returnValue; }
+    Type *getReturnType() const { return type; }
+    void setReturnType(Type *typ) { ReturnStmt::type = typ; }
 
     ASTStmtVisitorDispatcher
   private:
     Expression *returnValue;
+    Type *type;
 };
 
 class BreakStmt : public Statement {

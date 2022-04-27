@@ -18,10 +18,17 @@ namespace reflex {
 class SourceLocation;
 class Declaration;
 class ASTTypeExpr;
+class Type;
 
 class Expression : public ASTNode, public ASTExpressionVisitable {
   public:
     explicit Expression(const SourceLocation *loc);
+
+    Type *getType() const { return type; }
+    void setType(Type *typ) { Expression::type = typ; }
+
+  private:
+    Type *type = nullptr;
 };
 
 class DeclRefExpr : public Expression {

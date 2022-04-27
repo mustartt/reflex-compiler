@@ -64,8 +64,7 @@ void AstPrinter::printNodePrefix(const std::string &message, bool end) {
 OpaqueType AstPrinter::visit(CompilationUnit &CU) {
     printNodePrefix("CompilationUnit: "
                         + CU.location()->getStringRepr() + " '"
-                        + CU.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + CU.getDeclname() + "'");
     {
         int it = 0;
         for (auto i = CU.getDecls().begin(); i != CU.getDecls().end(); ++i, ++it) {
@@ -82,7 +81,7 @@ OpaqueType AstPrinter::visit(ClassDecl &klass) {
     printNodePrefix("ClassDecl: "
                         + klass.location()->getStringRepr() + " '"
                         + klass.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(klass.getType()));
     {
         std::vector<Declaration *> members;
         for (auto decl: klass.getDecls()) members.push_back(decl);
@@ -104,7 +103,7 @@ OpaqueType AstPrinter::visit(InterfaceDecl &inf) {
     printNodePrefix("InterfaceDecl: "
                         + inf.location()->getStringRepr() + " '"
                         + inf.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(inf.getType()));
     {
         std::vector<Declaration *> members;
         for (auto decl: inf.getDecls()) members.push_back(decl);
@@ -126,7 +125,7 @@ OpaqueType AstPrinter::visit(VariableDecl &decl) {
     printNodePrefix("VariableDecl: "
                         + decl.location()->getStringRepr() + " '"
                         + decl.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(decl.getType()));
 
     if (decl.getInitializer()) {
         Scope _(*this, true);
@@ -142,7 +141,7 @@ OpaqueType AstPrinter::visit(FieldDecl &decl) {
                         + decl.location()->getStringRepr() + " "
                         + getVisibilityString(decl.getVisibility()) + " member '"
                         + decl.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(decl.getType()));
 
     if (decl.getInitializer()) {
         Scope _(*this, true);
@@ -157,7 +156,7 @@ OpaqueType AstPrinter::visit(ParamDecl &decl) {
     printNodePrefix("ParamDecl: "
                         + decl.location()->getStringRepr() + " '"
                         + decl.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(decl.getType()));
 
     if (decl.getInitializer()) {
         Scope _(*this, true);
@@ -172,7 +171,7 @@ OpaqueType AstPrinter::visit(FunctionDecl &decl) {
     printNodePrefix("FunctionDecl: "
                         + decl.location()->getStringRepr() + " '"
                         + decl.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(decl.getType()));
     int it = 0;
     for (auto i = decl.getParamDecls().begin(); i != decl.getParamDecls().end(); ++i, ++it) {
         auto isLastNode = it == decl.getParamDecls().size() - 1;
@@ -193,7 +192,7 @@ OpaqueType AstPrinter::visit(MethodDecl &decl) {
                         + decl.location()->getStringRepr() + " "
                         + getVisibilityString(decl.getVisibility()) + " member '"
                         + decl.getDeclname() + "' "
-                        + printAstType(nullptr));
+                        + printAstType(decl.getType()));
     int it = 0;
     for (auto i = decl.getParamDecls().begin(); i != decl.getParamDecls().end(); ++i, ++it) {
         auto isLastNode = it == decl.getParamDecls().size() - 1;
@@ -226,7 +225,7 @@ OpaqueType AstPrinter::visit(BlockStmt &stmt) {
 OpaqueType AstPrinter::visit(ReturnStmt &stmt) {
     printNodePrefix("ReturnStmt: "
                         + stmt.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(stmt.getReturnType()));
     if (stmt.getReturnValue()) {
         Scope _(*this, true);
         stmt.getReturnValue()->accept(this);
@@ -349,7 +348,7 @@ OpaqueType AstPrinter::visit(DeclRefExpr &expr) {
     printNodePrefix("DeclRefExpr: "
                         + expr.getReferenceName() + " "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -358,7 +357,7 @@ OpaqueType AstPrinter::visit(UnaryExpr &expr) {
     printNodePrefix("UnaryExpr: '"
                         + Operator::getUnaryOperator(expr.getUnaryOp()) + "' "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     {
         Scope _s(*this, true);
         expr.getExpr()->accept(this);
@@ -371,7 +370,7 @@ OpaqueType AstPrinter::visit(BinaryExpr &expr) {
     printNodePrefix("BinaryExpr: '"
                         + Operator::getBinaryOperator(expr.getBinaryOp()) + "' "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     {
         Scope _(*this, false);
         expr.getLhs()->accept(this);
@@ -387,7 +386,7 @@ OpaqueType AstPrinter::visit(BinaryExpr &expr) {
 OpaqueType AstPrinter::visit(NewExpr &expr) {
     printNodePrefix("NewExpr: "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -395,7 +394,7 @@ OpaqueType AstPrinter::visit(NewExpr &expr) {
 OpaqueType AstPrinter::visit(CastExpr &expr) {
     printNodePrefix("CastExpr: "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     {
         Scope _(*this, true);
         expr.getFrom()->accept(this);
@@ -407,7 +406,7 @@ OpaqueType AstPrinter::visit(CastExpr &expr) {
 OpaqueType AstPrinter::visit(IndexExpr &expr) {
     printNodePrefix("IndexExpr: "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     {
         Scope _(*this, false);
         expr.getBaseExpr()->accept(this);
@@ -425,7 +424,7 @@ OpaqueType AstPrinter::visit(SelectorExpr &expr) {
     printNodePrefix("SelectorExpr: "
                         + expr.getSelector() + " "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     {
         Scope _(*this, true);
         expr.getBaseExpr()->accept(this);
@@ -437,7 +436,7 @@ OpaqueType AstPrinter::visit(SelectorExpr &expr) {
 OpaqueType AstPrinter::visit(ArgumentExpr &expr) {
     printNodePrefix("ArgumentExpr: "
                         + expr.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(expr.getType()));
     auto hasArgument = !expr.getArguments().empty();
     {
         Scope _(*this, !hasArgument);
@@ -458,7 +457,7 @@ OpaqueType AstPrinter::visit(ArgumentExpr &expr) {
 OpaqueType AstPrinter::visit(NumberLiteral &literal) {
     printNodePrefix("NumberLiteral: '" + literal.getLiteral() + "' "
                         + literal.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(literal.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -466,7 +465,7 @@ OpaqueType AstPrinter::visit(NumberLiteral &literal) {
 OpaqueType AstPrinter::visit(StringLiteral &literal) {
     printNodePrefix("StringLiteral: \"" + literal.getLiteral() + "\" "
                         + literal.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(literal.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -474,7 +473,7 @@ OpaqueType AstPrinter::visit(StringLiteral &literal) {
 OpaqueType AstPrinter::visit(BooleanLiteral &literal) {
     printNodePrefix("BooleanLiteral: \"" + literal.getLiteral() + "\" "
                         + literal.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(literal.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -482,7 +481,7 @@ OpaqueType AstPrinter::visit(BooleanLiteral &literal) {
 OpaqueType AstPrinter::visit(NullLiteral &literal) {
     printNodePrefix("NullLiteral: \"" + literal.getLiteral() + "\" "
                         + literal.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(literal.getType()));
     depthFlag[depth] = true;
     return {};
 }
@@ -490,7 +489,7 @@ OpaqueType AstPrinter::visit(NullLiteral &literal) {
 OpaqueType AstPrinter::visit(ArrayLiteral &literal) {
     printNodePrefix("ArrayLiteral: "
                         + literal.location()->getStringRepr() + " "
-                        + printAstType(nullptr));
+                        + printAstType(literal.getType()));
     int it = 0;
     const auto &initLst = literal.getInitList();
     for (auto i = initLst.begin(); i != initLst.end(); ++i, ++it) {
@@ -504,7 +503,7 @@ OpaqueType AstPrinter::visit(ArrayLiteral &literal) {
 }
 
 OpaqueType AstPrinter::visit(FunctionLiteral &literal) {
-    printNodePrefix("FunctionLiteral: " + printAstType(nullptr));
+    printNodePrefix("FunctionLiteral: " + printAstType(literal.getType()));
 
     int it = 0;
     for (auto i = literal.getParamDecls().begin(); i != literal.getParamDecls().end(); ++i, ++it) {
