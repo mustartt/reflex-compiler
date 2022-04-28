@@ -92,7 +92,7 @@ OpaqueType LexicalContextPass::visit(FunctionDecl &decl) {
 }
 
 OpaqueType LexicalContextPass::visit(MethodDecl &decl) {
-    auto funcScope = context.createFunctionScope(&decl, scope.top());
+    auto funcScope = context.createMethodScope(&decl, scope.top());
     scope.top()->addScopeMember(decl.getDeclname(), nullptr, funcScope);
     scope.push(funcScope);
     generateBlockScope = false;
