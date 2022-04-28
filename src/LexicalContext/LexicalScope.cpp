@@ -6,6 +6,16 @@
 
 namespace reflex {
 
+std::string ScopeMember::getStringQualifier() const {
+    auto list = getQualifier();
+    std::string base = *list.begin();
+    auto i = ++list.begin();
+    for (; i != list.end(); ++i) {
+        base += "::" + *i;
+    }
+    return base;
+}
+
 bool ScopeMember::operator<(const ScopeMember &rhs) const {
     if (this->getMembername() < rhs.getMembername())
         return true;
@@ -17,6 +27,13 @@ bool ScopeMember::operator<(const ScopeMember &rhs) const {
 bool ScopeMember::operator==(const ScopeMember &rhs) const {
     return membername == rhs.membername
         && memberType == rhs.memberType;
+}
+
+QuantifierList ScopeMember::getQualifier() const {
+    QuantifierList list;
+    list.push_front(membername);
+    parent->getScopeQualifierPrefix(list);
+    return list;
 }
 
 LexicalError::LexicalError(const std::string &arg)
@@ -39,6 +56,12 @@ ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
 
 LexicalScope *LexicalScope::bind(const std::string &name) const {
     return nullptr;
+}
+
+void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
+    if (isGlobalScope()) return;
+    prefix.push_front(scopename);
+    parentScope->getScopeQualifierPrefix(prefix);
 }
 
 }

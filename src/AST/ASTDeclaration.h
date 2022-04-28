@@ -113,11 +113,14 @@ class VariableDecl : public Declaration {
 
     ASTTypeExpr *getTypeDecl() const { return typeDecl; }
     Expression *getInitializer() const { return initializer; }
+    bool isGlobalVariable() const { return isGlobal; }
+    void setGlobal() { isGlobal = true; }
 
     ASTDeclVisitorDispatcher
   protected:
     ASTTypeExpr *typeDecl;
     Expression *initializer;
+    bool isGlobal;
 };
 
 class FieldDecl : public VariableDecl {

@@ -11,7 +11,7 @@
 namespace reflex {
 
 enum class Visibility {
-  Public, Private, Protected
+  Public, Private, Protected, Static
 };
 
 std::string getVisibilityString(Visibility visibility);

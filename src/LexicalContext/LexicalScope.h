@@ -19,6 +19,8 @@ class ASTNode;
 class LexicalScope;
 class LexicalContext;
 
+using QuantifierList = std::list<std::string>;
+
 class ScopeMember {
   public:
     ScopeMember(std::string membername, Type *memberType,
@@ -31,8 +33,11 @@ class ScopeMember {
     bool hasScope() const { return child; }
     LexicalScope *getChild() const { return child; }
     LexicalScope *getParent() const { return parent; }
+    void setMemberType(Type *type) { ScopeMember::memberType = type; }
 
     void setChild(LexicalScope *childscope) { child = childscope; }
+    QuantifierList getQualifier() const;
+    std::string getStringQualifier() const;
 
     bool operator==(const ScopeMember &rhs) const;
     bool operator<(const ScopeMember &rhs) const;
@@ -54,8 +59,6 @@ class LexicalError : public std::runtime_error {
 
 class LexicalScope {
   public:
-    using QuantifierList = std::list<std::string>;
-
     LexicalScope(LexicalContext &context, LexicalScope *parentScope,
                  std::string scopename, ASTNode *decl)
         : context(context), parentScope(parentScope),
@@ -74,6 +77,8 @@ class LexicalScope {
     const std::string &getScopename() const { return scopename; }
     ASTNode *getNodeDecl() const { return decl; }
     const std::vector<std::unique_ptr<ScopeMember>> &getMembers() const { return members; }
+
+    void getScopeQualifierPrefix(QuantifierList &prefix) const;
 
     size_t incBlockCount() { return blockCount++; }
     size_t incLambdaCount() { return lambdaCount++; }

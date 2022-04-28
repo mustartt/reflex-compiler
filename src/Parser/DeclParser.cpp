@@ -58,7 +58,7 @@ ParamDecl *Parser::parseFuncParam() {
 FunctionDecl *Parser::parseFunctionDecl() {
     auto startToken = expect(TokenType::Func);
     auto name = parseBaseTypenameType();
-    auto[params, ret] = parseSignature();
+    auto [params, ret] = parseSignature();
     BlockStmt *body = nullptr;
     if (!check(TokenType::SemiColon)) {
         body = parseBlockStmt();
@@ -72,7 +72,7 @@ FunctionDecl *Parser::parseFunctionDecl() {
 MethodDecl *Parser::parseMethodDecl(Visibility visibility, AggregateDecl *parent) {
     auto startToken = expect(TokenType::Func);
     auto name = parseBaseTypenameType();
-    auto[params, ret] = parseSignature();
+    auto [params, ret] = parseSignature();
     BlockStmt *body = nullptr;
     if (!check(TokenType::SemiColon)) {
         body = parseBlockStmt();
@@ -218,7 +218,9 @@ CompilationUnit *Parser::parseCompilationUnit() {
         if (check(TokenType::Func)) {
             decls.push_back(parseFunctionDecl());
         } else if (check(TokenType::Var)) {
-            decls.push_back(parseVariableDecl());
+            auto var = parseVariableDecl();
+            var->setGlobal();
+            decls.push_back(var);
             expect(TokenType::SemiColon);
         } else if (check(TokenType::Class)) {
             decls.push_back(parseClassDecl(Visibility::Public));

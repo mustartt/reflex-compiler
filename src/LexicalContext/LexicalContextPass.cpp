@@ -29,11 +29,13 @@ OpaqueType LexicalContextPass::visit(CompilationUnit &unit) {
 
 OpaqueType LexicalContextPass::visit(ClassDecl &decl) {
     auto classScope = context.createCompositeScope(&decl, scope.top());
-    scope.top()->addScopeMember(
+    auto &member = scope.top()->addScopeMember(
         decl.getDeclname(),
-        typeContext.getClassType(decl.getDeclname(), &decl),
+        nullptr,
         classScope
     );
+    member.setMemberType(typeContext.getClassType(
+        member.getStringQualifier(), &decl));
     scope.push(classScope);
 
     for (auto nested: decl.getDecls()) nested->accept(this);
@@ -46,11 +48,13 @@ OpaqueType LexicalContextPass::visit(ClassDecl &decl) {
 
 OpaqueType LexicalContextPass::visit(InterfaceDecl &decl) {
     auto interfaceScope = context.createCompositeScope(&decl, scope.top());
-    scope.top()->addScopeMember(
+    auto &member = scope.top()->addScopeMember(
         decl.getDeclname(),
-        typeContext.getClassType(decl.getDeclname(), &decl),
+        nullptr,
         interfaceScope
     );
+    member.setMemberType(typeContext.getInterfaceType(
+        member.getStringQualifier(), &decl));
     scope.push(interfaceScope);
 
     for (auto nested: decl.getDecls()) nested->accept(this);
@@ -61,19 +65,23 @@ OpaqueType LexicalContextPass::visit(InterfaceDecl &decl) {
 }
 
 OpaqueType LexicalContextPass::visit(VariableDecl &decl) {
-    scope.top()->addScopeMember(decl.getDeclname(), nullptr);
+    if (decl.isGlobalVariable()) {
+        scope.top()->addScopeMember(decl.getDeclname(), nullptr);
+    }
     if (decl.getInitializer()) decl.getInitializer()->accept(this);
     return {};
 }
 
 OpaqueType LexicalContextPass::visit(FieldDecl &decl) {
-    scope.top()->addScopeMember(decl.getDeclname(), nullptr);
+    if (decl.getVisibility() == Visibility::Static) {
+        scope.top()->addScopeMember(decl.getDeclname(), nullptr);
+    }
     if (decl.getInitializer()) decl.getInitializer()->accept(this);
     return {};
 }
 
 OpaqueType LexicalContextPass::visit(ParamDecl &decl) {
-    scope.top()->addScopeMember(decl.getDeclname(), nullptr);
+//    scope.top()->addScopeMember(decl.getDeclname(), nullptr);
     return {};
 }
 
