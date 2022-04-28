@@ -59,7 +59,7 @@ void LexicalContext::dump(std::ostream &os, LexicalScope *start, size_t indent) 
     for (const auto &member: start->getMembers()) {
         auto type = member->getMemberType();
         printIndent(os, indent + 1)
-            << "*" << member->getMembername() << ": <"
+            << member->getMembername() << ": <"
             << (type ? type->getTypeString() : "<unknown>")
             << ">" << std::endl;
         if (member->hasScope()) {

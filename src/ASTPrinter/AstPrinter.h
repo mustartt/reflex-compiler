@@ -25,11 +25,6 @@ class Type;
 class AstPrinter : public ASTDeclVisitor,
                    public ASTStmtVisitor,
                    public ASTExprVisitor {
-    std::ostream &output;
-    size_t depth;
-    std::vector<bool> depthFlag;
-    std::stack<bool> isLast;
-
     friend class Scope;
   public:
     explicit AstPrinter(std::ostream &output);
@@ -76,6 +71,11 @@ class AstPrinter : public ASTDeclVisitor,
     void printTreePrefix();
     void printNodePrefix(const std::string &message, bool end = true);
     std::string printAstType(Type *type);
+
+    std::ostream &output;
+    size_t depth;
+    std::vector<bool> depthFlag;
+    std::stack<bool> isLast;
 };
 
 }

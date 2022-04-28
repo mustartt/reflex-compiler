@@ -19,6 +19,9 @@ bool ScopeMember::operator==(const ScopeMember &rhs) const {
         && memberType == rhs.memberType;
 }
 
+LexicalError::LexicalError(const std::string &arg)
+    : runtime_error("LexicalError: " + arg) {}
+
 ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
                                           LexicalScope *child) {
     ScopeMember member(std::move(name), memberType, this, child);
@@ -32,6 +35,10 @@ ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
     }
     members.push_back(std::make_unique<ScopeMember>(std::move(member)));
     return *members.back().get();
+}
+
+LexicalScope *LexicalScope::bind(const std::string &name) const {
+    return nullptr;
 }
 
 }

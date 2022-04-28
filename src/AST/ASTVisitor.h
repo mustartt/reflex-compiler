@@ -130,6 +130,11 @@ class ASTStmtVisitable {
 #define ASTStmtVisitorDispatcher \
 OpaqueType accept(ASTStmtVisitor *v) override { return v->visit(*this); }
 
+#define ASTVisitorDefImpl \
+{ return {}; }
+
+#define ASTVisitorDefRetVal {}
+
 }
 
 #endif //REFLEX_SRC_AST_ASTVISITOR_H_

@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <list>
 
 namespace reflex {
 
@@ -46,14 +47,25 @@ class ScopeMember {
     LexicalScope *child;
 };
 
+class LexicalError : public std::runtime_error {
+  public:
+    explicit LexicalError(const std::string &arg);
+};
+
 class LexicalScope {
   public:
+    using QuantifierList = std::list<std::string>;
+
     LexicalScope(LexicalContext &context, LexicalScope *parentScope,
                  std::string scopename, ASTNode *decl)
         : context(context), parentScope(parentScope),
           decl(decl), scopename(std::move(scopename)) {}
 
     bool isGlobalScope() const { return !parentScope; }
+
+    /// Adds a scope member to the current LexicalScope with associated type and name
+    /// by default it has no associated children scope.
+    /// @note name is not unique in the lexical scope for the sake of implementing overloading
     ScopeMember &addScopeMember(std::string name, Type *memberType, LexicalScope *child = nullptr);
 
     LexicalContext &getContext() const { return context; }
@@ -63,12 +75,22 @@ class LexicalScope {
     ASTNode *getNodeDecl() const { return decl; }
     const std::vector<std::unique_ptr<ScopeMember>> &getMembers() const { return members; }
 
+    size_t incBlockCount() { return blockCount++; }
+    size_t incLambdaCount() { return lambdaCount++; }
+
   private:
+    /// Recursively binds to the nearest parent scope including the current scope
+    /// to find a lexical scope that has the same name
+    /// @return the bound scope with the same name, or nullptr if no such parent scope exists
+    LexicalScope *bind(const std::string &name) const;
+
     LexicalContext &context;
     LexicalScope *parentScope;
     ASTNode *decl;
     std::string scopename;
     std::vector<std::unique_ptr<ScopeMember>> members;
+    size_t blockCount = 0;
+    size_t lambdaCount = 0;
 };
 
 }

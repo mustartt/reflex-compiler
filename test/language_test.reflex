@@ -1,10 +1,19 @@
 var variable: int = 0;
 
-class base {
-    public var a: int;
-}
-
 func add(a: int, b: int) -> int {
     var c: int = a + b;
+    {var d: int = 10;}
     return c;
 }
+
+class A {
+    public class B {
+        public class C {
+            public func test(a: A::B) -> void {}
+        }
+        public func test(a: B::C) -> void {}
+    }
+    public func test(a: A::B::C) -> void {}
+}
+
+

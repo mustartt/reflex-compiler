@@ -5,6 +5,8 @@
 #include <ASTContext.h>
 #include <AstPrinter.h>
 #include <LexicalContext.h>
+#include <TypeContext.h>
+#include <LexicalContextPass.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -15,28 +17,25 @@ int main(int argc, char *argv[]) {
     ASTContext astContext;
     Lexer lexer(file, file.content(), getTokenDescription(), getKeywordDescription());
     Parser parser(astContext, lexer);
-//    try {
-//    } catch (UnrecoverableError &err) {
-//        std::cout << err.getErrorLocation()->getLocationString() << std::endl;
-//        err.getErrorLocation()->printSourceRegion(std::cout, true);
-//        std::cout << err.getErrorMessage() << std::endl;
-//    }
+    try {
+        auto astRoot = parser.parseCompilationUnit();
 
-    auto astRoot = parser.parseCompilationUnit();
+        AstPrinter printer(std::cout);
+        printer.visit(*astRoot);
 
-    AstPrinter printer(std::cout);
-    printer.visit(*astRoot);
+        LexicalContext lexicalContext;
+        TypeContext typeContext;
 
-    LexicalContext context;
-    auto lexRoot = context.createGlobalScope(astRoot);
-    auto vardecl = dynamic_cast<VariableDecl *>(astRoot->getDecl(0));
-    auto klsdecl = dynamic_cast<ClassDecl *>(astRoot->getDecl(1));
-    auto fundecl = dynamic_cast<FunctionDecl *>(astRoot->getDecl(2));
+        LexicalContextPass lexicalPass(lexicalContext, typeContext);
+        auto lexscope = lexicalPass.performPass(astRoot);
 
-    lexRoot->addScopeMember(vardecl->getDeclname(), nullptr);
-    lexRoot->addScopeMember(klsdecl->getDeclname(), nullptr, context.createCompositeScope(klsdecl, lexRoot));
+        lexicalContext.dump(std::cout, lexscope);
 
-    context.dump(std::cout, lexRoot);
+    } catch (UnrecoverableError &err) {
+        std::cout << err.getErrorLocation()->getLocationString() << std::endl;
+        err.getErrorLocation()->printSourceRegion(std::cout, true);
+        std::cout << err.getErrorMessage() << std::endl;
+    }
 
     return 0;
 }

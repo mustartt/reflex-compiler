@@ -8,7 +8,7 @@ add_library(
         LexicalScope.h
         LexicalContext.cpp
         LexicalContext.h
-)
+        LexicalContextPass.cpp LexicalContextPass.h)
 
 set_target_properties(lexcontext PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(lexcontext PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
