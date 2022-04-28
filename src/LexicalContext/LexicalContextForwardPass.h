@@ -2,8 +2,8 @@
 // Created by henry on 2022-04-28.
 //
 
-#ifndef REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTPASS_H_
-#define REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTPASS_H_
+#ifndef REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTFORWARDPASS_H_
+#define REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTFORWARDPASS_H_
 
 #include "ASTVisitor.h"
 #include "LexicalScope.h"
@@ -16,11 +16,11 @@ class TypeContext;
 
 /// Create lexical scope for semantic analysis
 /// Forward declares CompositeType and creates scopes for later analysis
-class LexicalContextPass : public ASTDeclVisitor,
-                           public ASTStmtVisitor,
-                           public ASTExprVisitor {
+class LexicalContextForwardPass : public ASTDeclVisitor,
+                                  public ASTStmtVisitor,
+                                  public ASTExprVisitor {
   public:
-    LexicalContextPass(LexicalContext &context, TypeContext &typeContext)
+    LexicalContextForwardPass(LexicalContext &context, TypeContext &typeContext)
         : context(context), typeContext(typeContext) {}
 
     LexicalScope *performPass(CompilationUnit *unit);
@@ -73,4 +73,4 @@ class LexicalContextPass : public ASTDeclVisitor,
 
 }
 
-#endif //REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTPASS_H_
+#endif //REFLEX_SRC_LEXICALCONTEXT_LEXICALCONTEXTFORWARDPASS_H_

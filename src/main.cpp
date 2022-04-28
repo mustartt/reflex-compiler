@@ -6,7 +6,7 @@
 #include <AstPrinter.h>
 #include <LexicalContext.h>
 #include <TypeContext.h>
-#include <LexicalContextPass.h>
+#include <LexicalContextForwardPass.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         LexicalContext lexicalContext;
         TypeContext typeContext;
 
-        LexicalContextPass lexicalPass(lexicalContext, typeContext);
+        LexicalContextForwardPass lexicalPass(lexicalContext, typeContext);
         auto lexscope = lexicalPass.performPass(astRoot);
 
         lexicalContext.dump(std::cout, lexscope);

@@ -90,11 +90,16 @@ class FunctionLiteral : public Literal {
     ASTTypeExpr *getReturnType() const { return returnType; }
     BlockStmt *getBody() const { return body; }
 
+    LexicalScope *getScope() const { return scope; }
+    void setScope(LexicalScope *lexicalScope) { FunctionLiteral::scope = lexicalScope; }
+
     ASTExprVisitorDispatcher
   private:
     std::vector<ParamDecl *> parameters;
     ASTTypeExpr *returnType;
     BlockStmt *body;
+
+    LexicalScope *scope;
 };
 
 }

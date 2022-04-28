@@ -2,7 +2,7 @@
 // Created by henry on 2022-04-28.
 //
 
-#include "LexicalContextPass.h"
+#include "LexicalContextForwardPass.h"
 
 #include "TypeContext.h"
 #include "LexicalContext.h"
@@ -13,12 +13,13 @@
 
 namespace reflex {
 
-LexicalScope *LexicalContextPass::performPass(CompilationUnit *unit) {
+LexicalScope *LexicalContextForwardPass::performPass(CompilationUnit *unit) {
     return Generic<LexicalScope *>::Get(visit(*unit));
 }
 
-OpaqueType LexicalContextPass::visit(CompilationUnit &unit) {
+OpaqueType LexicalContextForwardPass::visit(CompilationUnit &unit) {
     auto globalScope = context.createGlobalScope(&unit);
+    unit.setScope(globalScope);
     scope.push(globalScope);
     for (auto decl: unit.getDecls()) {
         decl->accept(this);
@@ -27,8 +28,9 @@ OpaqueType LexicalContextPass::visit(CompilationUnit &unit) {
     return Generic<LexicalScope *>::Create(globalScope);
 }
 
-OpaqueType LexicalContextPass::visit(ClassDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(ClassDecl &decl) {
     auto classScope = context.createCompositeScope(&decl, scope.top());
+    decl.setScope(classScope);
     auto &member = scope.top()->addScopeMember(
         decl.getDeclname(),
         nullptr,
@@ -46,8 +48,9 @@ OpaqueType LexicalContextPass::visit(ClassDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(InterfaceDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(InterfaceDecl &decl) {
     auto interfaceScope = context.createCompositeScope(&decl, scope.top());
+    decl.setScope(interfaceScope);
     auto &member = scope.top()->addScopeMember(
         decl.getDeclname(),
         nullptr,
@@ -64,7 +67,7 @@ OpaqueType LexicalContextPass::visit(InterfaceDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(VariableDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(VariableDecl &decl) {
     if (decl.isGlobalVariable()) {
         scope.top()->addScopeMember(decl.getDeclname(), nullptr);
     }
@@ -72,7 +75,7 @@ OpaqueType LexicalContextPass::visit(VariableDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(FieldDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(FieldDecl &decl) {
     if (decl.getVisibility() == Visibility::Static) {
         scope.top()->addScopeMember(decl.getDeclname(), nullptr);
     }
@@ -80,13 +83,14 @@ OpaqueType LexicalContextPass::visit(FieldDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ParamDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(ParamDecl &decl) {
 //    scope.top()->addScopeMember(decl.getDeclname(), nullptr);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(FunctionDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(FunctionDecl &decl) {
     auto funcScope = context.createFunctionScope(&decl, scope.top());
+    decl.setScope(funcScope);
     scope.top()->addScopeMember(decl.getDeclname(), nullptr, funcScope);
     scope.push(funcScope);
     generateBlockScope = false;
@@ -99,8 +103,9 @@ OpaqueType LexicalContextPass::visit(FunctionDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(MethodDecl &decl) {
+OpaqueType LexicalContextForwardPass::visit(MethodDecl &decl) {
     auto funcScope = context.createMethodScope(&decl, scope.top());
+    decl.setScope(funcScope);
     scope.top()->addScopeMember(decl.getDeclname(), nullptr, funcScope);
     scope.push(funcScope);
     generateBlockScope = false;
@@ -113,8 +118,9 @@ OpaqueType LexicalContextPass::visit(MethodDecl &decl) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(FunctionLiteral &literal) {
+OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
     auto lambdaScope = context.createLambdaScope(&literal, scope.top()->incLambdaCount(), scope.top());
+    literal.setScope(lambdaScope);
     scope.top()->addScopeMember(lambdaScope->getScopename(), nullptr, lambdaScope);
     scope.push(lambdaScope);
     generateBlockScope = false;
@@ -127,9 +133,10 @@ OpaqueType LexicalContextPass::visit(FunctionLiteral &literal) {
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(BlockStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
     if (generateBlockScope) {
         auto blockScope = context.createBlockScope(&stmt, scope.top()->incBlockCount(), scope.top());
+        stmt.setScope(blockScope);
         scope.top()->addScopeMember(blockScope->getScopename(), nullptr, blockScope);
         scope.push(blockScope);
         generateBlockScope = true;
@@ -138,90 +145,91 @@ OpaqueType LexicalContextPass::visit(BlockStmt &stmt) {
         scope.pop();
     } else {
         generateBlockScope = true;
+        stmt.setScope(scope.top());
         for (auto statement: stmt.getStmts()) statement->accept(this);
         generateBlockScope = false;
     }
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(UnaryExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(UnaryExpr &expr) {
     expr.getExpr()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(BinaryExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(BinaryExpr &expr) {
     expr.getLhs()->accept(this);
     expr.getRhs()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(CastExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(CastExpr &expr) {
     expr.getFrom()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(IndexExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(IndexExpr &expr) {
     if (expr.getIndex()) expr.getIndex()->accept(this);
     expr.getBaseExpr()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(SelectorExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(SelectorExpr &expr) {
     expr.getBaseExpr()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ArgumentExpr &expr) {
+OpaqueType LexicalContextForwardPass::visit(ArgumentExpr &expr) {
     expr.getBaseExpr()->accept(this);
     for (auto arg: expr.getArguments()) arg->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ReturnStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(ReturnStmt &stmt) {
     stmt.getReturnValue()->accept(this);
     return {};
 }
-OpaqueType LexicalContextPass::visit(IfStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(IfStmt &stmt) {
     stmt.getCond()->accept(this);
     stmt.getPrimaryBlock()->accept(this);
     if (stmt.getElseBlock()) stmt.getElseBlock()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ForStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(ForStmt &stmt) {
     // visit for clause
     stmt.getBody()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(WhileStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(WhileStmt &stmt) {
     stmt.getCond()->accept(this);
     stmt.getBody()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(AssignmentStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(AssignmentStmt &stmt) {
     stmt.getLhs()->accept(this);
     stmt.getRhs()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(IncDecStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(IncDecStmt &stmt) {
     stmt.getExpr()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ExpressionStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(ExpressionStmt &stmt) {
     stmt.getExpr()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(DeclStmt &stmt) {
+OpaqueType LexicalContextForwardPass::visit(DeclStmt &stmt) {
     stmt.getDecl()->accept(this);
     return {};
 }
 
-OpaqueType LexicalContextPass::visit(ArrayLiteral &literal) {
+OpaqueType LexicalContextForwardPass::visit(ArrayLiteral &literal) {
     for (auto lit: literal.getInitList()) {
         lit->accept(this);
     }

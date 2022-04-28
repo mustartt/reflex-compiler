@@ -7,13 +7,24 @@ func add(a: int, b: int) -> int {
 }
 
 class A {
+    static var size: int = 0;
+
     public class B {
         public class C {
             public func test(a: A::B) -> void {}
         }
         public func test(a: B::C) -> void {}
     }
+
+    public class D(A) {}
+    public class E(B) {}
+    public class F(B::C) {}
+
     public func test(a: A::B::C) -> void {}
 }
+
+class G(A::B::C) {}
+
+
 
 

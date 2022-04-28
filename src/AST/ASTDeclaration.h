@@ -70,6 +70,9 @@ class ClassDecl : public AggregateDecl {
     void addMemberDecl(FieldDecl *decl) { fields.push_back(decl); }
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
 
+    LexicalScope *getScope() const { return scope; }
+    void setScope(LexicalScope *lexicalScope) { ClassDecl::scope = lexicalScope; }
+
     ASTDeclVisitorDispatcher
   private:
     ReferenceTypenameExpr *baseclass;
@@ -78,6 +81,8 @@ class ClassDecl : public AggregateDecl {
     std::vector<AggregateDecl *> decls;
     std::vector<FieldDecl *> fields;
     std::vector<MethodDecl *> methods;
+
+    LexicalScope *scope;
 };
 
 class InterfaceDecl : public AggregateDecl {
@@ -96,12 +101,17 @@ class InterfaceDecl : public AggregateDecl {
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
     void addMemberDecl(InterfaceDecl *decl) { decls.push_back(decl); }
 
+    LexicalScope *getScope() const { return scope; }
+    void setScope(LexicalScope *lexicalScope) { InterfaceDecl::scope = lexicalScope; }
+
     ASTDeclVisitorDispatcher
   private:
     std::vector<ReferenceTypenameExpr *> interfaces;
 
     std::vector<AggregateDecl *> decls;
     std::vector<MethodDecl *> methods;
+
+    LexicalScope *scope;
 };
 
 class VariableDecl : public Declaration {
@@ -167,11 +177,16 @@ class FunctionDecl : public Declaration {
     ASTTypeExpr *getReturnTypeDecl() const { return returnTypeDecl; }
     BlockStmt *getBody() const { return body; }
 
+    LexicalScope *getScope() const { return scope; }
+    void setScope(LexicalScope *lexicalScope) { FunctionDecl::scope = lexicalScope; }
+
     ASTDeclVisitorDispatcher
   protected:
     std::vector<ParamDecl *> paramDecls;
     ASTTypeExpr *returnTypeDecl;
     BlockStmt *body;
+
+    LexicalScope *scope;
 };
 
 class MethodDecl : public FunctionDecl {
@@ -203,9 +218,13 @@ class CompilationUnit : public Declaration {
     Declaration *getDecl(size_t index);
     [[nodiscard]] const std::vector<Declaration *> &getDecls() const;
 
+    LexicalScope *getScope() const { return scope; }
+    void setScope(LexicalScope *lexicalScope) { CompilationUnit::scope = lexicalScope; }
+
     ASTDeclVisitorDispatcher
   private:
     std::vector<Declaration *> decls;
+    LexicalScope *scope;
 };
 
 }
