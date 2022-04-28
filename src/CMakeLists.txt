@@ -8,11 +8,11 @@ add_subdirectory(AST)
 add_subdirectory(Parser)
 add_subdirectory(ASTPrinter)
 add_subdirectory(Type)
+add_subdirectory(LexicalContext)
 
-#add_subdirectory(TypeChecker)
 #add_subdirectory(CodeGen)
 
 add_executable(reflex main.cpp)
 
 #target_link_libraries(reflex ${llvm_libs} ast parser ast_printer types typechecker codegen)
-target_link_libraries(reflex ${llvm_libs} lexer ast astprinter parser type)
+target_link_libraries(reflex ${llvm_libs} lexcontext lexer ast astprinter parser type)
