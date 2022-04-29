@@ -48,24 +48,20 @@ TEST_F(LexicalContextTest, CreateCompositeScope) {
         nullptr,
         std::vector<ReferenceTypenameExpr *>()
     );
-    auto classScope = globalScope->createCompositeScope(classDecl);
-    auto &member = globalScope->addScopeMember(
-        classDecl->getDeclname(),
-        typeContext.getClassType("TestClass", classDecl),
-        classScope);
+    auto [classScope, member] = globalScope->createCompositeScope(classDecl);
 
     ASSERT_TRUE(classScope);
     EXPECT_EQ(classScope->getScopename(), "TestClass");
-    EXPECT_EQ(classScope->getParentScope(), globalScope);
+    EXPECT_EQ(classScope->getParentScope(), member);
     EXPECT_EQ(classScope->getNodeDecl(), classDecl);
     EXPECT_EQ(classScope->getScopeType(), LexicalScopeType::Composite);
     EXPECT_FALSE(classScope->isGlobalScope());
 
-    EXPECT_TRUE(member.hasScope());
-    EXPECT_EQ(member.getMembername(), "TestClass");
-    EXPECT_EQ(member.getChild(), classScope);
-    EXPECT_EQ(member.getParent(), globalScope);
-    EXPECT_EQ(member.getStringQualifier(), "TestClass");
+    EXPECT_TRUE(member->hasScope());
+    EXPECT_EQ(member->getMembername(), "TestClass");
+    EXPECT_EQ(member->getChild(), classScope);
+    EXPECT_EQ(member->getParent(), globalScope);
+    EXPECT_EQ(member->getStringQualifier(), "TestClass");
 }
 
 TEST_F(LexicalContextTest, CreateFunctionScope) {
@@ -74,24 +70,20 @@ TEST_F(LexicalContextTest, CreateFunctionScope) {
         std::vector<ParamDecl *>(),
         nullptr, nullptr
     );
-    auto funcScope = globalScope->createFunctionScope(funcDecl);
-    auto &member = globalScope->addScopeMember(
-        funcDecl->getDeclname(),
-        typeContext.getFunctionType(typeContext.getVoidType(), {}),
-        funcScope);
+    auto [funcScope, member] = globalScope->createFunctionScope(funcDecl);
 
     ASSERT_TRUE(funcScope);
     EXPECT_EQ(funcScope->getScopename(), "TestFunction");
-    EXPECT_EQ(funcScope->getParentScope(), globalScope);
+    EXPECT_EQ(funcScope->getParentScope(), member);
     EXPECT_EQ(funcScope->getNodeDecl(), funcDecl);
     EXPECT_EQ(funcScope->getScopeType(), LexicalScopeType::Function);
     EXPECT_FALSE(funcScope->isGlobalScope());
 
-    EXPECT_TRUE(member.hasScope());
-    EXPECT_EQ(member.getMembername(), "TestFunction");
-    EXPECT_EQ(member.getChild(), funcScope);
-    EXPECT_EQ(member.getParent(), globalScope);
-    EXPECT_EQ(member.getStringQualifier(), "TestFunction");
+    EXPECT_TRUE(member->hasScope());
+    EXPECT_EQ(member->getMembername(), "TestFunction");
+    EXPECT_EQ(member->getChild(), funcScope);
+    EXPECT_EQ(member->getParent(), globalScope);
+    EXPECT_EQ(member->getStringQualifier(), "TestFunction");
 }
 
 TEST_F(LexicalContextTest, CreateMethodScope) {
@@ -101,18 +93,14 @@ TEST_F(LexicalContextTest, CreateMethodScope) {
         nullptr, nullptr, nullptr,
         Visibility::Public
     );
-    auto methodScope = globalScope->createMethodScope(methodDecl);
-    auto &member = globalScope->addScopeMember(
-        methodDecl->getDeclname(),
-        typeContext.getFunctionType(typeContext.getVoidType(), {}),
-        methodScope);
+    auto [methodScope, member] = globalScope->createMethodScope(methodDecl);
 
     ASSERT_TRUE(methodScope);
     EXPECT_EQ(methodScope->getScopename(), "TestMethod");
     EXPECT_EQ(methodScope->getScopeType(), LexicalScopeType::Method);
-    EXPECT_TRUE(member.hasScope());
-    EXPECT_EQ(member.getMembername(), "TestMethod");
-    EXPECT_EQ(member.getStringQualifier(), "TestMethod");
+    EXPECT_TRUE(member->hasScope());
+    EXPECT_EQ(member->getMembername(), "TestMethod");
+    EXPECT_EQ(member->getStringQualifier(), "TestMethod");
 }
 
 TEST_F(LexicalContextTest, CreateBlockScope) {
@@ -121,23 +109,18 @@ TEST_F(LexicalContextTest, CreateBlockScope) {
         std::vector<ParamDecl *>(),
         nullptr, nullptr
     );
-    auto funcScope = globalScope->createFunctionScope(funcDecl);
-    auto &member = globalScope->addScopeMember(
-        funcDecl->getDeclname(),
-        typeContext.getFunctionType(typeContext.getVoidType(), {}),
-        funcScope);
+    auto [funcScope, member] = globalScope->createFunctionScope(funcDecl);
+
     auto blockDecl1 = astContext.create<BlockStmt>(nullptr, std::vector<Statement *>());
     auto blockDecl2 = astContext.create<BlockStmt>(nullptr, std::vector<Statement *>());
 
-    auto blockScope1 = funcScope->createBlockScope(blockDecl1);
-    auto blockScope2 = funcScope->createBlockScope(blockDecl2);
-    funcScope->addScopeMember(blockScope1->getScopename(), nullptr, blockScope1);
-    funcScope->addScopeMember(blockScope2->getScopename(), nullptr, blockScope2);
+    auto [blockScope1, blockMember1] = funcScope->createBlockScope(blockDecl1);
+    auto [blockScope2, blockMember2] = funcScope->createBlockScope(blockDecl2);
 
     ASSERT_TRUE(blockScope1 && blockScope2);
     EXPECT_EQ(blockScope1->getScopename(), "__block(0)__");
     EXPECT_EQ(blockScope2->getScopename(), "__block(1)__");
-    EXPECT_EQ(blockScope1->getParentScope(), blockScope2->getParentScope());
+    EXPECT_EQ(blockScope1->getParentScope()->getParent(), blockScope2->getParentScope()->getParent());
     EXPECT_NO_THROW(blockScope1->bind("TestFunction"));
 }
 
@@ -147,23 +130,18 @@ TEST_F(LexicalContextTest, CreateLambdaScope) {
         std::vector<ParamDecl *>(),
         nullptr, nullptr
     );
-    auto funcScope = globalScope->createFunctionScope(funcDecl);
-    auto &member = globalScope->addScopeMember(
-        funcDecl->getDeclname(),
-        typeContext.getFunctionType(typeContext.getVoidType(), {}),
-        funcScope);
+    auto [funcScope, member] = globalScope->createFunctionScope(funcDecl);
+
     auto lambdaDecl1 = astContext.create<FunctionLiteral>(nullptr, std::vector<ParamDecl *>(), nullptr, nullptr);
     auto lambdaDecl2 = astContext.create<FunctionLiteral>(nullptr, std::vector<ParamDecl *>(), nullptr, nullptr);
 
-    auto lambdaScope1 = funcScope->createLambdaScope(lambdaDecl1);
-    auto lambdaScope2 = funcScope->createLambdaScope(lambdaDecl2);
-    funcScope->addScopeMember(lambdaScope1->getScopename(), nullptr, lambdaScope1);
-    funcScope->addScopeMember(lambdaScope2->getScopename(), nullptr, lambdaScope2);
+    auto [lambdaScope1, lambdaMember1] = funcScope->createLambdaScope(lambdaDecl1);
+    auto [lambdaScope2, lambdaMember2] = funcScope->createLambdaScope(lambdaDecl2);
 
     ASSERT_TRUE(lambdaScope1 && lambdaScope2);
     EXPECT_EQ(lambdaScope1->getScopename(), "__lambda(0)__");
     EXPECT_EQ(lambdaScope2->getScopename(), "__lambda(1)__");
-    EXPECT_EQ(lambdaScope1->getParentScope(), lambdaScope2->getParentScope());
+    EXPECT_EQ(lambdaScope1->getParentScope()->getParent(), lambdaScope2->getParentScope()->getParent());
     EXPECT_NO_THROW(lambdaScope1->bind("TestFunction"));
 }
 
@@ -173,11 +151,8 @@ TEST_F(LexicalContextTest, DebugDump) {
         std::vector<ParamDecl *>(),
         nullptr, nullptr
     );
-    auto funcScope = globalScope->createFunctionScope(funcDecl);
-    auto &member = globalScope->addScopeMember(
-        funcDecl->getDeclname(),
-        typeContext.getFunctionType(typeContext.getVoidType(), {}),
-        funcScope);
+    auto [funcScope, member] = globalScope->createFunctionScope(funcDecl);
+
     std::stringstream os;
     context.dump(os, globalScope);
     EXPECT_FALSE(os.str().empty());

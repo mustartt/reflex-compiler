@@ -19,11 +19,11 @@ class LexicalContext {
     LexicalContext() = default;
 
     LexicalScope *createGlobalScope(CompilationUnit *CU);
-    LexicalScope *createCompositeScope(AggregateDecl *decl, LexicalScope *parent);
-    LexicalScope *createFunctionScope(FunctionDecl *decl, LexicalScope *parent);
-    LexicalScope *createMethodScope(MethodDecl *decl, LexicalScope *parent);
-    LexicalScope *createBlockScope(BlockStmt *decl, size_t blockID, LexicalScope *parent);
-    LexicalScope *createLambdaScope(FunctionLiteral *decl, size_t lambdaID, LexicalScope *parent);
+    LexicalScope *createCompositeScope(AggregateDecl *decl, ScopeMember *parent);
+    LexicalScope *createFunctionScope(FunctionDecl *decl, ScopeMember *parent);
+    LexicalScope *createMethodScope(MethodDecl *decl, ScopeMember *parent);
+    LexicalScope *createBlockScope(BlockStmt *decl, size_t blockID, ScopeMember *parent);
+    LexicalScope *createLambdaScope(FunctionLiteral *decl, size_t lambdaID, ScopeMember *parent);
 
     void dump(std::ostream &os, LexicalScope *start, size_t indent = 0);
 

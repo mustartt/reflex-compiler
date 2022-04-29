@@ -11,6 +11,7 @@
 namespace reflex {
 
 class TypeContext;
+class LexicalScope;
 
 class TypeParser {
   public:

@@ -29,15 +29,10 @@ OpaqueType LexicalContextForwardPass::visit(CompilationUnit &unit) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(ClassDecl &decl) {
-    auto classScope = context.createCompositeScope(&decl, scope.top());
-    decl.setScope(classScope);
-    auto &member = scope.top()->addScopeMember(
-        decl.getDeclname(),
-        nullptr,
-        classScope
-    );
-    auto type = typeContext.getClassType(member.getStringQualifier(), &decl);
-    member.setMemberType(type);
+    auto [classScope, member] = scope.top()->createCompositeScope(&decl);
+
+    auto type = typeContext.getClassType(member->getStringQualifier(), &decl);
+    member->setMemberType(type);
     decl.setType(type);
     scope.push(classScope);
 
@@ -50,15 +45,10 @@ OpaqueType LexicalContextForwardPass::visit(ClassDecl &decl) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(InterfaceDecl &decl) {
-    auto interfaceScope = context.createCompositeScope(&decl, scope.top());
-    decl.setScope(interfaceScope);
-    auto &member = scope.top()->addScopeMember(
-        decl.getDeclname(),
-        nullptr,
-        interfaceScope
-    );
-    auto type = typeContext.getInterfaceType(member.getStringQualifier(), &decl);
-    member.setMemberType(type);
+    auto [interfaceScope, member] = scope.top()->createCompositeScope(&decl);
+
+    auto type = typeContext.getInterfaceType(member->getStringQualifier(), &decl);
+    member->setMemberType(type);
     decl.setType(type);
     scope.push(interfaceScope);
 
@@ -91,9 +81,8 @@ OpaqueType LexicalContextForwardPass::visit(ParamDecl &decl) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(FunctionDecl &decl) {
-    auto funcScope = context.createFunctionScope(&decl, scope.top());
-    decl.setScope(funcScope);
-    scope.top()->addScopeMember(decl.getDeclname(), nullptr, funcScope);
+    auto [funcScope, _] = scope.top()->createFunctionScope(&decl);
+
     scope.push(funcScope);
     generateBlockScope = false;
 
@@ -106,10 +95,9 @@ OpaqueType LexicalContextForwardPass::visit(FunctionDecl &decl) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(MethodDecl &decl) {
-    auto funcScope = context.createMethodScope(&decl, scope.top());
-    decl.setScope(funcScope);
-    scope.top()->addScopeMember(decl.getDeclname(), nullptr, funcScope);
-    scope.push(funcScope);
+    auto [methodScope, _] = scope.top()->createFunctionScope(&decl);
+
+    scope.push(methodScope);
     generateBlockScope = false;
 
     for (auto param: decl.getParamDecls()) param->accept(this);
@@ -121,9 +109,8 @@ OpaqueType LexicalContextForwardPass::visit(MethodDecl &decl) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
-    auto lambdaScope = scope.top()->createLambdaScope(&literal);
-    auto member = scope.top()->addScopeMember(lambdaScope->getScopename(), nullptr, lambdaScope);
-    literal.setScope(&member);
+    auto [lambdaScope, lambdaMember] = scope.top()->createLambdaScope(&literal);
+    literal.setScope(lambdaMember);
 
     scope.push(lambdaScope);
     generateBlockScope = false;
@@ -138,9 +125,8 @@ OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
 
 OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
     if (generateBlockScope) {
-        auto blockScope = scope.top()->createBlockScope(&stmt);
-        auto &member = scope.top()->addScopeMember(blockScope->getScopename(), nullptr, blockScope);
-        stmt.setScope(&member);
+        auto [blockScope, blockMember] = scope.top()->createBlockScope(&stmt);
+        stmt.setScope(blockMember);
 
         scope.push(blockScope);
         generateBlockScope = true;
@@ -149,7 +135,9 @@ OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
         scope.pop();
     } else {
         generateBlockScope = true;
-//        stmt.setScope(scope.top());
+
+        stmt.setScope(scope.top()->getParentScope());
+
         for (auto statement: stmt.getStmts()) statement->accept(this);
         generateBlockScope = false;
     }

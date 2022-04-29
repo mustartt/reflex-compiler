@@ -16,28 +16,28 @@ LexicalScope *LexicalContext::createGlobalScope(CompilationUnit *CU) {
         *this, nullptr, LexicalScopeType::Global, "__global__", CU));
 }
 
-LexicalScope *LexicalContext::createCompositeScope(AggregateDecl *decl, LexicalScope *parent) {
+LexicalScope *LexicalContext::createCompositeScope(AggregateDecl *decl, ScopeMember *parent) {
     return insertScope(std::make_unique<LexicalScope>(
         *this, parent, LexicalScopeType::Composite, decl->getDeclname(), decl));
 }
 
-LexicalScope *LexicalContext::createFunctionScope(FunctionDecl *decl, LexicalScope *parent) {
+LexicalScope *LexicalContext::createFunctionScope(FunctionDecl *decl, ScopeMember *parent) {
     return insertScope(std::make_unique<LexicalScope>(
         *this, parent, LexicalScopeType::Function, decl->getDeclname(), decl));
 }
 
-LexicalScope *LexicalContext::createMethodScope(MethodDecl *decl, LexicalScope *parent) {
+LexicalScope *LexicalContext::createMethodScope(MethodDecl *decl, ScopeMember *parent) {
     return insertScope(std::make_unique<LexicalScope>(
         *this, parent, LexicalScopeType::Method, decl->getDeclname(), decl));
 }
 
-LexicalScope *LexicalContext::createBlockScope(BlockStmt *decl, size_t blockID, LexicalScope *parent) {
+LexicalScope *LexicalContext::createBlockScope(BlockStmt *decl, size_t blockID, ScopeMember *parent) {
     return insertScope(std::make_unique<LexicalScope>(
         *this, parent, LexicalScopeType::Block,
         "__block(" + std::to_string(blockID) + ")__", decl));
 }
 
-LexicalScope *LexicalContext::createLambdaScope(FunctionLiteral *decl, size_t lambdaID, LexicalScope *parent) {
+LexicalScope *LexicalContext::createLambdaScope(FunctionLiteral *decl, size_t lambdaID, ScopeMember *parent) {
     return insertScope(std::make_unique<LexicalScope>(
         *this, parent, LexicalScopeType::Lambda,
         "__lambda(" + std::to_string(lambdaID) + ")__", decl));

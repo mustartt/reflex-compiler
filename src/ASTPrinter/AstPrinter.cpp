@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "Type.h"
 #include "SourceManager.h"
 #include "ASTDeclaration.h"
 #include "ASTStatement.h"
@@ -45,7 +46,7 @@ std::string AstPrinter::printAstType(Type *type) {
     if (!type) {
         return "<<unknown>>";
     }
-    return "<<invalid>>";
+    return "<" + type->getTypeString() + ">";
 }
 
 void AstPrinter::printNodePrefix(const std::string &message, bool end) {

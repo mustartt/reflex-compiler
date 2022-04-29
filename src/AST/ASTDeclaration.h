@@ -70,8 +70,8 @@ class ClassDecl : public AggregateDecl {
     void addMemberDecl(FieldDecl *decl) { fields.push_back(decl); }
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
 
-    LexicalScope *getScope() const { return scope; }
-    void setScope(LexicalScope *lexicalScope) { ClassDecl::scope = lexicalScope; }
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { ClassDecl::scope = lexicalScope; }
 
     ASTDeclVisitorDispatcher
   private:
@@ -82,7 +82,7 @@ class ClassDecl : public AggregateDecl {
     std::vector<FieldDecl *> fields;
     std::vector<MethodDecl *> methods;
 
-    LexicalScope *scope;
+    ScopeMember *scope;
 };
 
 class InterfaceDecl : public AggregateDecl {
@@ -101,8 +101,8 @@ class InterfaceDecl : public AggregateDecl {
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
     void addMemberDecl(InterfaceDecl *decl) { decls.push_back(decl); }
 
-    LexicalScope *getScope() const { return scope; }
-    void setScope(LexicalScope *lexicalScope) { InterfaceDecl::scope = lexicalScope; }
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { InterfaceDecl::scope = lexicalScope; }
 
     ASTDeclVisitorDispatcher
   private:
@@ -111,7 +111,7 @@ class InterfaceDecl : public AggregateDecl {
     std::vector<AggregateDecl *> decls;
     std::vector<MethodDecl *> methods;
 
-    LexicalScope *scope;
+    ScopeMember *scope;
 };
 
 class VariableDecl : public Declaration {
@@ -177,8 +177,8 @@ class FunctionDecl : public Declaration {
     ASTTypeExpr *getReturnTypeDecl() const { return returnTypeDecl; }
     BlockStmt *getBody() const { return body; }
 
-    LexicalScope *getScope() const { return scope; }
-    void setScope(LexicalScope *lexicalScope) { FunctionDecl::scope = lexicalScope; }
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { FunctionDecl::scope = lexicalScope; }
 
     ASTDeclVisitorDispatcher
   protected:
@@ -186,7 +186,7 @@ class FunctionDecl : public Declaration {
     ASTTypeExpr *returnTypeDecl;
     BlockStmt *body;
 
-    LexicalScope *scope;
+    ScopeMember *scope;
 };
 
 class MethodDecl : public FunctionDecl {
@@ -208,6 +208,7 @@ class MethodDecl : public FunctionDecl {
     Visibility visibility;
 };
 
+class LexicalScope;
 class CompilationUnit : public Declaration {
   public:
     CompilationUnit(const SourceLocation *loc,

@@ -8,7 +8,7 @@ add_library(
         AstPrinter.cpp
 )
 
-target_link_libraries(astprinter LINK_PUBLIC ast)
+target_link_libraries(astprinter LINK_PUBLIC ast type)
 
 set_target_properties(astprinter PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(astprinter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

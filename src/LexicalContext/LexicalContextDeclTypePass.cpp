@@ -34,7 +34,7 @@ OpaqueType LexicalContextDeclTypePass::visit(CompilationUnit &unit) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(ClassDecl &decl) {
-    ReleaseScope _(*this, decl.getScope());
+    ReleaseScope _(*this, decl.getScope()->getChild());
     auto scope = scopes.top();
     auto classType = dynamic_cast<ClassType *>(decl.getType());
 
@@ -56,7 +56,7 @@ OpaqueType LexicalContextDeclTypePass::visit(ClassDecl &decl) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(InterfaceDecl &decl) {
-    ReleaseScope _(*this, decl.getScope());
+    ReleaseScope _(*this, decl.getScope()->getChild());
     auto scope = scopes.top();
     auto interfaceType = dynamic_cast<InterfaceType *>(decl.getType());
 
@@ -88,8 +88,6 @@ OpaqueType LexicalContextDeclTypePass::visit(FieldDecl &decl) {
     auto type = typeParser.parseTypeExpr(decl.getTypeDecl(), scopes.top());
     decl.setType(type);
 
-    
-
     if (decl.getInitializer()) {
         decl.getInitializer()->accept(this);
     }
@@ -103,7 +101,7 @@ OpaqueType LexicalContextDeclTypePass::visit(ParamDecl &decl) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(FunctionDecl &decl) {
-    ReleaseScope _(*this, decl.getScope());
+    ReleaseScope _(*this, decl.getScope()->getChild());
     auto scope = scopes.top();
 
     std::vector<Type *> paramTypes;
@@ -121,8 +119,9 @@ OpaqueType LexicalContextDeclTypePass::visit(FunctionDecl &decl) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(MethodDecl &decl) {
-    ReleaseScope _(*this, decl.getScope());
+    ReleaseScope _(*this, decl.getScope()->getChild());
     auto scope = scopes.top();
+    return {};
 }
 
 } // reflex

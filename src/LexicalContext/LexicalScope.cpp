@@ -72,7 +72,7 @@ ScopeMember *LexicalScope::bind(const std::string &name) const {
         }
     }
     if (parentScope) {
-        return parentScope->bind(name);
+        return parentScope->getParent()->bind(name);
     }
     throw LexicalError{"Cannot bind " + name + " in any of its parent lexical scopes"};
 }
@@ -103,28 +103,47 @@ ScopeMember *LexicalScope::resolve(const std::string &qualifier) const {
 void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
     if (!parentScope) return;
     prefix.push_front(scopename);
-    parentScope->getScopeQualifierPrefix(prefix);
+    parentScope->getParent()->getScopeQualifierPrefix(prefix);
 }
 
-LexicalScope *LexicalScope::createCompositeScope(AggregateDecl *declscope) {
-    return context.createCompositeScope(declscope, this);
+std::pair<LexicalScope *, ScopeMember *> LexicalScope::createCompositeScope(AggregateDecl *declscope) {
+    auto &newScopeMember = addScopeMember(declscope->getDeclname(), nullptr);
+    auto scope = newScopeMember.setChild(
+        context.createCompositeScope(declscope, &newScopeMember)
+    );
+    return {scope, &newScopeMember};
 }
 
-LexicalScope *LexicalScope::createFunctionScope(FunctionDecl *declscope) {
-    return context.createFunctionScope(declscope, this);
+std::pair<LexicalScope *, ScopeMember *> LexicalScope::createFunctionScope(FunctionDecl *declscope) {
+    auto &newScopeMember = addScopeMember(declscope->getDeclname(), nullptr);
+    auto scope = newScopeMember.setChild(
+        context.createFunctionScope(declscope, &newScopeMember)
+    );
+    return {scope, &newScopeMember};
 }
 
-LexicalScope *LexicalScope::createMethodScope(MethodDecl *declscope) {
-    return context.createMethodScope(declscope, this);
+std::pair<LexicalScope *, ScopeMember *> LexicalScope::createMethodScope(MethodDecl *declscope) {
+    auto &newScopeMember = addScopeMember(declscope->getDeclname(), nullptr);
+    auto scope = newScopeMember.setChild(
+        context.createMethodScope(declscope, &newScopeMember)
+    );
+    return {scope, &newScopeMember};
 }
-
-LexicalScope *LexicalScope::createBlockScope(BlockStmt *declscope) {
-    return context.createBlockScope(declscope, incBlockCount(), this);
+std::pair<LexicalScope *, ScopeMember *> LexicalScope::createBlockScope(BlockStmt *declscope) {
+    auto &newScopeMember = addScopeMember("temporary", nullptr);
+    auto scope = newScopeMember.setChild(
+        context.createBlockScope(declscope, incBlockCount(), &newScopeMember)
+    );
+    newScopeMember.setMembername(scope->getScopename());
+    return {scope, &newScopeMember};
 }
-
-LexicalScope *LexicalScope::createLambdaScope(FunctionLiteral *declscope) {
-    return context.createLambdaScope(declscope, incLambdaCount(), this);
-
+std::pair<LexicalScope *, ScopeMember *> LexicalScope::createLambdaScope(FunctionLiteral *declscope) {
+    auto &newScopeMember = addScopeMember("temporary", nullptr);
+    auto scope = newScopeMember.setChild(
+        context.createLambdaScope(declscope, incLambdaCount(), &newScopeMember)
+    );
+    newScopeMember.setMembername(scope->getScopename());
+    return {scope, &newScopeMember};
 }
 
 }
