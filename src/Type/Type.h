@@ -10,6 +10,7 @@
 #include <optional>
 #include <cassert>
 #include <map>
+#include <stdexcept>
 
 #include "ASTUtils.h"
 

@@ -50,7 +50,10 @@ class QualifiedTypenameExpr : public ReferenceTypenameExpr {
 
 class ArrayTypeExpr : public ASTTypeExpr {
   public:
-    ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type, NumberLiteral* size);
+    ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type, NumberLiteral *size);
+
+    NumberLiteral *getSize() const { return size; }
+    ASTTypeExpr *getElementType() const { return elementType; }
 
   private:
     NumberLiteral *size;
@@ -62,6 +65,9 @@ class FunctionTypeExpr : public ASTTypeExpr {
     FunctionTypeExpr(const SourceLocation *loc,
                      ASTTypeExpr *return_type,
                      std::vector<ASTTypeExpr *> param_types);
+
+    ASTTypeExpr *getReturnType() const { return returnType; }
+    const std::vector<ASTTypeExpr *> &getParamTypes() const { return paramTypes; }
 
   private:
     ASTTypeExpr *returnType;

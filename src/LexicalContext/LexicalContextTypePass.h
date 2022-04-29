@@ -15,6 +15,7 @@ class LexicalContextTypePass : public ASTDeclVisitor,
 
   public:
   private:
+
 };
 
 } // reflex

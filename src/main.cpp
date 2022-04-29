@@ -7,6 +7,7 @@
 #include <LexicalContext.h>
 #include <TypeContext.h>
 #include <LexicalContextForwardPass.h>
+#include "TypeParser.h"
 
 int main(int argc, char *argv[]) {
     using namespace reflex;

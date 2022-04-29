@@ -54,12 +54,34 @@ ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
     return *members.back().get();
 }
 
-LexicalScope *LexicalScope::bind(const std::string &name) const {
-    return nullptr;
+ScopeMember *LexicalScope::bind(const std::string &name) const {
+    for (const auto &member: members) {
+        if (member->getMembername() == name) {
+            return member.get();
+        }
+    }
+    if (parentScope) {
+        return parentScope->bind(name);
+    }
+    throw LexicalError{"Cannot bind " + name + " in any of its parent lexical scopes"};
+}
+
+ScopeMember *ScopeMember::follow(const std::string &qualifiedName) {
+    if (qualifiedName.empty()) return this;
+    auto pos = qualifiedName.find("::");
+    auto prefix = qualifiedName.substr(0, pos);
+    auto rest = qualifiedName.substr(pos + 2);
+    if (!hasScope()) throw LexicalError{"Cannot resolve " + rest + " in current scope " + getStringQualifier()};
+    for (auto &member: child->getMembers()) {
+        if (member->getMembername() == prefix) {
+            return member->follow(rest);
+        }
+    }
+    throw LexicalError{"Cannot resolve " + prefix + " in current scope " + getStringQualifier()};
 }
 
 void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
-    if (isGlobalScope()) return;
+    if (!parentScope) return;
     prefix.push_front(scopename);
     parentScope->getScopeQualifierPrefix(prefix);
 }

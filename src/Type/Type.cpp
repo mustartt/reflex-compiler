@@ -8,6 +8,9 @@
 
 namespace reflex {
 
+TypeError::TypeError(const std::string &arg)
+    : runtime_error("TypeError: " + arg) {}
+
 std::string BuiltinType::getTypeString() const {
     switch (baseType) {
         case Integer: return "int";
@@ -47,7 +50,5 @@ std::string ReferenceType::getTypeString() const {
     return "&" + refType->getTypeString() + (nullable ? "?" : "");
 }
 
-TypeError::TypeError(const std::string &arg)
-    : runtime_error("CompilerTypeError: " + arg) {}
 }
 

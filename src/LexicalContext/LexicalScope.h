@@ -45,6 +45,11 @@ class ScopeMember {
         [](const ScopeMember &lhs, const ScopeMember &rhs) {
           return lhs < rhs;
         };
+
+    /// Attempt to follow the qualifier name to find the referenced member in its children scope
+    /// @return the scope member if the qualifier is resolved
+    /// @throws LexicalError if qualifier cannot be resolved in its child scope
+    ScopeMember *follow(const std::string &qualifiedName);
   private:
     std::string membername;
     Type *memberType;
@@ -83,12 +88,13 @@ class LexicalScope {
     size_t incBlockCount() { return blockCount++; }
     size_t incLambdaCount() { return lambdaCount++; }
 
-  private:
-    /// Recursively binds to the nearest parent scope including the current scope
-    /// to find a lexical scope that has the same name
-    /// @return the bound scope with the same name, or nullptr if no such parent scope exists
-    LexicalScope *bind(const std::string &name) const;
+    /// Recursively binds to the nearest parent scope member starting at the current scope
+    /// to find a lexical scope member that has the same name
+    /// @return the bound scope with the same name
+    /// @throws LexicalError if no such member exists
+    ScopeMember *bind(const std::string &name) const;
 
+  private:
     LexicalContext &context;
     LexicalScope *parentScope;
     ASTNode *decl;
