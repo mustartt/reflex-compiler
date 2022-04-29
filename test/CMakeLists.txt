@@ -9,6 +9,12 @@ add_executable(unit_tests
         test.cpp
         Lexer/TokenTest.cpp
         Type/TypeContextTest.cpp
-        Type/TypeTest.cpp LexicalScope/LexicalScopeTest.cpp LexicalScope/LexicalContextTest.cpp)
+        Type/TypeTest.cpp
+        LexicalScope/LexicalScopeTest.cpp
+        LexicalScope/LexicalContextTest.cpp)
 
-target_link_libraries(unit_tests PRIVATE gtest_main lexer type lexcontext)
+file(GLOB TEST_FILES "TestFiles/*.test")
+message(STATUS "Copying test files ${TEST_FILES}")
+file(COPY ${TEST_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/TestFiles)
+
+target_link_libraries(unit_tests PRIVATE gtest_main lexer type parser lexcontext)

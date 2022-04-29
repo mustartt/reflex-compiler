@@ -112,6 +112,8 @@ class LexicalScope {
     /// @throws LexicalError if no such member exists
     ScopeMember *bind(const std::string &name) const;
 
+    ScopeMember *resolve(const std::string &qualifier) const;
+
   private:
     size_t incBlockCount() { return blockCount++; }
     size_t incLambdaCount() { return lambdaCount++; }

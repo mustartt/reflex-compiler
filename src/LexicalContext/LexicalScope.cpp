@@ -91,6 +91,15 @@ ScopeMember *ScopeMember::follow(const std::string &qualifiedName) {
     throw LexicalError{"Cannot resolve " + prefix + " in current scope " + getStringQualifier()};
 }
 
+ScopeMember *LexicalScope::resolve(const std::string &qualifier) const {
+    if (qualifier.empty()) throw LexicalError{"Cannot resolve empty qualifier"};
+    auto pos = qualifier.find("::");
+    auto prefix = qualifier.substr(0, pos);
+    auto rest = qualifier.substr(pos + 2);
+
+    return bind(prefix)->follow(rest);
+}
+
 void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
     if (!parentScope) return;
     prefix.push_front(scopename);
