@@ -13,32 +13,34 @@ namespace reflex {
 
 LexicalScope *LexicalContext::createGlobalScope(CompilationUnit *CU) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, nullptr, "__global__", CU));
+        *this, nullptr, LexicalScopeType::Global, "__global__", CU));
 }
 
 LexicalScope *LexicalContext::createCompositeScope(AggregateDecl *decl, LexicalScope *parent) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, parent, decl->getDeclname(), decl));
+        *this, parent, LexicalScopeType::Composite, decl->getDeclname(), decl));
 }
 
 LexicalScope *LexicalContext::createFunctionScope(FunctionDecl *decl, LexicalScope *parent) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, parent, decl->getDeclname(), decl));
+        *this, parent, LexicalScopeType::Function, decl->getDeclname(), decl));
 }
 
 LexicalScope *LexicalContext::createMethodScope(MethodDecl *decl, LexicalScope *parent) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, parent, decl->getDeclname(), decl));
+        *this, parent, LexicalScopeType::Method, decl->getDeclname(), decl));
 }
 
 LexicalScope *LexicalContext::createBlockScope(BlockStmt *decl, size_t blockID, LexicalScope *parent) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, parent, "__block(" + std::to_string(blockID) + ")__", decl));
+        *this, parent, LexicalScopeType::Block,
+        "__block(" + std::to_string(blockID) + ")__", decl));
 }
 
 LexicalScope *LexicalContext::createLambdaScope(FunctionLiteral *decl, size_t lambdaID, LexicalScope *parent) {
     return insertScope(std::make_unique<LexicalScope>(
-        *this, parent, "__lambda(" + std::to_string(lambdaID) + ")__", decl));
+        *this, parent, LexicalScopeType::Lambda,
+        "__lambda(" + std::to_string(lambdaID) + ")__", decl));
 }
 
 LexicalScope *LexicalContext::insertScope(std::unique_ptr<LexicalScope> ptr) {
@@ -53,7 +55,11 @@ std::ostream &printIndent(std::ostream &os, size_t indent) {
 
 void LexicalContext::dump(std::ostream &os, LexicalScope *start, size_t indent) {
     printIndent(os, indent) << "Scope(" << start->getScopename() << ") ";
-    os << start->getNodeDecl()->location()->getStringRepr() << " {";
+    if (start->getNodeDecl()->location()) {
+        os << start->getNodeDecl()->location()->getStringRepr() << " {";
+    } else {
+        os << " <noloc> {";
+    }
     auto hasMembers = !start->getMembers().empty();
     if (hasMembers) os << std::endl;
     for (const auto &member: start->getMembers()) {

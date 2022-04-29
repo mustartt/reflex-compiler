@@ -18,15 +18,27 @@ class Type;
 class ASTNode;
 class LexicalScope;
 class LexicalContext;
+class AggregateDecl;
+class FunctionDecl;
+class MethodDecl;
+class BlockStmt;
+class FunctionLiteral;
 
 using QuantifierList = std::list<std::string>;
+
+class LexicalError : public std::runtime_error {
+  public:
+    explicit LexicalError(const std::string &arg);
+};
 
 class ScopeMember {
   public:
     ScopeMember(std::string membername, Type *memberType,
                 LexicalScope *parent, LexicalScope *child)
         : membername(std::move(membername)), memberType(memberType),
-          parent(parent), child(child) {}
+          parent(parent), child(child) {
+        if (!parent) throw LexicalError{"ScopeMember must be part of a parent scope"};
+    }
 
     const std::string &getMembername() const { return membername; }
     Type *getMemberType() const { return memberType; }
@@ -39,6 +51,7 @@ class ScopeMember {
     QuantifierList getQualifier() const;
     std::string getStringQualifier() const;
 
+    /// Uses membername and memberType for equality
     bool operator==(const ScopeMember &rhs) const;
     bool operator<(const ScopeMember &rhs) const;
     static constexpr auto ScopeCmp =
@@ -57,16 +70,15 @@ class ScopeMember {
     LexicalScope *child;
 };
 
-class LexicalError : public std::runtime_error {
-  public:
-    explicit LexicalError(const std::string &arg);
+enum class LexicalScopeType {
+  Global, Composite, Function, Method, Block, Lambda
 };
 
 class LexicalScope {
   public:
     LexicalScope(LexicalContext &context, LexicalScope *parentScope,
-                 std::string scopename, ASTNode *decl)
-        : context(context), parentScope(parentScope),
+                 LexicalScopeType type, std::string scopename, ASTNode *decl)
+        : context(context), parentScope(parentScope), scopeType(type),
           decl(decl), scopename(std::move(scopename)) {}
 
     bool isGlobalScope() const { return !parentScope; }
@@ -78,15 +90,21 @@ class LexicalScope {
 
     LexicalContext &getContext() const { return context; }
     LexicalScope *getParentScope() const { return parentScope; }
-    ASTNode *getScopeDecl() const { return decl; }
     const std::string &getScopename() const { return scopename; }
     ASTNode *getNodeDecl() const { return decl; }
     const std::vector<std::unique_ptr<ScopeMember>> &getMembers() const { return members; }
+    LexicalScopeType getScopeType() const { return scopeType; }
 
     void getScopeQualifierPrefix(QuantifierList &prefix) const;
 
-    size_t incBlockCount() { return blockCount++; }
-    size_t incLambdaCount() { return lambdaCount++; }
+    /// Creates a children lexical scope by forwarding arguments to the context
+    /// @returns LexicalScope @{
+    LexicalScope *createCompositeScope(AggregateDecl *decl);
+    LexicalScope *createFunctionScope(FunctionDecl *decl);
+    LexicalScope *createMethodScope(MethodDecl *decl);
+    LexicalScope *createBlockScope(BlockStmt *decl);
+    LexicalScope *createLambdaScope(FunctionLiteral *decl);
+    /// @}
 
     /// Recursively binds to the nearest parent scope member starting at the current scope
     /// to find a lexical scope member that has the same name
@@ -95,8 +113,12 @@ class LexicalScope {
     ScopeMember *bind(const std::string &name) const;
 
   private:
+    size_t incBlockCount() { return blockCount++; }
+    size_t incLambdaCount() { return lambdaCount++; }
+
     LexicalContext &context;
     LexicalScope *parentScope;
+    LexicalScopeType scopeType;
     ASTNode *decl;
     std::string scopename;
     std::vector<std::unique_ptr<ScopeMember>> members;

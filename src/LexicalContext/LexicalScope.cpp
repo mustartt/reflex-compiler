@@ -4,6 +4,9 @@
 
 #include "LexicalScope.h"
 
+#include "Type.h"
+#include "LexicalContext.h"
+
 namespace reflex {
 
 std::string ScopeMember::getStringQualifier() const {
@@ -41,16 +44,24 @@ LexicalError::LexicalError(const std::string &arg)
 
 ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
                                           LexicalScope *child) {
-    ScopeMember member(std::move(name), memberType, this, child);
+    // find member of same name
     auto res = std::find_if(members.begin(), members.end(),
-                            [member](const auto &scope) {
-                              return *scope.get() == member;
+                            [&name](const auto &existing) {
+                              return existing->getMembername() == name;
                             });
     if (res != members.end()) {
+        // only function and method overloads are allowed otherwise result in an LexicalError
         auto &existing = *res;
-        return *existing;
+        auto existingFunc = dynamic_cast<FunctionType *>(existing->getMemberType());
+        auto newFunc = dynamic_cast<FunctionType *>(memberType);
+
+        if (existingFunc && newFunc &&
+            existingFunc->getParamTypes() != newFunc->getParamTypes()) {
+            return *existing;
+        }
+        throw LexicalError{"Cannot overload " + name + " in " + getScopename()};
     }
-    members.push_back(std::make_unique<ScopeMember>(std::move(member)));
+    members.push_back(std::make_unique<ScopeMember>(std::move(name), memberType, this, child));
     return *members.back().get();
 }
 
@@ -84,6 +95,27 @@ void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
     if (!parentScope) return;
     prefix.push_front(scopename);
     parentScope->getScopeQualifierPrefix(prefix);
+}
+
+LexicalScope *LexicalScope::createCompositeScope(AggregateDecl *declscope) {
+    return context.createCompositeScope(declscope, this);
+}
+
+LexicalScope *LexicalScope::createFunctionScope(FunctionDecl *declscope) {
+    return context.createFunctionScope(declscope, this);
+}
+
+LexicalScope *LexicalScope::createMethodScope(MethodDecl *declscope) {
+    return context.createMethodScope(declscope, this);
+}
+
+LexicalScope *LexicalScope::createBlockScope(BlockStmt *declscope) {
+    return context.createBlockScope(declscope, incBlockCount(), this);
+}
+
+LexicalScope *LexicalScope::createLambdaScope(FunctionLiteral *declscope) {
+    return context.createLambdaScope(declscope, incLambdaCount(), this);
+
 }
 
 }

@@ -119,7 +119,7 @@ OpaqueType LexicalContextForwardPass::visit(MethodDecl &decl) {
 }
 
 OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
-    auto lambdaScope = context.createLambdaScope(&literal, scope.top()->incLambdaCount(), scope.top());
+    auto lambdaScope = scope.top()->createLambdaScope(&literal);
     literal.setScope(lambdaScope);
     scope.top()->addScopeMember(lambdaScope->getScopename(), nullptr, lambdaScope);
     scope.push(lambdaScope);
@@ -135,7 +135,7 @@ OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
 
 OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
     if (generateBlockScope) {
-        auto blockScope = context.createBlockScope(&stmt, scope.top()->incBlockCount(), scope.top());
+        auto blockScope = scope.top()->createBlockScope(&stmt);
         stmt.setScope(blockScope);
         scope.top()->addScopeMember(blockScope->getScopename(), nullptr, blockScope);
         scope.push(blockScope);

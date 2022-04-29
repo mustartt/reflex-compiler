@@ -8,7 +8,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 add_executable(unit_tests
         test.cpp
         Lexer/TokenTest.cpp
-        Type/TypeContextTest.cpp Type/TypeTest.cpp)
+        Type/TypeContextTest.cpp
+        Type/TypeTest.cpp LexicalScope/LexicalScopeTest.cpp LexicalScope/LexicalContextTest.cpp)
 
-target_link_libraries(unit_tests PRIVATE gtest gtest_main)
-target_link_libraries(unit_tests PRIVATE lexer type)
+target_link_libraries(unit_tests PRIVATE gtest_main lexer type lexcontext)
