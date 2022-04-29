@@ -34,6 +34,8 @@ int main(int argc, char *argv[]) {
         printer.visit(*astRoot);
         lexicalContext.dump(std::cout, lexscope);
 
+        typeContext.dump(std::cout);
+
     } catch (UnrecoverableError &err) {
         std::cout << err.getErrorLocation()->getLocationString() << std::endl;
         err.getErrorLocation()->printSourceRegion(std::cout, true);

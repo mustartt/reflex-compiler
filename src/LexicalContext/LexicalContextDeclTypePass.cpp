@@ -85,12 +85,17 @@ OpaqueType LexicalContextDeclTypePass::visit(VariableDecl &decl) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(FieldDecl &decl) {
-    auto type = typeParser.parseReferenceTypeExpr(decl.getTypeDecl(), scopes.top());
-    decl.setType(type);
+    auto classMember = scopes.top()->getParentMember();
+    auto klass = dynamic_cast<ClassType *>(classMember->getMemberType());
+    auto baseType = typeParser.parseReferenceTypeExpr(decl.getTypeDecl(), scopes.top());
+    auto type = typeContext.getMemberType(decl.getVisibility(), klass, baseType);
+    decl.setType(baseType);
 
     if (decl.getVisibility() == Visibility::Static) {
         auto member = scopes.top()->resolve(decl.getDeclname());
         member->setMemberType(type);
+    } else {
+        klass->addField(decl.getDeclname(), type);
     }
 
     if (decl.getInitializer()) {
@@ -142,12 +147,14 @@ OpaqueType LexicalContextDeclTypePass::visit(MethodDecl &decl) {
     auto compositeScope = decl.getScope()->getParent()->getParentMember();
     if (auto interfaceType = dynamic_cast<InterfaceType *>(compositeScope->getMemberType())) {
         auto methodType = typeContext.getMemberType(decl.getVisibility(), interfaceType, funcType);
-        interfaceType->addMethod(decl.getDeclname(), methodType);
+        if (decl.getVisibility() != Visibility::Static)
+            interfaceType->addMethod(decl.getDeclname(), methodType);
         decl.setType(methodType);
         decl.getScope()->setMemberType(methodType);
     } else if (auto classType = dynamic_cast<ClassType *>(compositeScope->getMemberType())) {
         auto methodType = typeContext.getMemberType(decl.getVisibility(), classType, funcType);
-        classType->addMethod(decl.getDeclname(), methodType);
+        if (decl.getVisibility() != Visibility::Static)
+            classType->addMethod(decl.getDeclname(), methodType);
         decl.setType(methodType);
         decl.getScope()->setMemberType(methodType);
     } else throw TypeError{"MethodDecl must be part of a Class or Interface LexicalScope"};

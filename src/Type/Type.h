@@ -152,6 +152,8 @@ class InterfaceType : public CompositeType {
     void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
     void addMethod(const std::string &name, MemberAttrType *method);
 
+    const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
+
   private:
     std::vector<InterfaceType *> interfaces;
     std::map<std::string, MemberAttrType *> methods;
@@ -170,6 +172,9 @@ class ClassType : public CompositeType {
     void addMethod(const std::string &name, MemberAttrType *method);
     void addField(const std::string &name, MemberAttrType *field);
 
+    const std::map<std::string, MemberAttrType *> &getMembers() const { return members; }
+    const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
+
   private:
     ClassType *baseclass = nullptr;
     std::vector<InterfaceType *> interfaces;
@@ -183,7 +188,6 @@ class ReferenceType : public Type {
     explicit ReferenceType(ReferenceableType *refType, bool nullable = true)
         : refType(refType), nullable(nullable) {
         if (!refType) throw TypeError{"ReferenceType cannot reference nullptr"};
-
     }
 
     bool isNullable() const { return nullable; }

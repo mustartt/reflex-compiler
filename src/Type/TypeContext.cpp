@@ -4,6 +4,8 @@
 
 #include "TypeContext.h"
 
+#include <ostream>
+
 namespace reflex {
 
 TypeContext::TypeContext() {
@@ -95,6 +97,61 @@ ReferenceType *TypeContext::getReferenceType(ReferenceableType *type, bool nulla
     return res->get();
 }
 
-void TypeContext::dump(std::ostream &os) {}
+void TypeContext::dump(std::ostream &os) {
+    os << "VoidType:" << std::endl;
+    os << "  " << voidType->getTypeString() << " " << std::hex << voidType.get() << std::endl;
+    os << "BuiltinType:" << std::endl;
+    for (const auto &builtin: builtinType) {
+        os << "  " << builtin->getTypeString() << " " << std::hex << builtin.get() << std::endl;
+    }
+    os << "ArrayType:" << std::endl;
+    for (const auto &arr: arrayType) {
+        os << "  " << arr->getTypeString() << " " << std::hex << arr.get() << std::endl;
+    }
+    os << "FunctionType:" << std::endl;
+    for (const auto &func: funcType) {
+        os << "  " << func->getTypeString() << " " << std::hex << func.get() << std::endl;
+    }
+    os << "ReferenceType:" << std::endl;
+    for (const auto &ref: referenceType) {
+        os << "  " << ref->getTypeString() << " " << std::hex << ref.get() << std::endl;
+    }
+    os << "InterfaceType:" << std::endl;
+    for (const auto &[name, interface]: interfaceType) {
+        os << "  interface " << interface->getTypeString() << " ";
+        if (!interface->getInterfaces().empty()) {
+            os << ": " << interface->getInterfaces()[0]->getTypeString();
+            for (size_t i = 1; i < interface->getInterfaces().size(); ++i) {
+                os << ", " << interface->getInterfaces()[i]->getTypeString();
+            }
+            os << " ";
+        }
+        os << std::hex << interface.get() << ":" << std::endl;
+        for (const auto &[method, type]: interface->getMethods()) {
+            os << "    +" << method << ": " << type->getTypeString() << std::endl;
+        }
+    }
+    os << "ClassType:" << std::endl;
+    for (const auto &[name, klass]: classType) {
+        os << "  class " << klass->getTypeString() << " ";
+        if (klass->getBaseclass()) {
+            os << "(" << klass->getBaseclass()->getTypeString() << ") ";
+        }
+        if (!klass->getInterfaces().empty()) {
+            os << ": " << klass->getInterfaces()[0];
+            for (size_t i = 1; i < klass->getInterfaces().size(); ++i) {
+                os << ", " << klass->getInterfaces()[i];
+            }
+            os << " ";
+        }
+        os << std::hex << klass.get() << ":" << std::endl;
+        for (const auto &[field, type]: klass->getMembers()) {
+            os << "    -" << field << ": " << type->getTypeString() << std::endl;
+        }
+        for (const auto &[method, type]: klass->getMethods()) {
+            os << "    +" << method << ": " << type->getTypeString() << std::endl;
+        }
+    }
+}
 
 }

@@ -70,9 +70,9 @@ void ClassType::addField(const std::string &name, MemberAttrType *method) {
     if (!(dynamic_cast<ReferenceType *>(method->getType()) ||
         dynamic_cast<BuiltinType *>(method->getType())))
         throw TypeError{name + " must be of ReferenceType or BuiltinType"};
-    if (methods.contains(name))
+    if (members.contains(name))
         throw TypeError{"Method already exists in class " + name};
-    methods[name] = method;
+    members[name] = method;
 }
 
 }
