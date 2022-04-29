@@ -8,7 +8,7 @@
 namespace reflex {
 
 class SourceLocation;
-class LexicalScope;
+class ScopeMember;
 
 class ASTNode {
   public:

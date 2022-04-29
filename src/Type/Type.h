@@ -147,12 +147,13 @@ class InterfaceType : public CompositeType {
     InterfaceType(const std::string &name, AggregateDecl *decl) : CompositeType(name, decl) {}
 
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
-    const std::map<std::string, std::vector<MemberAttrType *>> &getMembers() const { return members; }
     bool isClassType() const override { return false; }
+
+    void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
 
   private:
     std::vector<InterfaceType *> interfaces;
-    std::map<std::string, std::vector<MemberAttrType *>> members;
+    std::map<std::string, std::vector<MemberAttrType *>> methods;
 };
 
 class ClassType : public CompositeType {
@@ -161,13 +162,17 @@ class ClassType : public CompositeType {
 
     ClassType *getBaseclass() const { return baseclass; }
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
-    const std::map<std::string, std::vector<MemberAttrType *>> &getMembers() const { return members; }
     bool isClassType() const override { return true; }
+
+    void setBaseclass(ClassType *klass) { ClassType::baseclass = klass; }
+    void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
 
   private:
     ClassType *baseclass = nullptr;
     std::vector<InterfaceType *> interfaces;
-    std::map<std::string, std::vector<MemberAttrType *>> members;
+
+    std::map<std::string, MemberAttrType *> members;
+    std::map<std::string, std::vector<MemberAttrType *>> methods;
 };
 
 class ReferenceType : public Type {

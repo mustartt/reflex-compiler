@@ -7,6 +7,7 @@
 #include <LexicalContext.h>
 #include <TypeContext.h>
 #include <LexicalContextForwardPass.h>
+//#include <LexicalContextTypePass.h>
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -20,17 +21,19 @@ int main(int argc, char *argv[]) {
     try {
         auto astRoot = parser.parseCompilationUnit();
 
-        AstPrinter printer(std::cout);
-        printer.visit(*astRoot);
-
         LexicalContext lexicalContext;
         TypeContext typeContext;
 
         LexicalContextForwardPass lexicalPass(lexicalContext, typeContext);
         auto lexscope = lexicalPass.performPass(astRoot);
 
+        AstPrinter printer(std::cout);
+        printer.visit(*astRoot);
         lexicalContext.dump(std::cout, lexscope);
 
+//        LexicalContextTypePass typePass(typeContext);
+//        typePass.performPass(astRoot);
+//
     } catch (UnrecoverableError &err) {
         std::cout << err.getErrorLocation()->getLocationString() << std::endl;
         err.getErrorLocation()->printSourceRegion(std::cout, true);

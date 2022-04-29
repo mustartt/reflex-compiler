@@ -90,8 +90,8 @@ class FunctionLiteral : public Literal {
     ASTTypeExpr *getReturnType() const { return returnType; }
     BlockStmt *getBody() const { return body; }
 
-    LexicalScope *getScope() const { return scope; }
-    void setScope(LexicalScope *lexicalScope) { FunctionLiteral::scope = lexicalScope; }
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { FunctionLiteral::scope = lexicalScope; }
 
     ASTExprVisitorDispatcher
   private:
@@ -99,7 +99,7 @@ class FunctionLiteral : public Literal {
     ASTTypeExpr *returnType;
     BlockStmt *body;
 
-    LexicalScope *scope;
+    ScopeMember *scope;
 };
 
 }

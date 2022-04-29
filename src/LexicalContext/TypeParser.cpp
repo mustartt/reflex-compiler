@@ -30,12 +30,8 @@ BuiltinType *TypeParser::parseBuiltinType(ReferenceTypenameExpr *expr, LexicalSc
 
 CompositeType *TypeParser::parseCompositeType(ReferenceTypenameExpr *expr, LexicalScope *starting) {
     auto qualifier = expr->getQualifiedString();
-    auto firstPos = qualifier.find("::");
-    auto prefix = qualifier.substr(0, firstPos);
-    auto rest = qualifier.substr(firstPos + 2);
     try {
-        auto member = starting->bind(prefix);
-        auto found = member->follow(rest);
+        auto found = starting->resolve(qualifier);
         auto compositeType = dynamic_cast<CompositeType *>(found->getMemberType());
 
         if (compositeType) return compositeType;

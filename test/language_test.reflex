@@ -20,7 +20,7 @@ class A {
     public class E(B) {}
     public class F(B::C) {}
 
-    public func test(a: A::B::C) -> void {}
+    static func test(a: A::B::C) -> void {}
 }
 
 class G(A::B::C) {}

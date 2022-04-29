@@ -32,13 +32,13 @@ class BlockStmt : public Statement {
 
     const std::vector<Statement *> &getStmts() const { return statements; }
 
-    LexicalScope *getScope() const { return scope; }
-    void setScope(LexicalScope *lexicalScope) { BlockStmt::scope = lexicalScope; }
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { BlockStmt::scope = lexicalScope; }
 
     ASTStmtVisitorDispatcher
   private:
     std::vector<Statement *> statements;
-    LexicalScope *scope;
+    ScopeMember *scope;
 };
 
 class DeclStmt : public Statement {

@@ -36,8 +36,9 @@ OpaqueType LexicalContextForwardPass::visit(ClassDecl &decl) {
         nullptr,
         classScope
     );
-    member.setMemberType(typeContext.getClassType(
-        member.getStringQualifier(), &decl));
+    auto type = typeContext.getClassType(member.getStringQualifier(), &decl);
+    member.setMemberType(type);
+    decl.setType(type);
     scope.push(classScope);
 
     for (auto nested: decl.getDecls()) nested->accept(this);
@@ -56,8 +57,9 @@ OpaqueType LexicalContextForwardPass::visit(InterfaceDecl &decl) {
         nullptr,
         interfaceScope
     );
-    member.setMemberType(typeContext.getInterfaceType(
-        member.getStringQualifier(), &decl));
+    auto type = typeContext.getInterfaceType(member.getStringQualifier(), &decl);
+    member.setMemberType(type);
+    decl.setType(type);
     scope.push(interfaceScope);
 
     for (auto nested: decl.getDecls()) nested->accept(this);
@@ -120,8 +122,9 @@ OpaqueType LexicalContextForwardPass::visit(MethodDecl &decl) {
 
 OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
     auto lambdaScope = scope.top()->createLambdaScope(&literal);
-    literal.setScope(lambdaScope);
-    scope.top()->addScopeMember(lambdaScope->getScopename(), nullptr, lambdaScope);
+    auto member = scope.top()->addScopeMember(lambdaScope->getScopename(), nullptr, lambdaScope);
+    literal.setScope(&member);
+
     scope.push(lambdaScope);
     generateBlockScope = false;
 
@@ -136,8 +139,9 @@ OpaqueType LexicalContextForwardPass::visit(FunctionLiteral &literal) {
 OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
     if (generateBlockScope) {
         auto blockScope = scope.top()->createBlockScope(&stmt);
-        stmt.setScope(blockScope);
-        scope.top()->addScopeMember(blockScope->getScopename(), nullptr, blockScope);
+        auto &member = scope.top()->addScopeMember(blockScope->getScopename(), nullptr, blockScope);
+        stmt.setScope(&member);
+
         scope.push(blockScope);
         generateBlockScope = true;
         for (auto statement: stmt.getStmts()) statement->accept(this);
@@ -145,7 +149,7 @@ OpaqueType LexicalContextForwardPass::visit(BlockStmt &stmt) {
         scope.pop();
     } else {
         generateBlockScope = true;
-        stmt.setScope(scope.top());
+//        stmt.setScope(scope.top());
         for (auto statement: stmt.getStmts()) statement->accept(this);
         generateBlockScope = false;
     }
