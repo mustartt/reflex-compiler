@@ -121,6 +121,19 @@ TEST_F(TypeContextTest, ClassTypeNameIdentity) {
     EXPECT_NE(type3, type2);
 }
 
+TEST_F(TypeContextTest, ClassTypeDeclReplacement) {
+    auto DummyPtr = reinterpret_cast<AggregateDecl *>(0x123);
+    auto type1 = context.getClassType("OtherTestClass");
+
+    EXPECT_EQ(type1->getDecl(), nullptr);
+
+    auto type2 = context.getClassType("OtherTestClass", DummyPtr);
+
+    EXPECT_EQ(type1, type2);
+    EXPECT_EQ(type1->getDecl(), DummyPtr);
+    EXPECT_EQ(type2->getDecl(), DummyPtr);
+}
+
 TEST_F(TypeContextTest, InterfaceTypeNameIdentity) {
     auto type1 = context.getInterfaceType("Interface1", AggDecl);
     auto type2 = context.getInterfaceType("Interface1", AggDecl);
@@ -128,6 +141,19 @@ TEST_F(TypeContextTest, InterfaceTypeNameIdentity) {
     EXPECT_TRUE(type1 && type2 && type3);
     EXPECT_EQ(type1, type2);
     EXPECT_NE(type3, type2);
+}
+
+TEST_F(TypeContextTest, InterfaceTypeDeclReplacement) {
+    auto DummyPtr = reinterpret_cast<AggregateDecl *>(0x123);
+    auto type1 = context.getInterfaceType("OtherTestInterface");
+
+    EXPECT_EQ(type1->getDecl(), nullptr);
+
+    auto type2 = context.getInterfaceType("OtherTestInterface", DummyPtr);
+
+    EXPECT_EQ(type1, type2);
+    EXPECT_EQ(type1->getDecl(), DummyPtr);
+    EXPECT_EQ(type2->getDecl(), DummyPtr);
 }
 
 TEST_F(TypeContextTest, ReferenceTypeIdentity) {

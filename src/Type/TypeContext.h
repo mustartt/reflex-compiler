@@ -22,8 +22,8 @@ class TypeContext {
     ArrayType *getArrayType(Type *elementTyp, std::optional<size_t> size = std::nullopt);
     FunctionType *getFunctionType(Type *returnType, const std::vector<Type *> &paramTyp);
     MemberAttrType *getMemberType(Visibility visibility, CompositeType *parent, Type *type);
-    ClassType *getClassType(const std::string &name, AggregateDecl *decl);
-    InterfaceType *getInterfaceType(const std::string &name, AggregateDecl *decl);
+    ClassType *getClassType(const std::string &name, AggregateDecl *decl = nullptr);
+    InterfaceType *getInterfaceType(const std::string &name, AggregateDecl *decl = nullptr);
     ReferenceType *getReferenceType(ReferenceableType *type, bool nullable = true);
 
     void dump(std::ostream &os);

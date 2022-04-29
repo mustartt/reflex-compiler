@@ -100,14 +100,15 @@ class MemberAttrType;
 class CompositeType : public ReferenceableType {
   public:
     CompositeType(std::string name, AggregateDecl *decl)
-        : name(std::move(name)), decl(decl) {
-        if (!decl) throw TypeError{"CompositeType must have null parent decl"};
-    };
+        : name(std::move(name)), decl(decl) {};
 
     virtual bool isClassType() const = 0;
     const std::string &getDeclName() const { return name; }
     std::string getTypeString() const override { return name; }
     bool isReferenceType() const override { return false; }
+
+    AggregateDecl *getDecl() const { return decl; }
+    void setDecl(AggregateDecl *aggregateDecl) { CompositeType::decl = aggregateDecl; }
 
   private:
 //    virtual std::vector<MemberAttrType *> getStaticAttribute(const std::string &name) const = 0;

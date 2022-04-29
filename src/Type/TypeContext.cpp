@@ -63,13 +63,21 @@ MemberAttrType *TypeContext::getMemberType(Visibility visibility, CompositeType 
 }
 
 ClassType *TypeContext::getClassType(const std::string &name, AggregateDecl *decl) {
-    if (classType.contains(name)) return classType[name].get();
+    if (classType.contains(name)) {
+        if (!classType[name]->getDecl())
+            classType[name]->setDecl(decl);
+        return classType[name].get();
+    }
     classType[name] = std::make_unique<ClassType>(name, decl);
     return classType[name].get();
 }
 
 InterfaceType *TypeContext::getInterfaceType(const std::string &name, AggregateDecl *decl) {
-    if (interfaceType.contains(name)) return interfaceType[name].get();
+    if (interfaceType.contains(name)) {
+        if (!interfaceType[name]->getDecl())
+            interfaceType[name]->setDecl(decl);
+        return interfaceType[name].get();
+    }
     interfaceType[name] = std::make_unique<InterfaceType>(name, decl);
     return interfaceType[name].get();
 }
