@@ -47,8 +47,68 @@ CompositeType *TypeParser::parseCompositeType(ReferenceTypenameExpr *expr, Lexic
     }
 }
 
+ArrayType *TypeParser::parseRefArrayType(ArrayTypeExpr *expr, LexicalScope *starting) {
+    auto elementType = parseReferenceTypeExpr(expr->getElementType(), starting);
+    auto length = expr->getSize();
+    if (length) {
+        if (length->getValue() < 0) throw TypeError{"Array length must be a non-negative integer"};
+        auto len = (size_t)length->getValue();
+        return context.getArrayType(elementType, {len});
+    } else {
+        return context.getArrayType(elementType);
+    }
+}
+
+FunctionType *TypeParser::parseRefFunctionType(FunctionTypeExpr *expr, LexicalScope *starting) {
+    std::vector<Type *> params;
+    for (auto param: expr->getParamTypes()) {
+        params.push_back(parseReferenceTypeExpr(param, starting));
+    }
+    auto returnType = parseReferenceTypeExpr(expr->getReturnType(), starting);
+    return context.getFunctionType(returnType, params);
+}
+
+Type *TypeParser::parseReferenceTypeExpr(ASTTypeExpr *expr, LexicalScope *starting) {
+    if (auto typname = dynamic_cast<ReferenceTypenameExpr *>(expr)) {
+        try {
+            return parseVoidType(typname, starting);
+        } catch (TypeError &err) {}
+        try {
+            return parseBuiltinType(typname, starting);
+        } catch (TypeError &err) {}
+        return context.getReferenceType(parseCompositeType(typname, starting));
+    }
+    if (auto array = dynamic_cast<ArrayTypeExpr *>(expr)) {
+        return context.getReferenceType(parseRefArrayType(array, starting));
+    }
+    if (auto func = dynamic_cast<FunctionTypeExpr *>(expr)) {
+        return context.getReferenceType(parseRefFunctionType(func, starting));
+    }
+    throw TypeError{"Cannot parse type"};
+}
+
+ClassType *TypeParser::parseClassType(ReferenceTypenameExpr *expr, LexicalScope *starting) {
+    auto compositeType = parseCompositeType(expr, starting);
+    auto classType = dynamic_cast<ClassType *>(compositeType);
+    if (!classType)
+        throw TypeError{
+            compositeType->getTypeString() + "is not a ClassType"
+        };
+    return classType;
+}
+
+InterfaceType *TypeParser::parseInterfaceType(ReferenceTypenameExpr *expr, LexicalScope *starting) {
+    auto compositeType = parseCompositeType(expr, starting);
+    auto interfaceType = dynamic_cast<InterfaceType *>(compositeType);
+    if (!interfaceType)
+        throw TypeError{
+            compositeType->getTypeString() + "is not an InterfaceType"
+        };
+    return interfaceType;
+}
+
 ArrayType *TypeParser::parseArrayType(ArrayTypeExpr *expr, LexicalScope *starting) {
-    auto elementType = parseTypeExpr(expr->getElementType(), starting);
+    auto elementType = parseBaseType(expr->getElementType(), starting);
     auto length = expr->getSize();
     if (length) {
         if (length->getValue() < 0) throw TypeError{"Array length must be a non-negative integer"};
@@ -62,13 +122,13 @@ ArrayType *TypeParser::parseArrayType(ArrayTypeExpr *expr, LexicalScope *startin
 FunctionType *TypeParser::parseFunctionType(FunctionTypeExpr *expr, LexicalScope *starting) {
     std::vector<Type *> params;
     for (auto param: expr->getParamTypes()) {
-        params.push_back(parseTypeExpr(param, starting));
+        params.push_back(parseBaseType(param, starting));
     }
-    auto returnType = parseTypeExpr(expr->getReturnType(), starting);
+    auto returnType = parseBaseType(expr->getReturnType(), starting);
     return context.getFunctionType(returnType, params);
 }
 
-Type *TypeParser::parseTypeExpr(ASTTypeExpr *expr, LexicalScope *starting) {
+Type *TypeParser::parseBaseType(ASTTypeExpr *expr, LexicalScope *starting) {
     if (auto typname = dynamic_cast<ReferenceTypenameExpr *>(expr)) {
         try {
             return parseVoidType(typname, starting);
@@ -76,35 +136,15 @@ Type *TypeParser::parseTypeExpr(ASTTypeExpr *expr, LexicalScope *starting) {
         try {
             return parseBuiltinType(typname, starting);
         } catch (TypeError &err) {}
-        return context.getReferenceType(parseCompositeType(typname, starting));
+        return parseCompositeType(typname, starting);
     }
     if (auto array = dynamic_cast<ArrayTypeExpr *>(expr)) {
-        return context.getReferenceType(parseArrayType(array, starting));
+        return parseArrayType(array, starting);
     }
     if (auto func = dynamic_cast<FunctionTypeExpr *>(expr)) {
-        return context.getReferenceType(parseFunctionType(func, starting));
+        return parseFunctionType(func, starting);
     }
     throw TypeError{"Cannot parse type"};
-}
-
-ClassType *TypeParser::parseReferencedClassType(ReferenceTypenameExpr *expr, LexicalScope *starting) {
-    auto compositeType = parseCompositeType(expr, starting);
-    auto classType = dynamic_cast<ClassType *>(compositeType);
-    if (!classType)
-        throw TypeError{
-            compositeType->getTypeString() + "is not a ClassType"
-        };
-    return classType;
-}
-
-InterfaceType *TypeParser::parseReferencedInterfaceType(ReferenceTypenameExpr *expr, LexicalScope *starting) {
-    auto compositeType = parseCompositeType(expr, starting);
-    auto interfaceType = dynamic_cast<InterfaceType *>(compositeType);
-    if (!interfaceType)
-        throw TypeError{
-            compositeType->getTypeString() + "is not an InterfaceType"
-        };
-    return interfaceType;
 }
 
 }

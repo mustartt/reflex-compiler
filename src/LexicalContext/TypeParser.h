@@ -17,14 +17,20 @@ class TypeParser {
   public:
     explicit TypeParser(TypeContext &context) : context(context) {}
 
-    ClassType *parseReferencedClassType(ReferenceTypenameExpr *expr, LexicalScope *starting);
-    InterfaceType *parseReferencedInterfaceType(ReferenceTypenameExpr *expr, LexicalScope *starting);
-    Type *parseTypeExpr(ASTTypeExpr *expr, LexicalScope *starting);
+    ClassType *parseClassType(ReferenceTypenameExpr *expr, LexicalScope *starting);
+    InterfaceType *parseInterfaceType(ReferenceTypenameExpr *expr, LexicalScope *starting);
+
+    Type *parseBaseType(ASTTypeExpr *expr, LexicalScope *starting);
+    Type *parseReferenceTypeExpr(ASTTypeExpr *expr, LexicalScope *starting);
 
   private:
     CompositeType *parseCompositeType(ReferenceTypenameExpr *expr, LexicalScope *starting);
-    BuiltinType *parseBuiltinType(ReferenceTypenameExpr *expr, LexicalScope *starting);
     VoidType *parseVoidType(ReferenceTypenameExpr *expr, LexicalScope *starting);
+    BuiltinType *parseBuiltinType(ReferenceTypenameExpr *expr, LexicalScope *starting);
+
+    ArrayType *parseRefArrayType(ArrayTypeExpr *expr, LexicalScope *starting);
+    FunctionType *parseRefFunctionType(FunctionTypeExpr *expr, LexicalScope *starting);
+
     ArrayType *parseArrayType(ArrayTypeExpr *expr, LexicalScope *starting);
     FunctionType *parseFunctionType(FunctionTypeExpr *expr, LexicalScope *starting);
 

@@ -79,10 +79,10 @@ class LexicalScope {
   public:
     LexicalScope(LexicalContext &context, ScopeMember *parentScope,
                  LexicalScopeType type, std::string scopename, ASTNode *decl)
-        : context(context), parentScope(parentScope), scopeType(type),
+        : context(context), parentMember(parentScope), scopeType(type),
           decl(decl), scopename(std::move(scopename)) {}
 
-    bool isGlobalScope() const { return !parentScope; }
+    bool isGlobalScope() const { return !parentMember; }
 
     /// Adds a scope member to the current LexicalScope with associated type and name
     /// by default it has no associated children scope.
@@ -90,7 +90,7 @@ class LexicalScope {
     ScopeMember &addScopeMember(std::string name, Type *memberType, LexicalScope *child = nullptr);
 
     LexicalContext &getContext() const { return context; }
-    ScopeMember *getParentScope() const { return parentScope; }
+    ScopeMember *getParentMember() const { return parentMember; }
     const std::string &getScopename() const { return scopename; }
     ASTNode *getNodeDecl() const { return decl; }
     const std::vector<std::unique_ptr<ScopeMember>> &getMembers() const { return members; }
@@ -117,7 +117,7 @@ class LexicalScope {
   private:
 
     LexicalContext &context;
-    ScopeMember *parentScope;
+    ScopeMember *parentMember;
     LexicalScopeType scopeType;
     ASTNode *decl;
     std::string scopename;

@@ -52,7 +52,7 @@ TEST_F(LexicalContextTest, CreateCompositeScope) {
 
     ASSERT_TRUE(classScope);
     EXPECT_EQ(classScope->getScopename(), "TestClass");
-    EXPECT_EQ(classScope->getParentScope(), member);
+    EXPECT_EQ(classScope->getParentMember(), member);
     EXPECT_EQ(classScope->getNodeDecl(), classDecl);
     EXPECT_EQ(classScope->getScopeType(), LexicalScopeType::Composite);
     EXPECT_FALSE(classScope->isGlobalScope());
@@ -74,7 +74,7 @@ TEST_F(LexicalContextTest, CreateFunctionScope) {
 
     ASSERT_TRUE(funcScope);
     EXPECT_EQ(funcScope->getScopename(), "TestFunction");
-    EXPECT_EQ(funcScope->getParentScope(), member);
+    EXPECT_EQ(funcScope->getParentMember(), member);
     EXPECT_EQ(funcScope->getNodeDecl(), funcDecl);
     EXPECT_EQ(funcScope->getScopeType(), LexicalScopeType::Function);
     EXPECT_FALSE(funcScope->isGlobalScope());
@@ -120,7 +120,7 @@ TEST_F(LexicalContextTest, CreateBlockScope) {
     ASSERT_TRUE(blockScope1 && blockScope2);
     EXPECT_EQ(blockScope1->getScopename(), "__block(0)__");
     EXPECT_EQ(blockScope2->getScopename(), "__block(1)__");
-    EXPECT_EQ(blockScope1->getParentScope()->getParent(), blockScope2->getParentScope()->getParent());
+    EXPECT_EQ(blockScope1->getParentMember()->getParent(), blockScope2->getParentMember()->getParent());
     EXPECT_NO_THROW(blockScope1->bind("TestFunction"));
 }
 
@@ -141,7 +141,7 @@ TEST_F(LexicalContextTest, CreateLambdaScope) {
     ASSERT_TRUE(lambdaScope1 && lambdaScope2);
     EXPECT_EQ(lambdaScope1->getScopename(), "__lambda(0)__");
     EXPECT_EQ(lambdaScope2->getScopename(), "__lambda(1)__");
-    EXPECT_EQ(lambdaScope1->getParentScope()->getParent(), lambdaScope2->getParentScope()->getParent());
+    EXPECT_EQ(lambdaScope1->getParentMember()->getParent(), lambdaScope2->getParentMember()->getParent());
     EXPECT_NO_THROW(lambdaScope1->bind("TestFunction"));
 }
 

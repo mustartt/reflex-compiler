@@ -71,8 +71,8 @@ ScopeMember *LexicalScope::bind(const std::string &name) const {
             return member.get();
         }
     }
-    if (parentScope) {
-        return parentScope->getParent()->bind(name);
+    if (parentMember) {
+        return parentMember->getParent()->bind(name);
     }
     throw LexicalError{"Cannot bind " + name + " in any of its parent lexical scopes"};
 }
@@ -80,8 +80,16 @@ ScopeMember *LexicalScope::bind(const std::string &name) const {
 ScopeMember *ScopeMember::follow(const std::string &qualifiedName) {
     if (qualifiedName.empty()) return this;
     auto pos = qualifiedName.find("::");
-    auto prefix = qualifiedName.substr(0, pos);
-    auto rest = qualifiedName.substr(pos + 2);
+
+    std::string prefix;
+    std::string rest;
+    if (pos != std::string::npos) {
+        prefix = qualifiedName.substr(0, pos);
+        rest = qualifiedName.substr(pos + 2);
+    } else {
+        prefix = qualifiedName;
+    }
+
     if (!hasScope()) throw LexicalError{"Cannot resolve " + rest + " in current scope " + getStringQualifier()};
     for (auto &member: child->getMembers()) {
         if (member->getMembername() == prefix) {
@@ -94,16 +102,23 @@ ScopeMember *ScopeMember::follow(const std::string &qualifiedName) {
 ScopeMember *LexicalScope::resolve(const std::string &qualifier) const {
     if (qualifier.empty()) throw LexicalError{"Cannot resolve empty qualifier"};
     auto pos = qualifier.find("::");
-    auto prefix = qualifier.substr(0, pos);
-    auto rest = qualifier.substr(pos + 2);
+
+    std::string prefix;
+    std::string rest;
+    if (pos != std::string::npos) {
+        prefix = qualifier.substr(0, pos);
+        rest = qualifier.substr(pos + 2);
+    } else {
+        prefix = qualifier;
+    }
 
     return bind(prefix)->follow(rest);
 }
 
 void LexicalScope::getScopeQualifierPrefix(QuantifierList &prefix) const {
-    if (!parentScope) return;
+    if (!parentMember) return;
     prefix.push_front(scopename);
-    parentScope->getParent()->getScopeQualifierPrefix(prefix);
+    parentMember->getParent()->getScopeQualifierPrefix(prefix);
 }
 
 std::pair<LexicalScope *, ScopeMember *> LexicalScope::createCompositeScope(AggregateDecl *declscope) {

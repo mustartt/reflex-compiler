@@ -1,0 +1,6 @@
+var GLOBAL_VAR: int;
+
+class A {
+    static STATIC_MEMBER: int;
+    public class B {}
+}

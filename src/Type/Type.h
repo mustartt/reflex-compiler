@@ -150,10 +150,11 @@ class InterfaceType : public CompositeType {
     bool isClassType() const override { return false; }
 
     void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
+    void addMethod(const std::string &name, MemberAttrType *method);
 
   private:
     std::vector<InterfaceType *> interfaces;
-    std::map<std::string, std::vector<MemberAttrType *>> methods;
+    std::map<std::string, MemberAttrType *> methods;
 };
 
 class ClassType : public CompositeType {
@@ -166,13 +167,15 @@ class ClassType : public CompositeType {
 
     void setBaseclass(ClassType *klass) { ClassType::baseclass = klass; }
     void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
+    void addMethod(const std::string &name, MemberAttrType *method);
+    void addField(const std::string &name, MemberAttrType *field);
 
   private:
     ClassType *baseclass = nullptr;
     std::vector<InterfaceType *> interfaces;
 
     std::map<std::string, MemberAttrType *> members;
-    std::map<std::string, std::vector<MemberAttrType *>> methods;
+    std::map<std::string, MemberAttrType *> methods;
 };
 
 class ReferenceType : public Type {

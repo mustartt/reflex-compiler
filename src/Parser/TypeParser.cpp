@@ -71,7 +71,7 @@ QualifiedTypenameExpr *Parser::parseQualifiedType(ReferenceTypenameExpr *base) {
         selector = context.create<QualifiedTypenameExpr>(
             name->location(),
             name->getTypeName(),
-            base
+            selector
         );
     }
     return selector;

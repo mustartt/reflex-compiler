@@ -110,6 +110,7 @@ class CastExpr : public Expression {
     CastExpr(const SourceLocation *loc, ASTTypeExpr *resultType, Expression *from);
 
     Expression *getFrom() const { return from; }
+    ASTTypeExpr *getResultType() const { return resultType; }
 
     ASTExprVisitorDispatcher
   private:

@@ -18,12 +18,12 @@ BaseTypenameExpr::BaseTypenameExpr(const SourceLocation *loc, std::string type_n
     : ReferenceTypenameExpr(loc), typeName(std::move(type_name)) {}
 
 QualifiedTypenameExpr::QualifiedTypenameExpr(const SourceLocation *loc,
-                                             std::string prefix,
-                                             ReferenceTypenameExpr *type)
-    : ReferenceTypenameExpr(loc), prefix(std::move(prefix)), type(type) {}
+                                             std::string name,
+                                             ReferenceTypenameExpr *prefix)
+    : ReferenceTypenameExpr(loc), name(std::move(name)), prefix(prefix) {}
 
 std::string QualifiedTypenameExpr::getQualifiedString() const {
-    return prefix + "::" + type->getQualifiedString();
+    return prefix->getQualifiedString() + "::" + name;
 }
 
 ArrayTypeExpr::ArrayTypeExpr(const SourceLocation *loc, ASTTypeExpr *element_type, NumberLiteral *size)

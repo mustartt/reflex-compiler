@@ -50,5 +50,30 @@ std::string ReferenceType::getTypeString() const {
     return "&" + refType->getTypeString() + (nullable ? "?" : "");
 }
 
+void InterfaceType::addMethod(const std::string &name, MemberAttrType *method) {
+    if (!dynamic_cast<FunctionType *>(method->getType()))
+        throw TypeError{name + " must be of FunctionType"};
+    if (methods.contains(name))
+        throw TypeError{"Method already exists in interface " + name};
+    methods[name] = method;
+}
+
+void ClassType::addMethod(const std::string &name, MemberAttrType *method) {
+    if (!dynamic_cast<FunctionType *>(method->getType()))
+        throw TypeError{name + " must be of FunctionType"};
+    if (methods.contains(name))
+        throw TypeError{"Method already exists in interface " + name};
+    methods[name] = method;
+}
+
+void ClassType::addField(const std::string &name, MemberAttrType *method) {
+    if (!(dynamic_cast<ReferenceType *>(method->getType()) ||
+        dynamic_cast<BuiltinType *>(method->getType())))
+        throw TypeError{name + " must be of ReferenceType or BuiltinType"};
+    if (methods.contains(name))
+        throw TypeError{"Method already exists in class " + name};
+    methods[name] = method;
+}
+
 }
 

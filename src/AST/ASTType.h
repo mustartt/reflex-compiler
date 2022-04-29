@@ -39,13 +39,13 @@ class BaseTypenameExpr : public ReferenceTypenameExpr {
 
 class QualifiedTypenameExpr : public ReferenceTypenameExpr {
   public:
-    QualifiedTypenameExpr(const SourceLocation *loc, std::string prefix, ReferenceTypenameExpr *type);
+    QualifiedTypenameExpr(const SourceLocation *loc, std::string name, ReferenceTypenameExpr *prefix);
 
     [[nodiscard]] std::string getQualifiedString() const override;
 
   private:
-    std::string prefix;
-    ReferenceTypenameExpr *type;
+    ReferenceTypenameExpr *prefix;
+    std::string name;
 };
 
 class ArrayTypeExpr : public ASTTypeExpr {

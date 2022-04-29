@@ -11,7 +11,7 @@ add_executable(unit_tests
         Type/TypeContextTest.cpp
         Type/TypeTest.cpp
         LexicalScope/LexicalScopeTest.cpp
-        LexicalScope/LexicalContextTest.cpp)
+        LexicalScope/LexicalContextTest.cpp SemanticPassTest/ForwardPassTest.cpp)
 
 file(GLOB TEST_FILES "TestFiles/*.test")
 message(STATUS "Copying test files ${TEST_FILES}")

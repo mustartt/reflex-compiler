@@ -48,13 +48,13 @@ class LexicalContextDeclTypePass : public ASTDeclVisitor,
     OpaqueType visit(IfStmt &stmt) override;
     OpaqueType visit(ForStmt &stmt) override;
     OpaqueType visit(WhileStmt &stmt) override;
-    OpaqueType visit(EmptyStmt &stmt) override;
+    OpaqueType visit(EmptyStmt &stmt) override ASTVisitorDefImpl;
     OpaqueType visit(AssignmentStmt &stmt) override;
     OpaqueType visit(IncDecStmt &stmt) override;
     OpaqueType visit(ExpressionStmt &stmt) override;
     OpaqueType visit(DeclStmt &stmt) override;
 
-    OpaqueType visit(DeclRefExpr &expr) override;
+    OpaqueType visit(DeclRefExpr &expr) override ASTVisitorDefImpl;
     OpaqueType visit(UnaryExpr &expr) override;
     OpaqueType visit(BinaryExpr &expr) override;
     OpaqueType visit(NewExpr &expr) override;

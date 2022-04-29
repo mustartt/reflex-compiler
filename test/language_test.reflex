@@ -1,4 +1,4 @@
-var variable: int = 0;
+var GLOBAL_VAR: int = 0;
 
 func add(a: int, b: int) -> int {
     var c: int = a + b;
@@ -11,16 +11,16 @@ class A {
 
     public class B {
         public class C {
-            public func test(a: A::B) -> void {}
+            public func test(c: A::B) -> void {}
         }
-        public func test(a: B::C) -> void {}
+        public func test(t1: B::C) -> void {}
     }
 
     public class D(A) {}
     public class E(B) {}
     public class F(B::C) {}
 
-    static func test(a: A::B::C) -> void {}
+    static func test(t: A::B::C) -> void {}
 }
 
 class G(A::B::C) {}
