@@ -12,15 +12,18 @@
 namespace reflex {
 namespace {
 
-class ClassInterfaceTypeTest : public ::testing::Test {
+class InterfaceTypeTest : public ::testing::Test {
   protected:
     TypeContext typeContext;
     FunctionType *funcType = typeContext.getFunctionType(typeContext.getVoidType(), {});
+    FunctionType *otherFuncType = typeContext.getFunctionType(typeContext.getVoidType(),
+                                                              {typeContext.getBuiltinType(BuiltinType::Boolean)});
 };
 
-TEST_F(ClassInterfaceTypeTest, AddMethod) {
+TEST_F(InterfaceTypeTest, AddMethod) {
     auto interface = typeContext.getInterfaceType("IA");
     auto memberType = typeContext.getMemberType(Visibility::Public, interface, funcType);
+    auto otherMemberType = typeContext.getMemberType(Visibility::Public, interface, otherFuncType);
 
     EXPECT_NO_THROW(interface->addMethod("method", memberType));
     EXPECT_NO_THROW(interface->addMethod("method2", memberType));
@@ -31,7 +34,21 @@ TEST_F(ClassInterfaceTypeTest, AddMethod) {
     EXPECT_TRUE(interface->getMethods().contains("method2"));
 }
 
-TEST_F(ClassInterfaceTypeTest, DiamondInheritance) {
+TEST_F(InterfaceTypeTest, AddMethodShadowing) {
+    auto IA = typeContext.getInterfaceType("IA");
+    auto IB = typeContext.getInterfaceType("IB");
+    ASSERT_NO_THROW(IB->addInterface(IA));
+
+    auto memberType1 = typeContext.getMemberType(Visibility::Public, IA, funcType);
+    auto memberType2 = typeContext.getMemberType(Visibility::Public, IB, funcType);
+    auto memberType3 = typeContext.getMemberType(Visibility::Public, IB, otherFuncType);
+
+    EXPECT_NO_THROW(IA->addMethod("method", memberType1));
+    EXPECT_THROW(IB->addMethod("method", memberType3), TypeError);
+    EXPECT_NO_THROW(IB->addMethod("method", memberType2));
+}
+
+TEST_F(InterfaceTypeTest, DiamondInheritance) {
     auto IA = typeContext.getInterfaceType("IA");
     auto IB = typeContext.getInterfaceType("IB");
     auto IC = typeContext.getInterfaceType("IC");
@@ -43,12 +60,12 @@ TEST_F(ClassInterfaceTypeTest, DiamondInheritance) {
     EXPECT_NO_THROW(ID->addInterface(IC));
 }
 
-TEST_F(ClassInterfaceTypeTest, SelfInheritance) {
+TEST_F(InterfaceTypeTest, SelfInheritance) {
     auto IA = typeContext.getInterfaceType("IA");
     EXPECT_THROW(IA->addInterface(IA), TypeError);
 }
 
-TEST_F(ClassInterfaceTypeTest, CyclicInheritance) {
+TEST_F(InterfaceTypeTest, CyclicInheritance) {
     auto IA = typeContext.getInterfaceType("IA");
     auto IB = typeContext.getInterfaceType("IB");
     auto IC = typeContext.getInterfaceType("IC");
@@ -59,7 +76,7 @@ TEST_F(ClassInterfaceTypeTest, CyclicInheritance) {
     EXPECT_THROW(IC->addInterface(IB), TypeError);
 }
 
-TEST_F(ClassInterfaceTypeTest, InterfaceTrait) {
+TEST_F(InterfaceTypeTest, InterfaceTrait) {
     auto IA = typeContext.getInterfaceType("IA");
     auto IB = typeContext.getInterfaceType("IB");
     auto IC = typeContext.getInterfaceType("IC");

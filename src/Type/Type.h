@@ -135,6 +135,7 @@ class MemberAttrType : public Type {
     Visibility getVisibility() const { return visibility; }
     CompositeType *getParent() const { return parent; }
     Type *getMemberAttrType() const { return type; }
+    bool hasSameBaseAttr(const MemberAttrType *other) const;
 
   private:
     Visibility visibility;
@@ -167,6 +168,7 @@ class InterfaceType : public CompositeType {
     /// @param name the methodname
     /// @param method the method attribute
     /// @throws TypeError if overload present and method is a function type
+    /// @note only maintains invariant of current and base interfaces
     void addMethod(const std::string &name, MemberAttrType *method);
 
     /// Get all traits "the methods that the interface supports" a class can implement
@@ -174,10 +176,19 @@ class InterfaceType : public CompositeType {
     std::vector<Method> getInterfaceTraits() const;
 
   private:
+    /// Search parents for override attribute error
+    /// @returns MemberAttrType which has the defined method, nullptr otherwise;
+    MemberAttrType *hasOverrideAttrError(const std::string &name, MemberAttrType *method);
+
     std::vector<InterfaceType *> interfaces;
     std::map<std::string, MemberAttrType *> methods;
 };
 
+/// Represent a Class
+/// Responsible for maintaining the class invariants:
+/// - no cyclic inheritance
+/// - no method overloads
+/// - no member name conflicts
 class ClassType : public CompositeType {
   public:
     ClassType(const std::string &name, AggregateDecl *decl) : CompositeType(name, decl) {}
@@ -186,10 +197,29 @@ class ClassType : public CompositeType {
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
     bool isClassType() const override { return true; }
 
-    void setBaseclass(ClassType *klass) { ClassType::baseclass = klass; }
+    /// derives from @p klass and maintains invariant of no cyclic inheritance, and offers strong exception guarantee
+    /// @param klass the base class to derive from
+    /// @throws TypeError if cyclic inheritance is detected
+    void setBaseclass(ClassType *klass);
+
     void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
-    void addMethod(const std::string &name, MemberAttrType *method);
+
+    /// add @p field to the interface trait and maintains invariant of no overload
+    /// @param name the field name
+    /// @param method the field attribute
+    /// @throws TypeError if name conflict or shadows baseclass fields
+    /// @note only maintains invariant of current and base classes
     void addField(const std::string &name, MemberAttrType *field);
+
+    /// add @p method to the class and maintains invariant of no overload
+    /// @param name the methodname
+    /// @param method the method attribute
+    /// @throws TypeError if overload present and method is not a function type or name conflict
+    /// @note only maintains invariant of current and base classes
+    void addMethod(const std::string &name, MemberAttrType *method);
+
+    /// check if class implements all interface traits
+    bool isAbstract() const;
 
     const std::map<std::string, MemberAttrType *> &getMembers() const { return members; }
     const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
@@ -198,6 +228,14 @@ class ClassType : public CompositeType {
     std::vector<Method> getClassImplTraits() const;
 
   private:
+    /// Search parents for override method attribute error
+    /// @returns MemberAttrType which has the defined method, nullptr otherwise
+    MemberAttrType *hasOverrideAttrError(const std::string &name, MemberAttrType *method);
+
+    /// Search parents for shadowed fields attribute error
+    /// @returns MemberAttrType which has the defined field, nullptr otherwise
+    MemberAttrType *shadowsFieldAttrError(const std::string &name);
+
     ClassType *baseclass = nullptr;
     std::vector<InterfaceType *> interfaces;
 

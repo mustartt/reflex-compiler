@@ -46,30 +46,48 @@ std::string MemberAttrType::getTypeString() const {
     return getVisibilityString(visibility) + " " + type->getTypeString();
 }
 
+bool MemberAttrType::hasSameBaseAttr(const MemberAttrType *other) const {
+    return other->visibility == visibility
+        && other->type == type;
+}
+
 std::string ReferenceType::getTypeString() const {
     return "&" + refType->getTypeString() + (nullable ? "?" : "");
 }
 
-bool hasCyclicReference(std::unordered_map<InterfaceType *, bool> &visited,
-                        InterfaceType *interface) {
+bool hasCyclicInterfaceReference(std::unordered_map<InterfaceType *, bool> &visited,
+                                 InterfaceType *interface) {
     if (visited[interface]) return true;
     visited[interface] = true;
     for (auto derived: interface->getInterfaces()) {
-        if (hasCyclicReference(visited, derived)) return true;
+        if (hasCyclicInterfaceReference(visited, derived)) return true;
     }
     visited[interface] = false;
     return false;
 }
 
 /// @returns if a cycle is detected or not
-bool detectCycle(InterfaceType *interface, InterfaceType *toBeDerived) {
+bool detectDerivedInterfaceCycle(InterfaceType *interface, InterfaceType *toBeDerived) {
     std::unordered_map<InterfaceType *, bool> visited;
     visited[interface] = true;
-    return hasCyclicReference(visited, toBeDerived);
+    return hasCyclicInterfaceReference(visited, toBeDerived);
+}
+
+MemberAttrType *InterfaceType::hasOverrideAttrError(const std::string &name, MemberAttrType *method) {
+    if (methods.contains(name) &&
+        !methods.at(name)->hasSameBaseAttr(method)) {
+        return methods.at(name);
+    }
+    for (auto interface: interfaces) {
+        if (auto parent = interface->hasOverrideAttrError(name, method)) {
+            return parent;
+        }
+    }
+    return nullptr;
 }
 
 void InterfaceType::addInterface(InterfaceType *interface) {
-    if (detectCycle(this, interface)) {
+    if (detectDerivedInterfaceCycle(this, interface)) {
         throw TypeError{interface->getTypeString() + " is part of cyclic inheritance with " + getTypeString()};
     }
     interfaces.push_back(interface);
@@ -79,6 +97,11 @@ void InterfaceType::addMethod(const std::string &name, MemberAttrType *method) {
     auto funcType = dynamic_cast<FunctionType *>(method->getMemberAttrType());
     if (!funcType) throw TypeError{name + " must be a function"};
     if (methods.contains(name)) throw TypeError{"Cannot overload " + name + ", it already exists"};
+    if (auto parent = hasOverrideAttrError(name, method)) {
+        throw TypeError{
+            name + " MemberAttrType mismatch " +
+                method->getTypeString() + " expected " + parent->getTypeString()};
+    }
     methods[name] = method;
 }
 
@@ -120,21 +143,107 @@ std::vector<Method> ClassType::getClassImplTraits() const {
     return traits;
 }
 
+bool hasCyclicClassReference(std::unordered_map<ClassType *, bool> &visited,
+                             ClassType *klass) {
+    if (visited[klass]) return true;
+    visited[klass] = true;
+    if (klass->getBaseclass()) {
+        if (hasCyclicClassReference(visited, klass->getBaseclass())) return true;
+    }
+    visited[klass] = false;
+    return false;
+}
+
+/// @returns if a cycle is detected or not
+bool detectDerivedClassCycle(ClassType *klass, ClassType *toBeDerived) {
+    std::unordered_map<ClassType *, bool> visited;
+    visited[klass] = true;
+    return hasCyclicClassReference(visited, toBeDerived);
+}
+
+void ClassType::setBaseclass(ClassType *klass) {
+    if (detectDerivedClassCycle(this, klass)) {
+        throw TypeError{klass->getTypeString() + " is part of cyclic inheritance with " + getTypeString()};
+    }
+    baseclass = klass;
+}
+
+MemberAttrType *ClassType::hasOverrideAttrError(const std::string &name, MemberAttrType *method) {
+    if (methods.contains(name) &&
+        !methods.at(name)->hasSameBaseAttr(method)) {
+        return methods.at(name);
+    }
+    if (baseclass) {
+        if (auto parent = baseclass->hasOverrideAttrError(name, method)) {
+            return parent;
+        }
+    }
+    return nullptr;
+}
+
+MemberAttrType *ClassType::shadowsFieldAttrError(const std::string &name) {
+    if (members.contains(name)) return members[name];
+    if (baseclass) return baseclass->shadowsFieldAttrError(name);
+    return nullptr;
+}
+
+void ClassType::addField(const std::string &name, MemberAttrType *field) {
+    auto refType = dynamic_cast<ReferenceType *>(field->getMemberAttrType());
+    auto builtinType = dynamic_cast<BuiltinType *>(field->getMemberAttrType());
+    if (!refType && !builtinType) {
+        throw TypeError{name + " must be either ReferenceType or BuiltinType"};
+    }
+    if (auto parent = shadowsFieldAttrError(name)) {
+        throw TypeError{
+            "field " + name + " cannot be shadowed in baseclass " +
+                parent->getParent()->getTypeString()
+        };
+    }
+    if (auto parent = hasOverrideAttrError(name, field)) {
+        throw TypeError{
+            "Name conflict with " + name + " in " +
+                parent->getParent()->getTypeString()
+        };
+    }
+    members[name] = field;
+}
+
 void ClassType::addMethod(const std::string &name, MemberAttrType *method) {
-    if (!dynamic_cast<FunctionType *>(method->getType()))
-        throw TypeError{name + " must be of FunctionType"};
-    if (methods.contains(name))
-        throw TypeError{"Method already exists in interface " + name};
+    auto funcType = dynamic_cast<FunctionType *>(method->getMemberAttrType());
+    if (!funcType) throw TypeError{name + " must be a function"};
+    if (methods.contains(name)) throw TypeError{"Cannot overload " + name + ", it already exists"};
+    if (auto field = shadowsFieldAttrError(name)) {
+        throw TypeError{
+            "Shadows member field " + name + " in base class " +
+                field->getParent()->getTypeString()
+        };
+    }
+    if (auto parent = hasOverrideAttrError(name, method)) {
+        throw TypeError{
+            name + " MemberAttrType mismatch " +
+                method->getTypeString() + " expected " + parent->getTypeString()};
+    }
     methods[name] = method;
 }
 
-void ClassType::addField(const std::string &name, MemberAttrType *method) {
-    if (!(dynamic_cast<ReferenceType *>(method->getType()) ||
-        dynamic_cast<BuiltinType *>(method->getType())))
-        throw TypeError{name + " must be of ReferenceType or BuiltinType"};
-    if (members.contains(name))
-        throw TypeError{"Method already exists in class " + name};
-    members[name] = method;
+bool ClassType::isAbstract() const {
+    std::vector<Method> mustImpl;
+    for (auto interface: interfaces) {
+        auto inherited = interface->getInterfaceTraits();
+        for (auto &[name, type]: inherited) {
+            addInheritedTrait(mustImpl, name, type);
+        }
+    }
+    auto implemented = getClassImplTraits();
+    for (auto &trait: mustImpl) {
+        auto iter = std::find_if(implemented.begin(), implemented.end(),
+                                 [&trait](const Method &item) -> bool {
+                                   return item.first == trait.first
+                                       && item.second->hasSameBaseAttr(trait.second);
+                                 });
+        if (iter == implemented.end()) return true;
+    }
+    return false;
 }
 
 }
