@@ -144,19 +144,7 @@ TEST_F(LexicalScopeTest, OverloadScopeMember) {
         typeContext.getVoidType(), {typeContext.getBuiltinType(BuiltinType::Integer)});
 
     scope->addScopeMember("OverloadFunction", funcType1);
-    EXPECT_NO_THROW(scope->addScopeMember("OverloadFunction", funcType2));
-
-    try {
-        scope->addScopeMember("OverloadFunction", funcType1);
-        FAIL() << "did not throw exception";
-    } catch (LexicalError &err) {
-        auto msg = std::string(err.what());
-        EXPECT_NE(msg.find("LexicalError"), std::string::npos);
-        EXPECT_NE(msg.find("OverloadFunction"), std::string::npos);
-        EXPECT_NE(msg.find('A'), std::string::npos);
-    } catch (...) {
-        FAIL() << "incorrect exception";
-    }
+    EXPECT_THROW(scope->addScopeMember("OverloadFunction", funcType2), LexicalError);
 }
 
 }

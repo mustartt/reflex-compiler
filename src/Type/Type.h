@@ -142,17 +142,36 @@ class MemberAttrType : public Type {
     Type *type;
 };
 
+using Method = std::pair<std::string, MemberAttrType *>;
+
+/// Represent an Interface
+/// Responsible for maintaining the interface invariants:
+/// - no cyclic inheritance
+/// - no method overloads
 class InterfaceType : public CompositeType {
   public:
-    InterfaceType(const std::string &name, AggregateDecl *decl) : CompositeType(name, decl) {}
+    InterfaceType(const std::string &name, AggregateDecl *decl)
+        : CompositeType(name, decl) {}
 
     const std::vector<InterfaceType *> &getInterfaces() const { return interfaces; }
     bool isClassType() const override { return false; }
 
-    void addInterface(InterfaceType *interface) { interfaces.push_back(interface); }
+    const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
+
+    /// derives from @p interface and maintains invariant of no cyclic inheritance, and offers strong exception guarantee
+    /// @param interface the base interface to derive from
+    /// @throws TypeError if cyclic inheritance is detected
+    void addInterface(InterfaceType *interface);
+
+    /// add @p method to the interface trait and maintains invariant of no overload
+    /// @param name the methodname
+    /// @param method the method attribute
+    /// @throws TypeError if overload present and method is a function type
     void addMethod(const std::string &name, MemberAttrType *method);
 
-    const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
+    /// Get all traits "the methods that the interface supports" a class can implement
+    /// @returns the trait of the interface
+    std::vector<Method> getInterfaceTraits() const;
 
   private:
     std::vector<InterfaceType *> interfaces;
@@ -174,6 +193,9 @@ class ClassType : public CompositeType {
 
     const std::map<std::string, MemberAttrType *> &getMembers() const { return members; }
     const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }
+
+    /// @note must not have cyclic inheritance
+    std::vector<Method> getClassImplTraits() const;
 
   private:
     ClassType *baseclass = nullptr;

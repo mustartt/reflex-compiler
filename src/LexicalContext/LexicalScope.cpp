@@ -50,15 +50,7 @@ ScopeMember &LexicalScope::addScopeMember(std::string name, Type *memberType,
                               return existing->getMembername() == name;
                             });
     if (res != members.end()) {
-        // only function and method overloads are allowed otherwise result in an LexicalError
-        auto &existing = *res;
-        auto existingFunc = dynamic_cast<FunctionType *>(existing->getMemberType());
-        auto newFunc = dynamic_cast<FunctionType *>(memberType);
-
-        if (existingFunc && newFunc &&
-            existingFunc->getParamTypes() != newFunc->getParamTypes()) {
-            return *existing;
-        }
+        // no impl for any types of overloading
         throw LexicalError{"Cannot overload " + name + " in " + getScopename()};
     }
     members.push_back(std::make_unique<ScopeMember>(std::move(name), memberType, this, child));

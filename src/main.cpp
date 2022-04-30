@@ -36,6 +36,10 @@ int main(int argc, char *argv[]) {
 
         typeContext.dump(std::cout);
 
+        auto test = typeContext.getInterfaceType("ID");
+        auto trait = test->getInterfaceTraits();
+
+        std::cout << std::endl;
     } catch (UnrecoverableError &err) {
         std::cout << err.getErrorLocation()->getLocationString() << std::endl;
         err.getErrorLocation()->printSourceRegion(std::cout, true);
