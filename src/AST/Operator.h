@@ -47,6 +47,15 @@ enum class PostfixOperator {
 PostfixOperator createPostfixOperatorFromToken(const Token &tok);
 std::string getPostfixOperator(PostfixOperator op);
 
+enum class ImplicitConversion {
+  BoolToChar, BoolToInt, BoolToNum,
+  CharToInt, CharToNum,
+  IntToNum,
+  RefDownCast
+};
+
+std::string getImplicitConversion(ImplicitConversion conversion);
+
 }
 
 #endif //REFLEX_SRC_AST_OPERATOR_H_

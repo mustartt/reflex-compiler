@@ -96,5 +96,17 @@ std::string getPostfixOperator(PostfixOperator op) {
     }
 }
 
+std::string getImplicitConversion(ImplicitConversion conversion) {
+    switch (conversion) {
+        case ImplicitConversion::BoolToChar: return "BoolToChar";
+        case ImplicitConversion::BoolToInt: return "BoolToInt";
+        case ImplicitConversion::BoolToNum: return "BoolToNum";
+        case ImplicitConversion::CharToInt: return "CharToInt";
+        case ImplicitConversion::CharToNum: return "CharToNum";
+        case ImplicitConversion::IntToNum: return "IntToNum";
+        case ImplicitConversion::RefDownCast: return "RefDownCast";
+    }
+}
+
 }
 

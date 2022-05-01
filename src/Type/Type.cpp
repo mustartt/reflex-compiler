@@ -52,7 +52,8 @@ bool MemberAttrType::hasSameBaseAttr(const MemberAttrType *other) const {
 }
 
 std::string ReferenceType::getTypeString() const {
-    return "&" + refType->getTypeString() + (nullable ? "?" : "");
+    if (refType) return "&" + refType->getTypeString() + (nullable ? "?" : "");
+    else return "nullptr";
 }
 
 bool hasCyclicInterfaceReference(std::unordered_map<InterfaceType *, bool> &visited,

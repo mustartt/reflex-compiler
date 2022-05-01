@@ -43,16 +43,6 @@ class DeclRefExpr : public Expression {
     Declaration *decl;
 };
 
-class Identifier : public DeclRefExpr {
-  public:
-    Identifier(const SourceLocation *loc, Declaration *decl, std::string reference);
-
-    [[nodiscard]] std::string getReferenceName() const override;
-    const std::string &getBaseRefName() const override;
-  private:
-    std::string reference;
-};
-
 class ModuleSelector : public DeclRefExpr {
   public:
     ModuleSelector(const SourceLocation *loc, Declaration *decl,
@@ -103,6 +93,31 @@ class NewExpr : public Expression {
     ASTExprVisitorDispatcher
   private:
     ASTTypeExpr *instanceType;
+};
+
+class ImplicitCastExpr : public Expression {
+  public:
+    ImplicitCastExpr(const SourceLocation *loc, Expression *from,
+                     Operator::ImplicitConversion conversion)
+        : Expression(loc), from(from), conversion(conversion) {}
+
+    Expression *getFrom() const { return from; }
+    Operator::ImplicitConversion getConversion() const { return conversion; }
+
+    ASTExprVisitorDispatcher
+  private:
+    Expression *from;
+    Operator::ImplicitConversion conversion;
+};
+
+class Identifier : public DeclRefExpr {
+  public:
+    Identifier(const SourceLocation *loc, Declaration *decl, std::string reference);
+
+    [[nodiscard]] std::string getReferenceName() const override;
+    const std::string &getBaseRefName() const override;
+  private:
+    std::string reference;
 };
 
 class CastExpr : public Expression {

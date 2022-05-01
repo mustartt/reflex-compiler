@@ -243,18 +243,19 @@ class ClassType : public CompositeType {
     std::map<std::string, MemberAttrType *> methods;
 };
 
+/// Represents a reference
+/// @note If a @p refType is null, it represents a null reference
 class ReferenceType : public Type {
   public:
     explicit ReferenceType(ReferenceableType *refType, bool nullable = true)
-        : refType(refType), nullable(nullable) {
-        if (!refType) throw TypeError{"ReferenceType cannot reference nullptr"};
-    }
+        : refType(refType), nullable(nullable) {}
 
     bool isNullable() const { return nullable; }
     ReferenceableType *getRefType() const { return refType; }
 
     std::string getTypeString() const override;
     bool isReferenceType() const override { return true; }
+    bool isNullReference() const { return refType == nullptr; }
 
   private:
     bool nullable;

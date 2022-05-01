@@ -13,6 +13,7 @@ class DeclRefExpr;
 class UnaryExpr;
 class BinaryExpr;
 class NewExpr;
+class ImplicitCastExpr;
 class CastExpr;
 class IndexExpr;
 class SelectorExpr;
@@ -33,6 +34,7 @@ class ASTExprVisitor {
     virtual OpaqueType visit(UnaryExpr &) = 0;
     virtual OpaqueType visit(BinaryExpr &) = 0;
     virtual OpaqueType visit(NewExpr &) = 0;
+    virtual OpaqueType visit(ImplicitCastExpr &) = 0;
     virtual OpaqueType visit(CastExpr &) = 0;
     virtual OpaqueType visit(IndexExpr &) = 0;
     virtual OpaqueType visit(SelectorExpr &) = 0;

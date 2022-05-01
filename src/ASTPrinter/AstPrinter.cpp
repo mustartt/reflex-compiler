@@ -392,6 +392,20 @@ OpaqueType AstPrinter::visit(NewExpr &expr) {
     return {};
 }
 
+OpaqueType AstPrinter::visit(ImplicitCastExpr &expr) {
+    printNodePrefix("ImplicitCastExpr: "
+                        + expr.location()->getStringRepr() + " "
+                        + printAstType(expr.getType()) + " <"
+                        + Operator::getImplicitConversion(expr.getConversion())
+                        + ">");
+    {
+        Scope _(*this, true);
+        expr.getFrom()->accept(this);
+    }
+    depthFlag[depth] = true;
+    return {};
+}
+
 OpaqueType AstPrinter::visit(CastExpr &expr) {
     printNodePrefix("CastExpr: "
                         + expr.location()->getStringRepr() + " "
