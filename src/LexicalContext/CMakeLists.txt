@@ -11,7 +11,14 @@ add_library(
         LexicalContextForwardPass.cpp
         LexicalContextForwardPass.h
         SemanticPassManager.cpp
-        SemanticPassManager.h LexicalContextDeclTypePass.cpp LexicalContextDeclTypePass.h TypeParser.cpp TypeParser.h)
+        SemanticPassManager.h
+        LexicalContextDeclTypePass.cpp
+        LexicalContextDeclTypePass.h
+        TypeParser.cpp
+        TypeParser.h
+        SemanticAnalysisPass.cpp
+        SemanticAnalysisPass.h
+)
 
 set_target_properties(lexcontext PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(lexcontext PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

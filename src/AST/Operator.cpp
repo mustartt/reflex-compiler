@@ -105,6 +105,12 @@ std::string getImplicitConversion(ImplicitConversion conversion) {
         case ImplicitConversion::CharToNum: return "CharToNum";
         case ImplicitConversion::IntToNum: return "IntToNum";
         case ImplicitConversion::RefDownCast: return "RefDownCast";
+        case ImplicitConversion::CharToBool: return "CharToBool";
+        case ImplicitConversion::IntToBool: return "IntToBool";
+        case ImplicitConversion::NumToBool: return "NumToBool";
+        case ImplicitConversion::RefToBool: return "RefToBool";
+        case ImplicitConversion::NullToRef: return "NullToRef";
+        case ImplicitConversion::RefNullable: return "RefNullable";
     }
 }
 

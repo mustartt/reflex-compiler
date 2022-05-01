@@ -55,7 +55,10 @@ class BuiltinType : public Type {
     BaseType baseType;
 };
 
-class ReferenceableType : public Type {};
+class ReferenceableType : public Type {
+  public:
+    virtual bool isClassOrInterfaceType() const = 0;
+};
 
 class ArrayType : public ReferenceableType {
   public:
@@ -68,6 +71,7 @@ class ArrayType : public ReferenceableType {
     bool hasDefinedSize() const { return size.has_value(); }
     std::string getTypeString() const override;
     bool isReferenceType() const override { return false; }
+    bool isClassOrInterfaceType() const override { return false; }
 
     const std::optional<size_t> &getSize() const { return size; }
     Type *getElementType() const { return elementType; }
@@ -85,6 +89,7 @@ class FunctionType : public ReferenceableType {
     std::string getTypeString() const override;
     bool isReferenceType() const override { return false; }
     bool isReturnVoid() const { return dynamic_cast<VoidType *>(returnType); }
+    bool isClassOrInterfaceType() const override { return false; }
 
     const std::vector<Type *> &getParamTypes() const { return paramTypes; }
     Type *getReturnType() const { return returnType; }
@@ -106,6 +111,7 @@ class CompositeType : public ReferenceableType {
     const std::string &getDeclName() const { return name; }
     std::string getTypeString() const override { return name; }
     bool isReferenceType() const override { return false; }
+    bool isClassOrInterfaceType() const override { return true; }
 
     AggregateDecl *getDecl() const { return decl; }
     void setDecl(AggregateDecl *aggregateDecl) { CompositeType::decl = aggregateDecl; }
@@ -171,6 +177,8 @@ class InterfaceType : public CompositeType {
     /// @note only maintains invariant of current and base interfaces
     void addMethod(const std::string &name, MemberAttrType *method);
 
+    bool isDerivedFrom(InterfaceType *type) const;
+
     /// Get all traits "the methods that the interface supports" a class can implement
     /// @returns the trait of the interface
     std::vector<Method> getInterfaceTraits() const;
@@ -220,6 +228,9 @@ class ClassType : public CompositeType {
 
     /// check if class implements all interface traits
     bool isAbstract() const;
+
+    bool implements(InterfaceType *type) const;
+    bool isDerivedFrom(ClassType *type) const;
 
     const std::map<std::string, MemberAttrType *> &getMembers() const { return members; }
     const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }

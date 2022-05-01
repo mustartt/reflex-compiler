@@ -37,6 +37,7 @@ class DeclRefExpr : public Expression {
 
     [[nodiscard]] virtual std::string getReferenceName() const = 0;
     [[nodiscard]] virtual const std::string &getBaseRefName() const = 0;
+    void setDecl(Declaration *ref) { DeclRefExpr::decl = ref; }
 
     ASTExprVisitorDispatcher
   private:

@@ -1,17 +1,10 @@
-interface IA {
-    public func methodA() -> void;
+func distance2(x: int, y: int) -> int {
+    var x2: int = x * x;
+    var y2: int = y * y;
+    return x2 + y2;
 }
 
-interface IB : IA {
-    public func methodB() -> void;
+class Point {
+    public var x: int;
+    public var y: int;
 }
-
-interface IC : IA {
-    public func methodC() -> void;
-}
-
-interface ID : IB, IC {
-    public func methodD() -> void;
-}
-
-class ConcreteClass : ID {}

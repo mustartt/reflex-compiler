@@ -5,6 +5,7 @@
 #include "Type.h"
 
 #include <unordered_map>
+#include <vector>
 
 namespace reflex {
 
@@ -130,6 +131,14 @@ std::vector<Method> InterfaceType::getInterfaceTraits() const {
     return members;
 }
 
+bool InterfaceType::isDerivedFrom(InterfaceType *type) const {
+    if (type == this) return true;
+    return std::any_of(interfaces.begin(), interfaces.end(),
+                       [type](const InterfaceType *interface) {
+                         return interface->isDerivedFrom(type);
+                       });
+}
+
 std::vector<Method> ClassType::getClassImplTraits() const {
     std::vector<Method> traits;
     if (baseclass) {
@@ -244,6 +253,22 @@ bool ClassType::isAbstract() const {
                                  });
         if (iter == implemented.end()) return true;
     }
+    return false;
+}
+
+bool ClassType::implements(InterfaceType *type) const {
+    for (auto interface: interfaces) {
+        if (interface->isDerivedFrom(type)) return true;
+    }
+    if (baseclass) {
+        return baseclass->implements(type);
+    }
+    return false;
+}
+
+bool ClassType::isDerivedFrom(ClassType *type) const {
+    if (this == type) return true;
+    if (baseclass) return baseclass->isDerivedFrom(type);
     return false;
 }
 

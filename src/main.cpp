@@ -24,8 +24,9 @@ int main(int argc, char *argv[]) {
         LexicalContext lexicalContext;
         TypeContext typeContext;
 
-        LexicalContextForwardPass lexicalPass(lexicalContext, typeContext);
         AstPrinter printer(std::cout);
+
+        LexicalContextForwardPass lexicalPass(lexicalContext, typeContext);
         LexicalContextDeclTypePass typePass(typeContext);
 
         auto lexscope = lexicalPass.performPass(astRoot);
@@ -33,13 +34,8 @@ int main(int argc, char *argv[]) {
 
         printer.visit(*astRoot);
         lexicalContext.dump(std::cout, lexscope);
-
         typeContext.dump(std::cout);
 
-        auto test = typeContext.getInterfaceType("ID");
-        auto trait = test->getInterfaceTraits();
-
-        std::cout << std::endl;
     } catch (UnrecoverableError &err) {
         std::cout << err.getErrorLocation()->getLocationString() << std::endl;
         err.getErrorLocation()->printSourceRegion(std::cout, true);
