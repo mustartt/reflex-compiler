@@ -12,3 +12,7 @@ class Point {
         return x + y;
     }
 }
+
+func main() -> void {
+    var pt: Point = new Point();
+}

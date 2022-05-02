@@ -123,6 +123,7 @@ class VariableDecl : public Declaration {
 
     ASTTypeExpr *getTypeDecl() const { return typeDecl; }
     Expression *getInitializer() const { return initializer; }
+    void setInitializer(Expression *initexpr) { VariableDecl::initializer = initexpr; }
     bool isGlobalVariable() const { return isGlobal; }
     void setGlobal() { isGlobal = true; }
 

@@ -120,9 +120,13 @@ OpaqueType SemanticAnalysisPass::visit(DeclStmt &stmt) {
         var->setType(type);
         decl->setType(type);
         symbolTables.top()->add(decl);
-        // todo: visit initializer
+
+        if (var->getInitializer()) {
+            auto rvalue = Generic<Expression *>::Get(var->getInitializer()->accept(&exprAnalysisPass));
+            auto declType = typeParser.parseReferenceTypeExpr(var->getTypeDecl(), lexicalScopes.top());
+            var->setInitializer(exprAnalysisPass.insertImplicitCast(rvalue, declType));
+        }
     }
-    // todo: visit nested interface and class methods
     return {};
 }
 

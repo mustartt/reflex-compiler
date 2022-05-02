@@ -70,7 +70,7 @@ class ReturnStmt : public Statement {
     ASTStmtVisitorDispatcher
   private:
     Expression *returnValue;
-    Type *type;
+    Type *type = nullptr;
 };
 
 class BreakStmt : public Statement {
