@@ -65,6 +65,7 @@ class ReturnStmt : public Statement {
     Expression *getReturnValue() const { return returnValue; }
     Type *getReturnType() const { return type; }
     void setReturnType(Type *typ) { ReturnStmt::type = typ; }
+    void setReturnValue(Expression *expr) { ReturnStmt::returnValue = expr; }
 
     ASTStmtVisitorDispatcher
   private:
@@ -164,6 +165,8 @@ class AssignmentStmt : public SimpleStmt {
     [[nodiscard]] Operator::AssignOperator getAssignOp() const { return assignOp; }
     [[nodiscard]] Expression *getLhs() const { return lhs; }
     [[nodiscard]] Expression *getRhs() const { return rhs; }
+    void setLhs(Expression *newLhs) { AssignmentStmt::lhs = newLhs; }
+    void setRhs(Expression *newRhs) { AssignmentStmt::rhs = newRhs; }
 
     ASTStmtVisitorDispatcher
   private:
@@ -188,6 +191,7 @@ class ExpressionStmt : public SimpleStmt {
   public:
     ExpressionStmt(const SourceLocation *loc, Expression *expr);
     [[nodiscard]] Expression *getExpr() const { return expr; }
+    void setExpr(Expression *newexpr) { ExpressionStmt::expr = newexpr; }
 
     ASTStmtVisitorDispatcher
   private:

@@ -82,7 +82,21 @@ void SemanticAnalysisPass::analyzeMethod(MethodDecl *decl) {
 
 void SemanticAnalysisPass::analyzeLambda(FunctionLiteral *literal) {
     symbolTables.push(std::make_unique<SymbolTable>(symbolTables.top().get()));
+    lexicalScopes.push(literal->getScope()->getChild());
 
+    auto &scope = symbolTables.top();
+    for (auto param: literal->getParamDecls()) {
+        scope->add(param);
+    }
+
+    if (literal->getBody()) {
+        auto stmts = literal->getBody();
+        for (auto stmt: stmts->getStmts()) {
+            stmt->accept(this);
+        }
+    }
+
+    lexicalScopes.pop();
     symbolTables.pop();
 }
 
@@ -122,15 +136,80 @@ OpaqueType SemanticAnalysisPass::visit(ContinueStmt &stmt) {
     return {};
 }
 
+OpaqueType SemanticAnalysisPass::visit(ReturnStmt &stmt) {
+    if (stmt.getReturnValue()) {
+        auto expr = Generic<Expression *>::Get(stmt.getReturnValue()->accept(&exprAnalysisPass));
+        stmt.setReturnValue(expr);
+        stmt.setReturnType(expr->getType());
+    } else {
+        stmt.setReturnType(typeContext.getVoidType());
+    }
+    return {};
+}
+
+OpaqueType SemanticAnalysisPass::visit(IfStmt &stmt) {
+    // visit conditionals
+    stmt.getPrimaryBlock()->accept(this);
+    if (stmt.getElseBlock()) stmt.getElseBlock()->accept(this);
+    return {};
+}
+
+OpaqueType SemanticAnalysisPass::visit(ForStmt &stmt) {
+    // visit range clause
+    inloop = true;
+    stmt.getBody()->accept(this);
+    inloop = false;
+    return {};
+}
+
+OpaqueType SemanticAnalysisPass::visit(WhileStmt &stmt) {
+    // visit cond
+    inloop = true;
+    stmt.getBody()->accept(this);
+    inloop = false;
+    return {};
+}
+
+OpaqueType SemanticAnalysisPass::visit(AssignmentStmt &stmt) {
+    auto lvalue = Generic<Expression *>::Get(stmt.getLhs()->accept(&exprAnalysisPass));
+    auto rvalue = Generic<Expression *>::Get(stmt.getRhs()->accept(&exprAnalysisPass));
+    stmt.setLhs(lvalue);
+    if (stmt.getAssignOp() != Operator::AssignOperator::Equal) throw TypeError{"Unsupported assignment operator"};
+    // lhs must be DeclRefExpr or ArrayIndexExpr to be assignable
+    if (auto declLValue = dynamic_cast<DeclRefExpr *>(lvalue)) {
+        auto lvalueType = declLValue->getType();
+        auto convertedRValue = exprAnalysisPass.insertImplicitCast(rvalue, lvalueType);
+        stmt.setRhs(convertedRValue);
+        return {};
+    } else if (auto indexLValue = dynamic_cast<IndexExpr *>(lvalue)) {
+        auto indexedType = indexLValue->getType();
+        auto convertedRValue = exprAnalysisPass.insertImplicitCast(rvalue, indexedType);
+        stmt.setRhs(convertedRValue);
+        return {};
+    }
+    stmt.setRhs(rvalue); // default new state
+    throw TypeError{
+        "Cannot assign " + rvalue->getType()->getTypeString() +
+            " to type " + lvalue->getType()->getTypeString()
+    };
+}
+
+OpaqueType SemanticAnalysisPass::visit(ExpressionStmt &stmt) {
+    stmt.setExpr(Generic<Expression *>::Get(
+        stmt.getExpr()->accept(&exprAnalysisPass))
+    );
+    return {};
+}
+
 OpaqueType ExprAnalysisPass::visit(DeclRefExpr &expr) {
     auto name = expr.getReferenceName();
     try { // resolve in local scope
-        auto decl = table->find(name);
+        auto decl = parent.symbolTables.top()->find(name);
         expr.setType(decl->getType());
         expr.setDecl(decl);
     } catch (ReferenceError &_) {
         try { // resolve in lexical scope
-            auto member = lexicalscope->resolve(name);
+            auto member = parent.lexicalScopes.top()->resolve(name);
             expr.setType(member->getMemberType());
             expr.setDecl(dynamic_cast<Declaration *>(member->getParent()->getNodeDecl()));
         } catch (LexicalError &err) {
@@ -165,6 +244,164 @@ OpaqueType ExprAnalysisPass::visit(BooleanLiteral &literal) {
 OpaqueType ExprAnalysisPass::visit(NullLiteral &literal) {
     literal.setType(typeContext.getReferenceType(nullptr));
     return Generic<Expression *>::Create(&literal);
+}
+
+OpaqueType ExprAnalysisPass::visit(UnaryExpr &expr) {
+    auto subexpr = Generic<Expression *>::Get(expr.getExpr()->accept(this));
+    auto builtin = dynamic_cast<BuiltinType *>(subexpr->getType());
+    if (!builtin) throw TypeError{"Only Builtin type support UnaryExpr for now"};
+
+    auto supported = builtin->getSupportedUnaryOps();
+    if (!supported.contains(expr.getUnaryOp())) {
+        throw TypeError{
+            builtin->getTypeString() + " does not have operator " +
+                Operator::getUnaryOperator(expr.getUnaryOp())
+        };
+    }
+
+    auto resultType = supported[expr.getUnaryOp()];
+    expr.setType(typeContext.getBuiltinType(resultType));
+
+    return Generic<Expression *>::Create(&expr);
+}
+
+OpaqueType ExprAnalysisPass::visit(BinaryExpr &expr) {
+    auto lhsExpr = Generic<Expression *>::Get(expr.getLhs()->accept(this));
+    auto rhsExpr = Generic<Expression *>::Get(expr.getRhs()->accept(this));
+    auto lhs = dynamic_cast<BuiltinType *>(lhsExpr->getType());
+    auto rhs = dynamic_cast<BuiltinType *>(rhsExpr->getType());
+    if (lhs && rhs) {
+        auto lhsSupported = lhs->getSupportedBinaryOps();
+        auto rhsSupported = rhs->getSupportedBinaryOps();
+        if (lhsSupported.contains(expr.getBinaryOp())) {
+            auto targetType = typeContext.getBuiltinType(lhsSupported.at(expr.getBinaryOp()));
+            try {
+                expr.setRhs(insertImplicitCast(rhsExpr, targetType));
+                expr.setType(targetType);
+                return Generic<Expression *>::Create(&expr);
+            } catch (TypeError &err) {}
+        }
+        if (rhsSupported.contains(expr.getBinaryOp())) {
+            auto targetType = typeContext.getBuiltinType(rhsSupported.at(expr.getBinaryOp()));
+            try {
+                expr.setLhs(insertImplicitCast(lhsExpr, targetType));
+                expr.setType(targetType);
+                return Generic<Expression *>::Create(&expr);
+            } catch (TypeError &err) {}
+        }
+    }
+    throw TypeError{
+        "No viable conversion for " + Operator::getBinaryOperator(expr.getBinaryOp()) +
+            " with argument " + lhsExpr->getType()->getTypeString() + " and " + rhsExpr->getType()->getTypeString()
+    };
+}
+
+OpaqueType ExprAnalysisPass::visit(CastExpr &expr) {
+    // no type check is required, programmer takes responsibility of the validity of the cast
+    expr.setFrom(Generic<Expression *>::Get(expr.getFrom()->accept(this)));
+    return Generic<Expression *>::Create(&expr);
+}
+
+OpaqueType ExprAnalysisPass::visit(IndexExpr &expr) {
+    expr.getBaseExpr()->accept(this);
+    expr.setIndex(insertImplicitCast(
+        Generic<Expression *>::Get(expr.getIndex()->accept(this)),
+        typeContext.getBuiltinType(BuiltinType::Integer))
+    );
+    auto baseType = expr.getType();
+    if (!baseType->isReferenceType()) throw TypeError{"Cannot index into " + baseType->getTypeString()};
+
+    auto arrRefType = dynamic_cast<ReferenceType *>(baseType);
+    if (auto array = dynamic_cast<ArrayType *>(arrRefType->getRefType())) {
+        auto resultType = array->getElementType();
+        expr.setType(resultType);
+        return Generic<Expression *>::Create(&expr);
+    }
+    throw TypeError{"Cannot index into non array type " + baseType->getTypeString()};
+}
+
+OpaqueType ExprAnalysisPass::visit(SelectorExpr &expr) {
+    auto baseexpr = Generic<Expression *>::Get(expr.getBaseExpr()->accept(this));
+    expr.setBaseExpr(baseexpr);
+    if (!baseexpr->getType()->isReferenceType()) {
+        throw TypeError{
+            "Cannot access attribute " + expr.getSelector() +
+                " of a non-reference type " + baseexpr->getType()->getTypeString()
+        };
+    }
+    auto baseRefType = dynamic_cast<ReferenceType *>(baseexpr->getType());
+    if (auto classType = dynamic_cast<ClassType *>(baseRefType->getRefType())) {
+        auto member = classType->getMemberReference(expr.getSelector());
+        expr.setType(member->getMemberAttrType());
+        return Generic<Expression *>::Create(&expr);
+    } else if (auto interfaceType = dynamic_cast<ClassType *>(baseRefType->getRefType())) {
+        auto member = interfaceType->getMemberReference(expr.getSelector());
+        expr.setType(member->getMemberAttrType());
+        return Generic<Expression *>::Create(&expr);
+    } else if (expr.getSelector() == "size") {
+        auto arrayType = dynamic_cast<ArrayType *>(baseRefType->getRefType());
+        if (!arrayType) throw TypeError{baseRefType->getRefType()->getTypeString() + " does not have attr size"};
+        expr.setType(typeContext.getBuiltinType(BuiltinType::Integer));
+        return Generic<Expression *>::Create(&expr);
+    }
+    throw TypeError{
+        baseexpr->getType()->getTypeString() + " does not have attribute " + expr.getSelector()
+    };
+}
+
+OpaqueType ExprAnalysisPass::visit(ArgumentExpr &expr) {
+    auto base = Generic<Expression *>::Get(expr.getBaseExpr()->accept(this));
+    expr.setBaseExpr(base);
+    // check for class instantiation
+    if (auto classType = dynamic_cast<ClassType *>(base->getType())) {
+        if (classType->isAbstract())
+            throw TypeError{"Cannot instantiate abstract class " + classType->getTypeString()};
+        // ignore constructor
+        auto instanceType = typeContext.getReferenceType(classType, false);
+        expr.setType(instanceType);
+        return Generic<Expression *>::Create(&expr);
+    }
+    FunctionType *funcType = nullptr;
+    // regular function calls
+    if (auto regularFunc = dynamic_cast<FunctionType *>(base->getType())) {
+        funcType = regularFunc;
+    } else if (auto funcRef = dynamic_cast<ReferenceType *>(base->getType())) {
+        // lambda ref calls
+        if (auto baseFuncType = dynamic_cast<FunctionType *>(funcRef->getRefType())) {
+            funcType = baseFuncType;
+        }
+    }
+    if (funcType) {
+        if (funcType->getParamTypes().size() != expr.getArguments().size()) {
+            throw TypeError{
+                "Expected " + std::to_string(funcType->getParamTypes().size()) +
+                    " but received " + std::to_string(expr.getArguments().size()) + " instead"
+            };
+        }
+        size_t index = 0;
+        for (auto arg: expr.getArguments()) {
+            auto given = Generic<Expression *>::Get(arg->accept(this));
+            auto expected = insertImplicitCast(given, funcType->getParamTypes()[index]);
+            expr.setArgument(expected, index);
+            ++index;
+        }
+        return Generic<Expression *>::Create(&expr);
+    }
+    throw TypeError{"Unable to apply arguments to " + base->getType()->getTypeString()};
+}
+
+OpaqueType ExprAnalysisPass::visit(ArrayLiteral &literal) {
+    // todo: implement type hints
+    return {};
+}
+
+OpaqueType ExprAnalysisPass::visit(FunctionLiteral &literal) {
+    parent.analyzeLambda(&literal);
+    return Generic<Expression *>::Create(&literal);
+}
+
+OpaqueType ExprAnalysisPass::visit(ImplicitCastExpr &expr) {
+    return Generic<Expression *>::Create(&expr);
 }
 
 Expression *ExprAnalysisPass::insertImplicitCast(Expression *expr, Type *targetType) {

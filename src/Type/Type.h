@@ -13,6 +13,7 @@
 #include <stdexcept>
 
 #include "ASTUtils.h"
+#include "Operator.h"
 
 namespace reflex {
 
@@ -50,6 +51,9 @@ class BuiltinType : public Type {
 
     std::string getTypeString() const override;
     bool isReferenceType() const override { return false; }
+
+    std::map<Operator::BinaryOperator, BuiltinType::BaseType> getSupportedBinaryOps() const;
+    std::map<Operator::UnaryOperator, BuiltinType::BaseType> getSupportedUnaryOps() const;
 
   private:
     BaseType baseType;
@@ -179,6 +183,10 @@ class InterfaceType : public CompositeType {
 
     bool isDerivedFrom(InterfaceType *type) const;
 
+    /// recursively retrieves the member referenced by @p name
+    /// @throws TypeError if name cannot be resolved to an inherited member
+    MemberAttrType *getMemberReference(const std::string &name) const;
+
     /// Get all traits "the methods that the interface supports" a class can implement
     /// @returns the trait of the interface
     std::vector<Method> getInterfaceTraits() const;
@@ -231,6 +239,10 @@ class ClassType : public CompositeType {
 
     bool implements(InterfaceType *type) const;
     bool isDerivedFrom(ClassType *type) const;
+
+    /// recursively retrieves the member referenced by @p name
+    /// @throws TypeError if name cannot be resolved to an inherited member
+    MemberAttrType *getMemberReference(const std::string &name) const;
 
     const std::map<std::string, MemberAttrType *> &getMembers() const { return members; }
     const std::map<std::string, MemberAttrType *> &getMethods() const { return methods; }

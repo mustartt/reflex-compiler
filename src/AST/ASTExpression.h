@@ -62,6 +62,7 @@ class UnaryExpr : public Expression {
 
     Operator::UnaryOperator getUnaryOp() const { return op; }
     Expression *getExpr() const { return expr; }
+    void setExpr(Expression *subexpr) { UnaryExpr::expr = subexpr; }
 
     ASTExprVisitorDispatcher
   private:
@@ -77,6 +78,8 @@ class BinaryExpr : public Expression {
     Operator::BinaryOperator getBinaryOp() const { return op; }
     Expression *getLhs() const { return lhs; }
     Expression *getRhs() const { return rhs; }
+    void setLhs(Expression *lhsExpr) { BinaryExpr::lhs = lhsExpr; }
+    void setRhs(Expression *rhsExpr) { BinaryExpr::rhs = rhsExpr; }
 
     ASTExprVisitorDispatcher
   private:
@@ -126,6 +129,7 @@ class CastExpr : public Expression {
     CastExpr(const SourceLocation *loc, ASTTypeExpr *resultType, Expression *from);
 
     Expression *getFrom() const { return from; }
+    void setFrom(Expression *expr) { CastExpr::from = expr; }
     ASTTypeExpr *getResultType() const { return resultType; }
 
     ASTExprVisitorDispatcher
@@ -140,6 +144,7 @@ class IndexExpr : public Expression {
 
     Expression *getBaseExpr() const { return expr; }
     Expression *getIndex() const { return index; }
+    void setIndex(Expression *newIndex) { IndexExpr::index = newIndex; }
 
     ASTExprVisitorDispatcher
   private:
@@ -152,6 +157,7 @@ class SelectorExpr : public Expression {
     SelectorExpr(const SourceLocation *loc, Expression *expr, std::string aSelector);
 
     Expression *getBaseExpr() const { return expr; }
+    void setBaseExpr(Expression *baseexpr) { SelectorExpr::expr = baseexpr; }
     const std::string &getSelector() const { return selector; }
 
     ASTExprVisitorDispatcher
@@ -165,7 +171,9 @@ class ArgumentExpr : public Expression {
     ArgumentExpr(const SourceLocation *loc, Expression *expr, std::vector<Expression *> arguments);
 
     Expression *getBaseExpr() const { return expr; }
+    void setBaseExpr(Expression *base) { ArgumentExpr::expr = base; }
     const std::vector<Expression *> &getArguments() const { return arguments; }
+    void setArgument(Expression *arg, size_t index) { arguments[index] = arg; }
 
     ASTExprVisitorDispatcher
   private:

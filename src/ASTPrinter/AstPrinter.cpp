@@ -346,8 +346,8 @@ OpaqueType AstPrinter::visit(DeclStmt &stmt) {
 }
 
 OpaqueType AstPrinter::visit(DeclRefExpr &expr) {
-    printNodePrefix("DeclRefExpr: "
-                        + expr.getReferenceName() + " "
+    printNodePrefix("DeclRefExpr: '"
+                        + expr.getReferenceName() + "' "
                         + expr.location()->getStringRepr() + " "
                         + printAstType(expr.getType()));
     depthFlag[depth] = true;
