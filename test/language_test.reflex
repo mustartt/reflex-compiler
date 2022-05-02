@@ -7,4 +7,8 @@ func distance2(x: int, y: int) -> int {
 class Point {
     public var x: int;
     public var y: int;
+
+    public func add() -> int {
+        return x + y;
+    }
 }

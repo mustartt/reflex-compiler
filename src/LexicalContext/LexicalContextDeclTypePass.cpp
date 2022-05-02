@@ -193,7 +193,17 @@ OpaqueType LexicalContextDeclTypePass::visit(FunctionLiteral &literal) {
 }
 
 OpaqueType LexicalContextDeclTypePass::visit(NewExpr &expr) {
-    expr.setType(typeParser.parseBaseType(expr.getInstanceType(), scopes.top()));
+    auto instanceType = typeParser.parseBaseType(expr.getInstanceType(), scopes.top());
+    if (auto classType = dynamic_cast<ClassType *>(instanceType)) {
+        // keep class type, argument constructor will construct this to a reference type
+        expr.setType(classType);
+    } else if (auto arrayType = dynamic_cast<ArrayType *>(instanceType)) {
+        // discard array size
+        auto baseArrayType = typeContext.getArrayType(arrayType->getElementType());
+        expr.setType(typeContext.getReferenceType(baseArrayType, false));
+    } else {
+        throw TypeError{"Cannot instantiate type " + instanceType->getTypeString()};
+    }
     return {};
 }
 

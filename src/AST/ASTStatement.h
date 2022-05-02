@@ -65,6 +65,7 @@ class ReturnStmt : public Statement {
     Expression *getReturnValue() const { return returnValue; }
     Type *getReturnType() const { return type; }
     void setReturnType(Type *typ) { ReturnStmt::type = typ; }
+    void setReturnValue(Expression *expr) { ReturnStmt::returnValue = expr; }
 
     ASTStmtVisitorDispatcher
   private:

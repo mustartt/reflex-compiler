@@ -21,6 +21,83 @@ std::string BuiltinType::getTypeString() const {
     }
 }
 
+std::map<Operator::BinaryOperator, BuiltinType::BaseType> BuiltinType::getSupportedBinaryOps() const {
+    using namespace Operator;
+    switch (baseType) {
+        case Integer:
+            return {
+                {BinaryOperator::Compare, Boolean},
+                {BinaryOperator::CompareNot, Boolean},
+                {BinaryOperator::Less, Boolean},
+                {BinaryOperator::Greater, Boolean},
+                {BinaryOperator::CompareLessThanEqual, Boolean},
+                {BinaryOperator::CompareGreaterThanEqual, Boolean},
+                {BinaryOperator::Add, Integer},
+                {BinaryOperator::Sub, Integer},
+                {BinaryOperator::Mult, Integer},
+                {BinaryOperator::Div, Integer},
+                {BinaryOperator::Mod, Integer},
+            };
+        case Number:
+            return {
+                {BinaryOperator::Compare, Boolean},
+                {BinaryOperator::CompareNot, Boolean},
+                {BinaryOperator::Less, Boolean},
+                {BinaryOperator::Greater, Boolean},
+                {BinaryOperator::CompareLessThanEqual, Boolean},
+                {BinaryOperator::CompareGreaterThanEqual, Boolean},
+                {BinaryOperator::Add, Number},
+                {BinaryOperator::Sub, Number},
+                {BinaryOperator::Mult, Number},
+                {BinaryOperator::Div, Number},
+            };
+        case Character:
+            return {
+                {BinaryOperator::Compare, Boolean},
+                {BinaryOperator::CompareNot, Boolean},
+                {BinaryOperator::Less, Boolean},
+                {BinaryOperator::Greater, Boolean},
+                {BinaryOperator::CompareLessThanEqual, Boolean},
+                {BinaryOperator::CompareGreaterThanEqual, Boolean},
+                {BinaryOperator::Add, Character},
+                {BinaryOperator::Sub, Character},
+            };
+        case Boolean:
+            return {
+                {BinaryOperator::Or, Boolean},
+                {BinaryOperator::And, Boolean},
+                {BinaryOperator::Compare, Boolean},
+                {BinaryOperator::CompareNot, Boolean},
+                {BinaryOperator::LogicalOr, Boolean},
+                {BinaryOperator::LogicalAnd, Boolean},
+            };
+    }
+}
+
+std::map<Operator::UnaryOperator, BuiltinType::BaseType> BuiltinType::getSupportedUnaryOps() const {
+    using namespace Operator;
+    switch (baseType) {
+        case Integer:
+            return {
+                {UnaryOperator::Negative, Integer},
+                {UnaryOperator::LogicalNot, Boolean}
+            };
+        case Number:
+            return {
+                {UnaryOperator::Negative, Integer},
+                {UnaryOperator::LogicalNot, Boolean}
+            };
+        case Character:
+            return {
+                {UnaryOperator::LogicalNot, Boolean}
+            };
+        case Boolean:
+            return {
+                {UnaryOperator::LogicalNot, Boolean}
+            };
+    }
+}
+
 std::string ArrayType::getTypeString() const {
     auto base = elementType->getTypeString() + "[";
     if (hasDefinedSize()) {
@@ -137,6 +214,16 @@ bool InterfaceType::isDerivedFrom(InterfaceType *type) const {
                        [type](const InterfaceType *interface) {
                          return interface->isDerivedFrom(type);
                        });
+}
+
+MemberAttrType *InterfaceType::getMemberReference(const std::string &name) const {
+    if (methods.contains(name)) return methods.at(name);
+    for (auto interface: interfaces) {
+        try {
+            return interface->getMemberReference(name);
+        } catch (TypeError &err) {}
+    }
+    throw TypeError{"Cannot find member reference " + name};
 }
 
 std::vector<Method> ClassType::getClassImplTraits() const {
@@ -270,6 +357,13 @@ bool ClassType::isDerivedFrom(ClassType *type) const {
     if (this == type) return true;
     if (baseclass) return baseclass->isDerivedFrom(type);
     return false;
+}
+
+MemberAttrType *ClassType::getMemberReference(const std::string &name) const {
+    if (members.contains(name)) return members.at(name);
+    if (methods.contains(name)) return methods.at(name);
+    if (baseclass) return baseclass->getMemberReference(name);
+    throw TypeError{"Cannot find member reference " + name};
 }
 
 }
