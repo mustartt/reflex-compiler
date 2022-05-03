@@ -107,6 +107,7 @@ class SemanticAnalyzer : public ASTStmtVisitor {
     void analyzeMethod(MethodDecl *decl);
     void analyzeLambda(FunctionLiteral *literal);
     void analyzeField(FieldDecl *decl);
+    void analyzeStaticVars(VariableDecl *var, LexicalScope *scope);
 
     OpaqueType visit(BlockStmt &stmt) override;
     OpaqueType visit(DeclStmt &stmt) override;

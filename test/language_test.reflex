@@ -13,6 +13,21 @@ class Point {
     }
 }
 
+func adderProducer(c: int) -> func(int, int) -> int {
+    return func(a: int, b: int) -> int {
+        return a + b + c;
+    };
+}
+
+func makePoint() -> Point {
+    return new Point();
+}
+
 func main() -> void {
     var pt: Point = new Point();
+    pt.x = 10;
+    pt.y = 20;
+    var pt2: Point = makePoint();
+    pt2.x = pt.x;
+    pt2.y = pt.y;
 }

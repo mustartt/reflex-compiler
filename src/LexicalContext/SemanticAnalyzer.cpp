@@ -117,6 +117,18 @@ void SemanticAnalyzer::analyzeField(FieldDecl *decl) {
     symbolTables.pop();
 }
 
+void SemanticAnalyzer::analyzeStaticVars(VariableDecl *var, LexicalScope *scope) {
+    symbolTables.push(std::make_unique<SymbolTable>(nullptr));
+    lexicalScopes.push(scope);
+
+    if (var->getInitializer()) {
+        var->getInitializer()->accept(&exprAnalysisPass);
+    }
+
+    lexicalScopes.pop();
+    symbolTables.pop();
+}
+
 OpaqueType SemanticAnalyzer::visit(BlockStmt &stmt) {
     symbolTables.push(std::make_unique<SymbolTable>(symbolTables.top().get()));
     lexicalScopes.push(stmt.getScope()->getChild());
@@ -196,7 +208,7 @@ OpaqueType SemanticAnalyzer::visit(AssignmentStmt &stmt) {
     auto rvalue = Generic<Expression *>::Get(stmt.getRhs()->accept(&exprAnalysisPass));
     stmt.setLhs(lvalue);
     if (stmt.getAssignOp() != Operator::AssignOperator::Equal) throw TypeError{"Unsupported assignment operator"};
-    // lhs must be DeclRefExpr or ArrayIndexExpr to be assignable
+    // lhs must be DeclRefExpr or ArrayIndexExpr or Selector to be assignable
     if (auto declLValue = dynamic_cast<DeclRefExpr *>(lvalue)) {
         auto lvalueType = declLValue->getType();
         auto convertedRValue = exprAnalysisPass.insertImplicitCast(rvalue, lvalueType);
@@ -205,6 +217,11 @@ OpaqueType SemanticAnalyzer::visit(AssignmentStmt &stmt) {
     } else if (auto indexLValue = dynamic_cast<IndexExpr *>(lvalue)) {
         auto indexedType = indexLValue->getType();
         auto convertedRValue = exprAnalysisPass.insertImplicitCast(rvalue, indexedType);
+        stmt.setRhs(convertedRValue);
+        return {};
+    } else if (auto selectorLValue = dynamic_cast<SelectorExpr *>(lvalue)) {
+        auto selectedType = selectorLValue->getType();
+        auto convertedRValue = exprAnalysisPass.insertImplicitCast(rvalue, selectedType);
         stmt.setRhs(convertedRValue);
         return {};
     }
@@ -406,6 +423,7 @@ OpaqueType ExpressionAnalyzer::visit(ArgumentExpr &expr) {
             expr.setArgument(expected, index);
             ++index;
         }
+        expr.setType(funcType->getReturnType());
         return Generic<Expression *>::Create(&expr);
     }
     throw TypeError{"Unable to apply arguments to " + base->getType()->getTypeString()};

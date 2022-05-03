@@ -9,6 +9,7 @@
 #include <LexicalContextForwardPass.h>
 #include <LexicalContextDeclTypePass.h>
 #include <SemanticAnalyzer.h>
+#include "SemanticAnalysisPass.h"
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -39,9 +40,9 @@ int main(int argc, char *argv[]) {
 
         std::cout << std::string(75, '=') << std::endl;
 
-        SemanticAnalyzer functionPass(typeContext, astContext);
-        functionPass.analyzeFunction(dynamic_cast<FunctionDecl *>(astRoot->getDecl(2)));
-
+        SemanticAnalysisPass analysisPass(typeContext, astContext, lexscope);
+        analysisPass.visit(*astRoot);
+        
         printer.visit(*astRoot);
         lexicalContext.dump(std::cout, lexscope);
         typeContext.dump(std::cout);
