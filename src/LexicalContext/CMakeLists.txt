@@ -16,8 +16,8 @@ add_library(
         LexicalContextDeclTypePass.h
         TypeParser.cpp
         TypeParser.h
-        SemanticAnalysisPass.cpp
-        SemanticAnalysisPass.h
+        SemanticAnalyzer.cpp
+        SemanticAnalyzer.h
 )
 
 set_target_properties(lexcontext PROPERTIES LINKER_LANGUAGE CXX)

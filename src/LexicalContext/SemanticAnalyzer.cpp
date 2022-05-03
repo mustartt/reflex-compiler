@@ -2,7 +2,7 @@
 // Created by henry on 2022-04-30.
 //
 
-#include "SemanticAnalysisPass.h"
+#include "SemanticAnalyzer.h"
 
 #include "ASTDeclaration.h"
 #include "ASTExpression.h"
@@ -39,12 +39,13 @@ void SymbolTable::add(Declaration *decl, const std::string &name) {
     symbolTable[declname] = decl;
 }
 
-void SemanticAnalysisPass::analyzeFunction(FunctionDecl *decl) {
+void SemanticAnalyzer::analyzeFunction(FunctionDecl *decl) {
     if (symbolTables.empty()) {
         symbolTables.push(std::make_unique<SymbolTable>(nullptr));
     } else {
         symbolTables.push(std::make_unique<SymbolTable>(symbolTables.top().get()));
     }
+    lexicalScopes.push(decl->getScope()->getChild());
 
     auto &scope = symbolTables.top();
     for (auto param: decl->getParamDecls()) {
@@ -57,11 +58,14 @@ void SemanticAnalysisPass::analyzeFunction(FunctionDecl *decl) {
             stmt->accept(this);
         }
     }
+
+    lexicalScopes.pop();
     symbolTables.pop();
 }
 
-void SemanticAnalysisPass::analyzeMethod(MethodDecl *decl) {
+void SemanticAnalyzer::analyzeMethod(MethodDecl *decl) {
     symbolTables.push(std::make_unique<SymbolTable>(nullptr));
+    lexicalScopes.push(decl->getParent()->getScope()->getChild());
 
     auto &scope = symbolTables.top();
     auto klass = dynamic_cast<ClassDecl *>(decl->getParent());
@@ -77,10 +81,11 @@ void SemanticAnalysisPass::analyzeMethod(MethodDecl *decl) {
 
     analyzeFunction(decl);
 
+    lexicalScopes.pop();
     symbolTables.pop();
 }
 
-void SemanticAnalysisPass::analyzeLambda(FunctionLiteral *literal) {
+void SemanticAnalyzer::analyzeLambda(FunctionLiteral *literal) {
     symbolTables.push(std::make_unique<SymbolTable>(symbolTables.top().get()));
     lexicalScopes.push(literal->getScope()->getChild());
 
@@ -100,7 +105,19 @@ void SemanticAnalysisPass::analyzeLambda(FunctionLiteral *literal) {
     symbolTables.pop();
 }
 
-OpaqueType SemanticAnalysisPass::visit(BlockStmt &stmt) {
+void SemanticAnalyzer::analyzeField(FieldDecl *decl) {
+    symbolTables.push(std::make_unique<SymbolTable>(nullptr));
+    lexicalScopes.push(decl->getParent()->getScope()->getChild());
+
+    if (decl->getInitializer()) {
+        decl->getInitializer()->accept(&exprAnalysisPass);
+    }
+
+    lexicalScopes.pop();
+    symbolTables.pop();
+}
+
+OpaqueType SemanticAnalyzer::visit(BlockStmt &stmt) {
     symbolTables.push(std::make_unique<SymbolTable>(symbolTables.top().get()));
     lexicalScopes.push(stmt.getScope()->getChild());
 
@@ -113,7 +130,7 @@ OpaqueType SemanticAnalysisPass::visit(BlockStmt &stmt) {
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(DeclStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(DeclStmt &stmt) {
     auto decl = stmt.getDecl();
     if (auto var = dynamic_cast<VariableDecl *>(decl)) {
         auto type = typeParser.parseReferenceTypeExpr(var->getTypeDecl(), lexicalScopes.top());
@@ -130,17 +147,17 @@ OpaqueType SemanticAnalysisPass::visit(DeclStmt &stmt) {
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(BreakStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(BreakStmt &stmt) {
     if (!inloop) throw AnalysisError{"BreakStmt is not contained in a loop"};
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(ContinueStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(ContinueStmt &stmt) {
     if (!inloop) throw AnalysisError{"ContinueStmt is not contained in a loop"};
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(ReturnStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(ReturnStmt &stmt) {
     if (stmt.getReturnValue()) {
         auto expr = Generic<Expression *>::Get(stmt.getReturnValue()->accept(&exprAnalysisPass));
         stmt.setReturnValue(expr);
@@ -151,14 +168,14 @@ OpaqueType SemanticAnalysisPass::visit(ReturnStmt &stmt) {
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(IfStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(IfStmt &stmt) {
     // visit conditionals
     stmt.getPrimaryBlock()->accept(this);
     if (stmt.getElseBlock()) stmt.getElseBlock()->accept(this);
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(ForStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(ForStmt &stmt) {
     // visit range clause
     inloop = true;
     stmt.getBody()->accept(this);
@@ -166,7 +183,7 @@ OpaqueType SemanticAnalysisPass::visit(ForStmt &stmt) {
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(WhileStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(WhileStmt &stmt) {
     // visit cond
     inloop = true;
     stmt.getBody()->accept(this);
@@ -174,7 +191,7 @@ OpaqueType SemanticAnalysisPass::visit(WhileStmt &stmt) {
     return {};
 }
 
-OpaqueType SemanticAnalysisPass::visit(AssignmentStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(AssignmentStmt &stmt) {
     auto lvalue = Generic<Expression *>::Get(stmt.getLhs()->accept(&exprAnalysisPass));
     auto rvalue = Generic<Expression *>::Get(stmt.getRhs()->accept(&exprAnalysisPass));
     stmt.setLhs(lvalue);
@@ -198,14 +215,14 @@ OpaqueType SemanticAnalysisPass::visit(AssignmentStmt &stmt) {
     };
 }
 
-OpaqueType SemanticAnalysisPass::visit(ExpressionStmt &stmt) {
+OpaqueType SemanticAnalyzer::visit(ExpressionStmt &stmt) {
     stmt.setExpr(Generic<Expression *>::Get(
         stmt.getExpr()->accept(&exprAnalysisPass))
     );
     return {};
 }
 
-OpaqueType ExprAnalysisPass::visit(DeclRefExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(DeclRefExpr &expr) {
     auto name = expr.getReferenceName();
     try { // resolve in local scope
         auto decl = parent.symbolTables.top()->find(name);
@@ -223,11 +240,11 @@ OpaqueType ExprAnalysisPass::visit(DeclRefExpr &expr) {
     return Generic<Expression *>::Create(&expr);
 }
 
-OpaqueType ExprAnalysisPass::visit(NewExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(NewExpr &expr) {
     return Generic<Expression *>::Create(&expr);
 }
 
-OpaqueType ExprAnalysisPass::visit(NumberLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(NumberLiteral &literal) {
     if (static_cast<int>(literal.getValue()) == literal.getValue()) {
         literal.setType(typeContext.getBuiltinType(BuiltinType::Integer));
     } else {
@@ -236,21 +253,21 @@ OpaqueType ExprAnalysisPass::visit(NumberLiteral &literal) {
     return Generic<Expression *>::Create(&literal);
 }
 
-OpaqueType ExprAnalysisPass::visit(StringLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(StringLiteral &literal) {
     return {}; // todo: implement string
 }
 
-OpaqueType ExprAnalysisPass::visit(BooleanLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(BooleanLiteral &literal) {
     literal.setType(typeContext.getBuiltinType(BuiltinType::Boolean));
     return Generic<Expression *>::Create(&literal);
 }
 
-OpaqueType ExprAnalysisPass::visit(NullLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(NullLiteral &literal) {
     literal.setType(typeContext.getReferenceType(nullptr));
     return Generic<Expression *>::Create(&literal);
 }
 
-OpaqueType ExprAnalysisPass::visit(UnaryExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(UnaryExpr &expr) {
     auto subexpr = Generic<Expression *>::Get(expr.getExpr()->accept(this));
     auto builtin = dynamic_cast<BuiltinType *>(subexpr->getType());
     if (!builtin) throw TypeError{"Only Builtin type support UnaryExpr for now"};
@@ -269,7 +286,7 @@ OpaqueType ExprAnalysisPass::visit(UnaryExpr &expr) {
     return Generic<Expression *>::Create(&expr);
 }
 
-OpaqueType ExprAnalysisPass::visit(BinaryExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(BinaryExpr &expr) {
     auto lhsExpr = Generic<Expression *>::Get(expr.getLhs()->accept(this));
     auto rhsExpr = Generic<Expression *>::Get(expr.getRhs()->accept(this));
     auto lhs = dynamic_cast<BuiltinType *>(lhsExpr->getType());
@@ -300,13 +317,13 @@ OpaqueType ExprAnalysisPass::visit(BinaryExpr &expr) {
     };
 }
 
-OpaqueType ExprAnalysisPass::visit(CastExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(CastExpr &expr) {
     // no type check is required, programmer takes responsibility of the validity of the cast
     expr.setFrom(Generic<Expression *>::Get(expr.getFrom()->accept(this)));
     return Generic<Expression *>::Create(&expr);
 }
 
-OpaqueType ExprAnalysisPass::visit(IndexExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(IndexExpr &expr) {
     expr.getBaseExpr()->accept(this);
     expr.setIndex(insertImplicitCast(
         Generic<Expression *>::Get(expr.getIndex()->accept(this)),
@@ -324,7 +341,7 @@ OpaqueType ExprAnalysisPass::visit(IndexExpr &expr) {
     throw TypeError{"Cannot index into non array type " + baseType->getTypeString()};
 }
 
-OpaqueType ExprAnalysisPass::visit(SelectorExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(SelectorExpr &expr) {
     auto baseexpr = Generic<Expression *>::Get(expr.getBaseExpr()->accept(this));
     expr.setBaseExpr(baseexpr);
     if (!baseexpr->getType()->isReferenceType()) {
@@ -353,7 +370,7 @@ OpaqueType ExprAnalysisPass::visit(SelectorExpr &expr) {
     };
 }
 
-OpaqueType ExprAnalysisPass::visit(ArgumentExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(ArgumentExpr &expr) {
     auto base = Generic<Expression *>::Get(expr.getBaseExpr()->accept(this));
     expr.setBaseExpr(base);
     // check for class instantiation
@@ -394,21 +411,21 @@ OpaqueType ExprAnalysisPass::visit(ArgumentExpr &expr) {
     throw TypeError{"Unable to apply arguments to " + base->getType()->getTypeString()};
 }
 
-OpaqueType ExprAnalysisPass::visit(ArrayLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(ArrayLiteral &literal) {
     // todo: implement type hints
     return {};
 }
 
-OpaqueType ExprAnalysisPass::visit(FunctionLiteral &literal) {
+OpaqueType ExpressionAnalyzer::visit(FunctionLiteral &literal) {
     parent.analyzeLambda(&literal);
     return Generic<Expression *>::Create(&literal);
 }
 
-OpaqueType ExprAnalysisPass::visit(ImplicitCastExpr &expr) {
+OpaqueType ExpressionAnalyzer::visit(ImplicitCastExpr &expr) {
     return Generic<Expression *>::Create(&expr);
 }
 
-Expression *ExprAnalysisPass::insertImplicitCast(Expression *expr, Type *targetType) {
+Expression *ExpressionAnalyzer::insertImplicitCast(Expression *expr, Type *targetType) {
     // todo: refactor this
     if (dynamic_cast<VoidType *>(expr->getType()))
         throw TypeError{"Cannot convert from void type"};

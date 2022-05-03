@@ -2,8 +2,8 @@
 // Created by henry on 2022-04-30.
 //
 
-#ifndef REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYSISPASS_H_
-#define REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYSISPASS_H_
+#ifndef REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYZER_H_
+#define REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYZER_H_
 
 #include <map>
 #include <stack>
@@ -55,15 +55,15 @@ class ASTContext;
 class TypeContext;
 class LexicalScope;
 class Expression;
-class SemanticAnalysisPass;
+class SemanticAnalyzer;
 
 /// Class for preforming type analysis on Expression and inserts ImplicitCastExpr
-class ExprAnalysisPass : public ASTExprVisitor {
-    friend class SemanticAnalysisPass;
+class ExpressionAnalyzer : public ASTExprVisitor {
+    friend class SemanticAnalyzer;
   public:
-    ExprAnalysisPass(TypeContext &typeContext,
-                     ASTContext &astContext,
-                     SemanticAnalysisPass &parent)
+    ExpressionAnalyzer(TypeContext &typeContext,
+                       ASTContext &astContext,
+                       SemanticAnalyzer &parent)
         : typeContext(typeContext), astContext(astContext), parent(parent) {}
 
     OpaqueType visit(DeclRefExpr &expr) override;
@@ -92,25 +92,21 @@ class ExprAnalysisPass : public ASTExprVisitor {
 
     TypeContext &typeContext;
     ASTContext &astContext;
-    SemanticAnalysisPass &parent;
+    SemanticAnalyzer &parent;
 };
 
 /// Class for performing semantic analysis on FunctionDecl, MethodDecl, FunctionLiteral
-class SemanticAnalysisPass : public ASTStmtVisitor {
-    friend class ExprAnalysisPass;
+class SemanticAnalyzer : public ASTStmtVisitor {
+    friend class ExpressionAnalyzer;
   public:
-    SemanticAnalysisPass(TypeContext &typeContext, LexicalScope *lexicalScope, ASTContext &context)
+    SemanticAnalyzer(TypeContext &typeContext, ASTContext &context)
         : typeContext(typeContext), typeParser(typeContext),
-          exprAnalysisPass(typeContext, context, *this) {
-        lexicalScopes.push(lexicalScope);
-    }
-    ~SemanticAnalysisPass() override {
-        lexicalScopes.pop();
-    }
+          exprAnalysisPass(typeContext, context, *this) {}
 
     void analyzeFunction(FunctionDecl *decl);
     void analyzeMethod(MethodDecl *decl);
     void analyzeLambda(FunctionLiteral *literal);
+    void analyzeField(FieldDecl *decl);
 
     OpaqueType visit(BlockStmt &stmt) override;
     OpaqueType visit(DeclStmt &stmt) override;
@@ -130,7 +126,7 @@ class SemanticAnalysisPass : public ASTStmtVisitor {
     TypeContext &typeContext;
     TypeParser typeParser;
 
-    ExprAnalysisPass exprAnalysisPass;
+    ExpressionAnalyzer exprAnalysisPass;
 
     std::stack<LexicalScope *> lexicalScopes;
     std::stack<std::unique_ptr<SymbolTable>> symbolTables;
@@ -139,4 +135,4 @@ class SemanticAnalysisPass : public ASTStmtVisitor {
 
 } // reflex
 
-#endif //REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYSISPASS_H_
+#endif //REFLEX_SRC_LEXICALCONTEXT_SEMANTICANALYZER_H_

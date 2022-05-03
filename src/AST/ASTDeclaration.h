@@ -41,9 +41,13 @@ class AggregateDecl : public Declaration {
   public:
     AggregateDecl(const SourceLocation *loc, Visibility visibility, std::string declname);
 
+    ScopeMember *getScope() const { return scope; }
+    void setScope(ScopeMember *lexicalScope) { scope = lexicalScope; }
+
     Visibility getVisibility() const { return visibility; }
   private:
     Visibility visibility;
+    ScopeMember *scope;
 };
 
 class FieldDecl;
@@ -70,9 +74,6 @@ class ClassDecl : public AggregateDecl {
     void addMemberDecl(FieldDecl *decl) { fields.push_back(decl); }
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
 
-    ScopeMember *getScope() const { return scope; }
-    void setScope(ScopeMember *lexicalScope) { ClassDecl::scope = lexicalScope; }
-
     ASTDeclVisitorDispatcher
   private:
     ReferenceTypenameExpr *baseclass;
@@ -81,8 +82,6 @@ class ClassDecl : public AggregateDecl {
     std::vector<AggregateDecl *> decls;
     std::vector<FieldDecl *> fields;
     std::vector<MethodDecl *> methods;
-
-    ScopeMember *scope;
 };
 
 class InterfaceDecl : public AggregateDecl {
@@ -101,17 +100,12 @@ class InterfaceDecl : public AggregateDecl {
     void addMemberDecl(MethodDecl *decl) { methods.push_back(decl); }
     void addMemberDecl(InterfaceDecl *decl) { decls.push_back(decl); }
 
-    ScopeMember *getScope() const { return scope; }
-    void setScope(ScopeMember *lexicalScope) { InterfaceDecl::scope = lexicalScope; }
-
     ASTDeclVisitorDispatcher
   private:
     std::vector<ReferenceTypenameExpr *> interfaces;
 
     std::vector<AggregateDecl *> decls;
     std::vector<MethodDecl *> methods;
-
-    ScopeMember *scope;
 };
 
 class VariableDecl : public Declaration {
