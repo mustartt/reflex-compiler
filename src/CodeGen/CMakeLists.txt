@@ -6,7 +6,11 @@ add_library(
         codegen
         ClassDataLayout.cpp
         ClassDataLayout.h
-)
+        CodeGenTarget.h
+
+        JSTarget/CodeGenJSTarget.cpp
+        JSTarget/CodeGenJSTarget.h
+        JSTarget/FunctionGenerator.cpp JSTarget/FunctionGenerator.h)
 
 target_link_libraries(codegen LINK_PUBLIC ast type)
 

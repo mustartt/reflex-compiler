@@ -20,6 +20,8 @@ class BaseClass {
 }
 
 class ConcreteImpl(BaseClass) : ID {
+    public func __init__() -> void {}
+
     public func methodA() -> void {}
     public func methodB() -> void {}
     public func methodC() -> void {}

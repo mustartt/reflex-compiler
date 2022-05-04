@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
         SemanticAnalysisPass analysisPass(typeContext, astContext, lexscope);
         analysisPass.visit(*astRoot);
 
+        printer.visit(*astRoot);
+
         ClassRTTILayout rtti(typeContext.getClassType("ConcreteImpl"));
         ClassDataLayout dataLayout(typeContext.getClassType("ConcreteImpl"));
         dataLayout.printClassLayout(std::cout);
