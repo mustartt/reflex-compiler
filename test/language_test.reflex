@@ -1,33 +1,31 @@
-func distance2(x: int, y: int) -> int {
-    var x2: int = x * x;
-    var y2: int = y * y;
-    return x2 + y2;
+interface IA {
+    public func methodA() -> void;
 }
 
-class Point {
-    public var x: int;
-    public var y: int;
-
-    public func add() -> int {
-        return x + y;
-    }
+interface IB : IA {
+    public func methodB() -> void;
 }
 
-func adderProducer(c: int) -> func(int, int) -> int {
-    return func(a: int, b: int) -> int {
-        return a + b + c;
-    };
+interface IC : IA {
+    public func methodC() -> void;
 }
 
-func makePoint() -> Point {
-    return new Point();
+interface ID : IB, IC {
+    public func methodD() -> void;
 }
 
-func main() -> void {
-    var pt: Point = new Point();
-    pt.x = 10;
-    pt.y = 20;
-    var pt2: Point = makePoint();
-    pt2.x = pt.x;
-    pt2.y = pt.y;
+class BaseClass {
+    public var base_member: int;
+    public func base_method() -> void {}
+}
+
+class ConcreteImpl(BaseClass) : ID {
+    public func methodA() -> void {}
+    public func methodB() -> void {}
+    public func methodC() -> void {}
+    public func methodD() -> void {}
+
+    public var derived_member: int;
+    public func base_method() -> void {}
+    public func other_method() -> void {}
 }

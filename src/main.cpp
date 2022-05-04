@@ -8,8 +8,8 @@
 #include <TypeContext.h>
 #include <LexicalContextForwardPass.h>
 #include <LexicalContextDeclTypePass.h>
-#include <SemanticAnalyzer.h>
 #include "SemanticAnalysisPass.h"
+#include "CodeGen/ClassDataLayout.h"
 
 int main(int argc, char *argv[]) {
     using namespace reflex;
@@ -34,18 +34,13 @@ int main(int argc, char *argv[]) {
         auto lexscope = lexicalPass.performPass(astRoot);
         typePass.performPass(astRoot);
 
-        printer.visit(*astRoot);
-        lexicalContext.dump(std::cout, lexscope);
-        typeContext.dump(std::cout);
-
-        std::cout << std::string(75, '=') << std::endl;
-
         SemanticAnalysisPass analysisPass(typeContext, astContext, lexscope);
         analysisPass.visit(*astRoot);
-        
-        printer.visit(*astRoot);
-        lexicalContext.dump(std::cout, lexscope);
-        typeContext.dump(std::cout);
+
+        ClassRTTILayout rtti(typeContext.getClassType("ConcreteImpl"));
+        ClassDataLayout dataLayout(typeContext.getClassType("ConcreteImpl"));
+        dataLayout.printClassLayout(std::cout);
+        rtti.printLayout(std::cout);
 
     } catch (UnrecoverableError &err) {
         std::cout << err.getErrorLocation()->getLocationString() << std::endl;
