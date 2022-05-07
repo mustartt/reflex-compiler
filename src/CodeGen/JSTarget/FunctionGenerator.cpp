@@ -12,18 +12,12 @@
 #include "ASTExpression.h"
 #include "ASTLiteral.h"
 
+#include "SourceOutputStream.h"
+
 namespace reflex {
 
 void FunctionGenerator::emit() {
 
-}
-
-FunctionGenerator::ScopeIndent::ScopeIndent(FunctionGenerator &gen) : gen(gen) {
-    ++gen.indent;
-}
-
-FunctionGenerator::ScopeIndent::~ScopeIndent() {
-    --gen.indent;
 }
 
 void FunctionGenerator::registerLocalDecl(VariableDecl *decl) {
@@ -41,50 +35,44 @@ std::string FunctionGenerator::getVariableName(VariableDecl *decl) {
     return "_x" + std::to_string(getLocalDeclRef(decl));
 }
 
-std::ostream &FunctionGenerator::printIndent() {
-    for (size_t i = 0; i < indent; ++i)
-        os << "  ";
-    return os;
-}
-
 OpaqueType FunctionGenerator::visit(ParamDecl &decl) {
-    os << getVariableName(&decl);
+    os.stream() << getVariableName(&decl);
     return {};
 }
 
 OpaqueType FunctionGenerator::visit(VariableDecl &decl) {
-    os << getVariableName(&decl);
+    os.stream() << getVariableName(&decl);
     return {};
 }
 
 OpaqueType FunctionGenerator::visit(FunctionDecl &decl) {
-    printIndent() << "function " << decl.getDeclname() << "(";
+    os.printIndent() << "function " << decl.getDeclname() << "(";
     auto &params = decl.getParamDecls();
     if (!params.empty()) {
         params[0]->accept(this);
         for (size_t i = 1; i < params.size(); ++i) {
-            os << ", ";
+            os.stream() << ", ";
             params[i]->accept(this);
         }
     }
-    printIndent() << ") {" << std::endl;
+    os.printIndent() << ") {" << std::endl;
     if (decl.getBody()) {
-        ScopeIndent _(*this);
+        auto _ = os.createScopeIndent();
         for (auto stmt: decl.getBody()->getStmts()) {
             stmt->accept(this);
         }
     }
-    printIndent() << "}" << std::endl;
+    os.printIndent() << "}" << std::endl;
     return {};
 }
 
 OpaqueType FunctionGenerator::visit(BlockStmt &stmt) {
-    printIndent() << "(function(){" << std::endl;
-    ScopeIndent _(*this);
+    os.printIndent() << "(function(){" << std::endl;
+    auto _ = os.createScopeIndent();
     for (auto statement: stmt.getStmts()) {
         statement->accept(this);
     }
-    printIndent() << "})();" << std::endl;
+    os.printIndent() << "})();" << std::endl;
     return {};
 }
 
@@ -157,7 +145,6 @@ OpaqueType FunctionGenerator::visit(BinaryExpr &expr) {
         "(" + StringRet::Get(expr.getLhs()->accept(this)) + ") " +
             mappedOp[expr.getBinaryOp()] +
             " (" + StringRet::Get(expr.getRhs()->accept(this)) + ")");
-
 }
 
 } // reflex

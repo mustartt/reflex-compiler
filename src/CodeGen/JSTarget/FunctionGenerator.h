@@ -13,17 +13,11 @@
 
 namespace reflex {
 
+class SourceOutputStream;
+
 class FunctionGenerator : public ASTStmtVisitor, public ASTDeclVisitor, public ASTExprVisitor {
-    class ScopeIndent {
-      public:
-        explicit ScopeIndent(FunctionGenerator &gen);
-        ~ScopeIndent();
-      private:
-        FunctionGenerator &gen;
-    };
-    friend class ScopeIndent;
   public:
-    FunctionGenerator(std::ostream &os, std::ostream &declos, FunctionDecl *funcdecl)
+    FunctionGenerator(SourceOutputStream &os, SourceOutputStream &declos, FunctionDecl *funcdecl)
         : os(os), declos(declos), funcdecl(funcdecl) {}
 
     virtual void emit();
@@ -73,11 +67,10 @@ class FunctionGenerator : public ASTStmtVisitor, public ASTDeclVisitor, public A
   private:
     void registerLocalDecl(VariableDecl *decl);
     size_t getLocalDeclRef(VariableDecl *decl) const;
-    std::ostream &printIndent();
 
     FunctionDecl *funcdecl;
-    std::ostream &os;
-    std::ostream &declos;
+    SourceOutputStream &os;
+    SourceOutputStream &declos;
     std::unordered_map<VariableDecl *, size_t> refTable;
     size_t indent = 0;
 };

@@ -10,7 +10,7 @@ add_library(
 
         JSTarget/CodeGenJSTarget.cpp
         JSTarget/CodeGenJSTarget.h
-        JSTarget/FunctionGenerator.cpp JSTarget/FunctionGenerator.h)
+        JSTarget/FunctionGenerator.cpp JSTarget/FunctionGenerator.h JSTarget/SourceOutputStream.cpp JSTarget/SourceOutputStream.h)
 
 target_link_libraries(codegen LINK_PUBLIC ast type)
 
