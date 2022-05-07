@@ -387,6 +387,24 @@ OpaqueType ExpressionAnalyzer::visit(SelectorExpr &expr) {
     };
 }
 
+ArgumentExpr *ExpressionAnalyzer::verifyFunctionType(FunctionType *funcType, ArgumentExpr &expr) {
+    if (funcType->getParamTypes().size() != expr.getArguments().size()) {
+        throw TypeError{
+            "Expected " + std::to_string(funcType->getParamTypes().size()) +
+                " but received " + std::to_string(expr.getArguments().size()) + " instead"
+        };
+    }
+    size_t index = 0;
+    for (auto arg: expr.getArguments()) {
+        auto given = Generic<Expression *>::Get(arg->accept(this));
+        auto expected = insertImplicitCast(given, funcType->getParamTypes()[index]);
+        expr.setArgument(expected, index);
+        ++index;
+    }
+    expr.setType(funcType->getReturnType());
+    return &expr;
+}
+
 OpaqueType ExpressionAnalyzer::visit(ArgumentExpr &expr) {
     auto base = Generic<Expression *>::Get(expr.getBaseExpr()->accept(this));
     expr.setBaseExpr(base);
@@ -394,7 +412,30 @@ OpaqueType ExpressionAnalyzer::visit(ArgumentExpr &expr) {
     if (auto classType = dynamic_cast<ClassType *>(base->getType())) {
         if (classType->isAbstract())
             throw TypeError{"Cannot instantiate abstract class " + classType->getTypeString()};
-        // ignore constructor
+        try { // has user defined ctor
+            auto ctor = classType->getMemberReference("__init__");
+            auto ctorFunc = dynamic_cast<FunctionType *>(ctor->getMemberAttrType());
+            if (!ctorFunc) {
+                throw TypeError{
+                    "Invalid ctor type " + ctor->getTypeString() +
+                        " for " + base->getType()->getTypeString()};
+            }
+            auto ctorRetType = dynamic_cast<ReferenceType *>(ctorFunc->getReturnType());
+            if (!ctorRetType)
+                throw TypeError{"Invalid ctor ret type " + ctorFunc->getReturnType()->getTypeString()};
+            auto retInstanceType = dynamic_cast<ClassType *>(ctorRetType->getRefType());
+            if (!retInstanceType)
+                throw TypeError{"Invalid ctor ret type " + ctorFunc->getReturnType()->getTypeString()};
+
+            verifyFunctionType(ctorFunc, expr);
+        } catch (TypeError &err) { // expect no argument
+            if (!expr.getArguments().empty()) {
+                throw TypeError{
+                    classType->getTypeString() + " has default ctor does not expect arguments"
+                };
+            }
+        }
+
         auto instanceType = typeContext.getReferenceType(classType, false);
         expr.setType(instanceType);
         return Generic<Expression *>::Create(&expr);
@@ -410,21 +451,7 @@ OpaqueType ExpressionAnalyzer::visit(ArgumentExpr &expr) {
         }
     }
     if (funcType) {
-        if (funcType->getParamTypes().size() != expr.getArguments().size()) {
-            throw TypeError{
-                "Expected " + std::to_string(funcType->getParamTypes().size()) +
-                    " but received " + std::to_string(expr.getArguments().size()) + " instead"
-            };
-        }
-        size_t index = 0;
-        for (auto arg: expr.getArguments()) {
-            auto given = Generic<Expression *>::Get(arg->accept(this));
-            auto expected = insertImplicitCast(given, funcType->getParamTypes()[index]);
-            expr.setArgument(expected, index);
-            ++index;
-        }
-        expr.setType(funcType->getReturnType());
-        return Generic<Expression *>::Create(&expr);
+        return Generic<Expression *>::Create(verifyFunctionType(funcType, expr));
     }
     throw TypeError{"Unable to apply arguments to " + base->getType()->getTypeString()};
 }
@@ -471,7 +498,7 @@ Expression *ExpressionAnalyzer::insertImplicitCast(Expression *expr, Type *targe
     }
 
     // builtin type promotion and widening
-    Operator::ImplicitConversion conversion;
+    Operator::ImplicitConversion conversion = Operator::ImplicitConversion::Invalid;
     if (fromType == typeContext.getBuiltinType(BuiltinType::Boolean)) {
         if (targetType == typeContext.getBuiltinType(BuiltinType::Character)) {
             conversion = Operator::ImplicitConversion::BoolToChar;
@@ -510,6 +537,7 @@ Expression *ExpressionAnalyzer::insertImplicitCast(Expression *expr, Type *targe
             }
             auto cast = astContext.create<ImplicitCastExpr>(expr->location(), expr, conversion);
             cast->setType(targetRefType);
+            return cast;
         }
 
         // reference null cast
@@ -577,10 +605,16 @@ Expression *ExpressionAnalyzer::insertImplicitCast(Expression *expr, Type *targe
         }
     }
 
-    throw TypeError{
-        "No implicit conversion from " + fromType->getTypeString() +
-            " to " + targetType->getTypeString()
-    };
+    if (conversion == Operator::ImplicitConversion::Invalid) {
+        throw TypeError{
+            "No implicit conversion from " + fromType->getTypeString() +
+                " to " + targetType->getTypeString()
+        };
+    }
+
+    auto cast = astContext.create<ImplicitCastExpr>(expr->location(), expr, conversion);
+    cast->setType(targetType);
+    return cast;
 }
 
 } // reflex

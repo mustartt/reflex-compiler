@@ -84,6 +84,8 @@ class ExpressionAnalyzer : public ASTExprVisitor {
 
     OpaqueType visit(FunctionLiteral &literal) override;
 
+    ArgumentExpr *verifyFunctionType(FunctionType *expected, ArgumentExpr &expr);
+
   private:
     /// Attempts to create implicit cast from @p expr original type to @p targetType
     /// by inserting ImplicitCast Conversion to the AST

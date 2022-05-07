@@ -111,6 +111,7 @@ std::string getImplicitConversion(ImplicitConversion conversion) {
         case ImplicitConversion::RefToBool: return "RefToBool";
         case ImplicitConversion::NullToRef: return "NullToRef";
         case ImplicitConversion::RefNullable: return "RefNullable";
+        case ImplicitConversion::Invalid: return "Invalid";
     }
 }
 

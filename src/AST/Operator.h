@@ -52,7 +52,8 @@ enum class ImplicitConversion {
   CharToInt, CharToNum,
   IntToNum,
   CharToBool, IntToBool, NumToBool, RefToBool,
-  RefDownCast, NullToRef, RefNullable
+  RefDownCast, NullToRef, RefNullable,
+  Invalid
 };
 
 std::string getImplicitConversion(ImplicitConversion conversion);

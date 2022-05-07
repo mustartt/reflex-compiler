@@ -1,33 +1,12 @@
-interface IA {
-    public func methodA() -> void;
+class Point {
+    public var x: num;
+    public var y: num;
+    public func __init__(x: int, y: int) -> Point {
+           this.x = x;
+           this.y = y;
+    }
 }
 
-interface IB : IA {
-    public func methodB() -> void;
-}
-
-interface IC : IA {
-    public func methodC() -> void;
-}
-
-interface ID : IB, IC {
-    public func methodD() -> void;
-}
-
-class BaseClass {
-    public var base_member: int;
-    public func base_method() -> void {}
-}
-
-class ConcreteImpl(BaseClass) : ID {
-    public func __init__() -> void {}
-
-    public func methodA() -> void {}
-    public func methodB() -> void {}
-    public func methodC() -> void {}
-    public func methodD() -> void {}
-
-    public var derived_member: int;
-    public func base_method() -> void {}
-    public func other_method() -> void {}
+func main() -> void {
+    var pt: Point = new Point(10, 20);
 }
